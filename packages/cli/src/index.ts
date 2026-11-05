@@ -12,6 +12,7 @@ import { realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { GLASS_VERSION } from '@dataflare/core/version';
+import { clientInit } from './commands/client-init.ts';
 import { events, person, projects, query, replays, sql } from './commands/data.ts';
 import { experiments, flags as flagCommands } from './commands/flags.ts';
 import { init } from './commands/init.ts';
@@ -39,6 +40,12 @@ ${color.bold('Set up')}
     --no-agent-files               Don't write AGENTS.md, SKILL.md or .mcp.json
     --no-ci                        Don't write .github/workflows/glass.yml
     --dry-run                      Show what would be created
+  dataflare client-init          Connect this app repo to an existing Dataflare deployment
+    --host <url>                  Existing Dataflare HTTPS URL (or GLASS_HOST)
+    --project <id>                App project id (default: package.json name)
+    --service <worker>            Generate same-origin Worker/DO service-binding integration
+    --dry-run                     Preview files without registering or writing
+                                   Set GLASS_API_KEY for project registration; never saved
   dataflare upgrade              Move to this CLI's version of Dataflare and migrate
                                    With .github/workflows/glass.yml: stage into .glass/ only;
                                    commit and push, and CI deploys it
@@ -88,6 +95,8 @@ Docs: https://github.com/ISNIT0/glass-analytics`;
 
 // Every option must be declared: undeclared options would parse as booleans and lose their values.
 const STRING_OPTIONS = [
+  'host',
+  'service',
   'token',
   'account',
   'project',
@@ -161,10 +170,11 @@ export async function main(argv: string[]): Promise<void> {
   const [command, sub, arg, ...rest] = positionals;
 
   if (flags.version) return line(GLASS_VERSION);
-  if (!command || command === 'help' || (flags.help && !command)) return line(HELP);
+  if (!command || command === 'help' || flags.help) return line(HELP);
 
   // Surface an outdated Worker before the real command (skip setup/status/mcp noise).
   const skipUpgradeWarn = new Set([
+    'client-init',
     'init',
     'upgrade',
     'deploy',
@@ -179,6 +189,14 @@ export async function main(argv: string[]): Promise<void> {
   }
 
   switch (command) {
+    case 'client-init':
+      return clientInit({
+        host: str(flags.host),
+        project: str(flags.project),
+        service: str(flags.service),
+        dryRun: Boolean(flags['dry-run']),
+        json: Boolean(flags.json),
+      });
     case 'init':
       return init({
         token: str(flags.token),

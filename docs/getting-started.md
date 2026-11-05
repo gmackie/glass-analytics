@@ -61,6 +61,8 @@ Each deployment is named after its project (`glass-<project>`: Worker, D1 databa
 
 **Cookie banners:** load Dataflare with `data-persistence="cookieless"` (it stores nothing on the device, so it can run before consent) and call `glass.consent(true)` when the visitor accepts, `glass.consent(false)` when they reject. Cross-day visitor ids and session replay start after consent; add `data-replay-cookieless="true"` to record visitors who haven't chosen yet, still storing nothing on the device. Add Dataflare to your privacy page.
 
+Already have a shared Dataflare deployment? Use [`dataflare client-init`](client-init.md) in each app repo to register it and generate browser and Worker/DO integration files.
+
 ## 3. Add the snippet
 
 The script tag works everywhere and needs no build step:

@@ -51,12 +51,16 @@ export interface Credentials {
 
 export const GLASS_DIR = '.glass';
 
-/** The nearest directory (from cwd upwards) containing `.glass/`, else the nearest with package.json, else cwd. */
+/** The nearest directory (from cwd upwards) containing a deployment or client config in `.glass/`, else the nearest with package.json, else cwd. */
 export function projectRoot(start = process.cwd()): string {
   let dir = resolve(start);
   let pkg: string | null = null;
   for (;;) {
-    if (existsSync(join(dir, GLASS_DIR, 'config.json'))) return dir;
+    if (
+      existsSync(join(dir, GLASS_DIR, 'config.json')) ||
+      existsSync(join(dir, GLASS_DIR, 'client.json'))
+    )
+      return dir;
     if (!pkg && existsSync(join(dir, 'package.json'))) pkg = dir;
     const parent = dirname(dir);
     if (parent === dir) return pkg ?? resolve(start);
@@ -85,6 +89,16 @@ export function loadConfig(root = projectRoot()): GlassConfig | null {
   return readJson<GlassConfig>(join(glassDir(root), 'config.json'));
 }
 
+export interface ClientConfig {
+  host: string;
+  project: string;
+  service?: string;
+}
+
+export function loadClientConfig(root = projectRoot()): ClientConfig | null {
+  return readJson<ClientConfig>(join(glassDir(root), 'client.json'));
+}
+
 export function saveConfig(config: GlassConfig, root = projectRoot()): void {
   writeJson(join(glassDir(root), 'config.json'), config);
 }
@@ -102,14 +116,14 @@ export function saveCredentials(credentials: Credentials, root = projectRoot()):
 
 /** Where to send API calls, from env vars or `.glass/`. */
 export function connection(): { host: string; key: string; project: string | undefined } {
-  const config = loadConfig();
+  const config = loadClientConfig() ?? loadConfig();
   const credentials = loadCredentials();
   const host = process.env.GLASS_HOST ?? config?.host;
   const key = process.env.GLASS_API_KEY ?? credentials?.adminKey;
   if (!host || !key) {
     throw new UsageError(
       'No Dataflare deployment found here.',
-      'Run `npx dataflare-cli init` in your project, or set GLASS_HOST and GLASS_API_KEY.',
+      'Run `npx dataflare-cli init` in your project, or run `dataflare client-init` for an existing deployment, or set GLASS_HOST and GLASS_API_KEY.',
     );
   }
   return {
