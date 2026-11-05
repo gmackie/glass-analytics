@@ -208,3 +208,37 @@ export type WebSpec = z.infer<typeof webSpec>;
 export type ExperimentSpec = z.infer<typeof experimentSpec>;
 export type SqlSpec = z.infer<typeof sqlSpec>;
 export type FilterSpec = z.infer<typeof filterSchema>;
+
+/** Session paths are bounded observations, not causal process models. */
+export const journeysSpec = z
+  .object({
+    ...common,
+    from: time
+      .optional()
+      .describe('Anchor interval start, inclusive. Default -7d; at most 7 days.'),
+    unit: z.literal('session').optional(),
+    direction: z.enum(['forward', 'backward']).optional(),
+    anchor: stepSchema
+      .optional()
+      .describe('First matching event in each session inside the anchor interval.'),
+    node: z.enum(['event', 'page']).optional(),
+    events: z
+      .array(z.string().min(1))
+      .min(1)
+      .max(100)
+      .optional()
+      .describe('Visible event names. Hidden events connect adjacent visible steps.'),
+    maxSteps: z.number().int().min(1).max(10).optional(),
+    maxLabels: z.number().int().min(1).max(10).optional(),
+    maxDuration: z
+      .string()
+      .regex(/^([1-9]\d*)(m|h)$/)
+      .optional()
+      .describe('Observation window, e.g. 30m or 1h; maximum 24h.'),
+    collapseConsecutive: z.boolean().optional(),
+  })
+  .strict()
+  .describe(
+    'Bounded session journeys, forward or backward from an anchor; returns a layered flow graph with observation limits.',
+  );
+export type JourneysSpec = z.infer<typeof journeysSpec>;

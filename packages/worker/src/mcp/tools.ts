@@ -38,6 +38,23 @@ const queryTools: ToolDefinition[] = Object.entries(INSIGHTS).map(([kind, def]) 
 
 export const TOOLS: ToolDefinition[] = [
   {
+    name: 'get_capture_policy',
+    title: 'Read capture policy',
+    description: 'Read the project collection profile and versioned event catalog (admin only).',
+    input: inputs.getCapturePolicy,
+    scope: 'admin',
+    run: (s, a) => s.getCapturePolicy(a),
+  },
+  {
+    name: 'set_capture_policy',
+    title: 'Set capture policy',
+    description:
+      'Set a higher-revision collection profile and event catalog. Does not erase existing data or establish tenant isolation.',
+    input: inputs.setCapturePolicy,
+    scope: 'admin',
+    run: (s, a) => s.setCapturePolicy(a),
+  },
+  {
     name: 'overview',
     title: 'Analytics overview',
     description:

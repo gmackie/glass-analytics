@@ -29,6 +29,8 @@ declare global {
 export class Dataflare {
   readonly version = GLASS_VERSION;
   private options: GlassOptions | null = null;
+  private collectionStopped = false;
+  private flagController: AbortController | null = null;
   private host = '';
   private store: Store | null = null;
   private transport: Transport | null = null;
@@ -46,7 +48,7 @@ export class Dataflare {
 
   /** Start Dataflare. Safe to call once; later calls are ignored. */
   init(options: GlassOptions): this {
-    if (this.options) return this;
+    if (this.options || this.collectionStopped) return this;
     if (!options?.host || !options?.project) {
       console.warn('[glass] init() needs { host, project }');
       return this;
@@ -162,7 +164,7 @@ export class Dataflare {
 
   /** Forget the user and start a new anonymous device id (call on logout). */
   reset(): void {
-    if (!this.store) return;
+    if (!this.store || this.collectionStopped) return;
     this.replay?.stop();
     this.replay = null;
     this.store.clear();
@@ -204,9 +206,14 @@ export class Dataflare {
 
   /** Re-fetch flags (after identify or a property change, for example). */
   async reloadFlags(): Promise<void> {
+    if (this.collectionStopped) return;
     if (!this.store || !this.options) return;
     try {
+      this.flagController?.abort();
+      const controller = new AbortController();
+      this.flagController = controller;
       const res = await fetch(`${this.host}/f`, {
+        signal: controller.signal,
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({
@@ -217,13 +224,16 @@ export class Dataflare {
       });
       if (!res.ok) return;
       const data = (await res.json()) as { flags?: Record<string, string> };
+      if (this.collectionStopped || !this.store) return;
       this.flagValues = data.flags ?? {};
       this.store.set('flags', JSON.stringify(this.flagValues));
     } catch {
       // Offline: keep cached values.
     } finally {
-      this.flagsLoaded = true;
-      for (const listener of this.flagListeners) listener(this.flags());
+      if (!this.collectionStopped) {
+        this.flagsLoaded = true;
+        for (const listener of this.flagListeners) listener(this.flags());
+      }
     }
   }
 
@@ -232,7 +242,7 @@ export class Dataflare {
    * `false` deletes stored ids, stops replay and switches to cookieless mode.
    */
   consent(granted: boolean): void {
-    if (!this.store) return;
+    if (!this.store || this.collectionStopped) return;
     const wasCookieless = this.store.cookieless;
     this.store.setPersistence(granted ? 'localStorage' : 'cookieless');
     this.replayDeclined = !granted;
@@ -277,6 +287,24 @@ export class Dataflare {
   /** Send queued events now. */
   flush(): Promise<void> {
     return this.transport?.flush() ?? Promise.resolve();
+  }
+
+  /** Stop collection for this instance without flushing queued events. Reinitialize only with a new instance. */
+  optOut(): void {
+    this.collectionStopped = true;
+    for (const fn of this.teardown.splice(0)) fn();
+    this.replayDeclined = true;
+    this.replay?.stop({ discard: true });
+    this.replay = null;
+    this.transport?.stop();
+    this.transport = null;
+    this.store?.setPersistence('cookieless');
+    this.store = null;
+    this.flagController?.abort();
+    this.flagListeners.clear();
+    this.flagsLoaded = false;
+    this.flagValues = {};
+    this.options = null;
   }
 
   /** Stop all autocapture and replay. Mainly for tests and hot reloading. */

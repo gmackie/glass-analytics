@@ -1,3 +1,4 @@
+import { requireStandardCapture } from './capture-policy.ts';
 /**
  * Feature flag storage and the public evaluation endpoint (`POST /f`).
  *
@@ -135,6 +136,7 @@ export async function handleFlagEvaluation(
   }>(request, 10_000);
   if (!body.project || !(await getProject(env.DB, body.project)))
     throw new HttpError(404, 'Unknown project');
+  await requireStandardCapture(env, body.project);
   // Cookieless visitors have no stable id, so they can't be bucketed consistently.
   if (!body.distinct_id) return { flags: {} };
   const flags = await listFlags(env.DB, body.project);

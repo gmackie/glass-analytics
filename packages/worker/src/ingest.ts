@@ -15,6 +15,7 @@
  * independently (see docs/extending.md, "Enriching events").
  */
 
+import { applyCapturePolicy } from '@dataflare/core/capture-policy';
 import {
   isValidEventName,
   type StoredEvent,
@@ -24,6 +25,7 @@ import {
 import { sha256Hex } from '@dataflare/core/hash';
 import { isBot, parseUserAgent } from '@dataflare/core/ua';
 import { parsePage, referrerHost } from '@dataflare/core/url';
+import { loadCapturePolicy } from './capture-policy.ts';
 import type { D1Database, Env } from './env.ts';
 import { HttpError, readJson } from './http.ts';
 import { getProject } from './projects.ts';
@@ -70,7 +72,7 @@ export async function handleIngest(
   store: EventStore,
   now = Date.now(),
 ): Promise<IngestResult> {
-  const info = requestInfo(request);
+  let info = requestInfo(request);
   const batch = await readJson<Partial<WireBatch>>(request, 1_000_000);
   if (typeof batch.project !== 'string' || !Array.isArray(batch.events)) {
     throw new HttpError(400, 'Expected { project, events: [...] }');
@@ -93,10 +95,29 @@ export async function handleIngest(
   // Server-side senders often have no user agent; only browsers that look like bots are dropped.
   if (info.userAgent && isBot(info.userAgent)) return { accepted: 0, dropped: batch.events.length };
 
-  const events = batch.events.slice(0, MAX_EVENTS).filter(isWellFormed);
+  const policy = await loadCapturePolicy(env, project.id);
+  if (policy?.profile === 'disabled') return { accepted: 0, dropped: batch.events.length };
+  let events = batch.events.slice(0, MAX_EVENTS).filter(isWellFormed);
+  if (policy)
+    events = events
+      .map((e) => applyCapturePolicy(e, policy))
+      .filter((e): e is WireEvent => e !== null);
+  if (policy?.profile === 'aggregate') {
+    events = await Promise.all(
+      events.map(async (e) => {
+        const id = await sha256Hex(
+          `${env.GLASS_SALT_SECRET ?? env.GLASS_ADMIN_KEY}:${project.id}:${e.id}`,
+        );
+        return { ...e, id, distinct_id: `a_${id}`, session_id: `a_${id}` };
+      }),
+    );
+  }
+  if (policy?.profile === 'aggregate')
+    info = { ip: '', userAgent: '', origin: info.origin, country: '', region: '', city: '' };
   const skew = typeof batch.sent_at === 'number' ? now - batch.sent_at : 0;
   const rows = await toRows(events, {
     project: project.id,
+    aggregate: policy?.profile === 'aggregate',
     info,
     now,
     skew,
@@ -121,6 +142,7 @@ function isWellFormed(e: unknown): e is WireEvent {
 }
 
 interface RowContext {
+  aggregate?: boolean;
   project: string;
   info: RequestInfo;
   now: number;
@@ -136,7 +158,9 @@ const str = (v: unknown, max = 500): string =>
 /** Steps 4–6 for a validated batch. */
 async function toRows(events: WireEvent[], ctx: RowContext): Promise<StoredEvent[]> {
   if (events.length === 0) return [];
-  const anonymous = await deriveCookielessIds(ctx);
+  const anonymous = events.every((e) => e.distinct_id && e.session_id)
+    ? { distinctId: '', sessionId: (_ts: number) => '' }
+    : await deriveCookielessIds(ctx);
   const withIds = events.map((e) => {
     const ts = Math.min(
       ctx.now + 60_000,
@@ -144,12 +168,22 @@ async function toRows(events: WireEvent[], ctx: RowContext): Promise<StoredEvent
     );
     const distinct = str(e.distinct_id, 200) || anonymous.distinctId;
     const session = str(e.session_id, 100) || anonymous.sessionId(ts);
-    return { e, ts, distinct, user: str(e.user_id, 200) || null, session };
+    return {
+      e,
+      ts: ctx.aggregate ? Math.floor(ts / 86_400_000) * 86_400_000 : ts,
+      distinct,
+      user: str(e.user_id, 200) || null,
+      session,
+    };
   });
 
-  await applyIdentity(ctx, withIds);
-  const personOf = await resolvePersons(ctx, withIds);
-  const propsOf = await personProperties(ctx, [...new Set(personOf.values())]);
+  if (!ctx.aggregate) await applyIdentity(ctx, withIds);
+  const personOf = ctx.aggregate
+    ? new Map(withIds.map(({ distinct }) => [distinct + '\u0000', distinct]))
+    : await resolvePersons(ctx, withIds);
+  const propsOf = ctx.aggregate
+    ? new Map<string, string>()
+    : await personProperties(ctx, [...new Set(personOf.values())]);
   const ua = parseUserAgent(ctx.info.userAgent);
 
   return withIds.map(({ e, ts, distinct, user, session }) => {

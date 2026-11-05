@@ -174,6 +174,8 @@ function watchNetwork(
 }
 
 function startReplay(options: ReplayStartOptions): ReplayController {
+  let discarded = false;
+  const activeUploads = new Set<AbortController>();
   let mode = options.mode;
   // A session spans page loads, and each load restarts `seq`; the page id keeps chunk keys unique.
   const page = Math.random().toString(36).slice(2, 10);
@@ -237,36 +239,47 @@ function startReplay(options: ReplayStartOptions): ReplayController {
     body: string,
     pageIsHidden: boolean,
   ): Promise<void> {
-    // sendBeacon returns false when the body is over the browser's limit; then try the slower ways.
-    if (
-      pageIsHidden &&
-      body.length <= BEACON_CHARS &&
-      navigator.sendBeacon?.(target('json'), new Blob([body], { type: 'text/plain' }))
-    )
-      return;
-    let res: Response;
-    if (typeof CompressionStream === 'undefined') {
-      res = await originalFetch(target('json'), {
-        method: 'POST',
-        body,
-        headers: { 'Content-Type': 'text/plain' },
-        keepalive: body.length <= BEACON_CHARS,
-      });
-    } else {
-      const gz = await new Response(
-        new Blob([body]).stream().pipeThrough(new CompressionStream('gzip')),
-      ).blob();
-      // keepalive lets the upload finish if the page navigates away, but only small bodies may use it.
-      res = await originalFetch(target('gzip'), {
-        method: 'POST',
-        body: new Blob([gz], { type: 'text/plain' }),
-        keepalive: gz.size <= BEACON_CHARS,
-      });
+    if (discarded) return;
+    const controller = new AbortController();
+    activeUploads.add(controller);
+    try {
+      // sendBeacon returns false when the body is over the browser's limit; then try the slower ways.
+      if (
+        pageIsHidden &&
+        body.length <= BEACON_CHARS &&
+        navigator.sendBeacon?.(target('json'), new Blob([body], { type: 'text/plain' }))
+      )
+        return;
+      let res: Response;
+      if (typeof CompressionStream === 'undefined') {
+        res = await originalFetch(target('json'), {
+          signal: controller.signal,
+          method: 'POST',
+          body,
+          headers: { 'Content-Type': 'text/plain' },
+          keepalive: body.length <= BEACON_CHARS,
+        });
+      } else {
+        const gz = await new Response(
+          new Blob([body]).stream().pipeThrough(new CompressionStream('gzip')),
+        ).blob();
+        if (discarded) return;
+        // keepalive lets the upload finish if the page navigates away, but only small bodies may use it.
+        res = await originalFetch(target('gzip'), {
+          signal: controller.signal,
+          method: 'POST',
+          body: new Blob([gz], { type: 'text/plain' }),
+          keepalive: gz.size <= BEACON_CHARS,
+        });
+      }
+      if (res.status >= 500 || res.status === 429) throw new Error(`upload failed: ${res.status}`);
+    } finally {
+      activeUploads.delete(controller);
     }
-    if (res.status >= 500 || res.status === 429) throw new Error(`upload failed: ${res.status}`);
   }
 
   async function upload(pageIsHidden: boolean): Promise<void> {
+    if (discarded) return;
     if (uploadTimer !== undefined) clearTimeout(uploadTimer);
     uploadTimer = undefined;
     if (pending.length === 0) return;
@@ -326,6 +339,7 @@ function startReplay(options: ReplayStartOptions): ReplayController {
   }
 
   function onEvent(event: RecordedEvent, isCheckout?: boolean): void {
+    if (discarded) return;
     if (mode === 'buffer') {
       if (isCheckout) {
         segments.push([]);
@@ -398,7 +412,14 @@ function startReplay(options: ReplayStartOptions): ReplayController {
   addEventListener('pagehide', onHide);
 
   return {
-    stop() {
+    stop(stopOptions = {}) {
+      if (stopOptions.discard) {
+        discarded = true;
+        pending = [];
+        segments = [[]];
+        if (uploadTimer !== undefined) clearTimeout(uploadTimer);
+        for (const controller of activeUploads) controller.abort();
+      }
       for (const fn of restore) fn();
       stopRecording?.();
       clearInterval(timer);
@@ -406,7 +427,7 @@ function startReplay(options: ReplayStartOptions): ReplayController {
       removeEventListener('popstate', checkUrl);
       removeEventListener('visibilitychange', onHide);
       removeEventListener('pagehide', onHide);
-      void upload(true);
+      if (!discarded) void upload(true);
     },
     flushBuffer() {
       if (mode !== 'buffer') return;

@@ -270,6 +270,84 @@ describe('Dataflare end to end', { timeout: 120_000 }, () => {
     await page.close();
   });
 
+  it('renders session Sankeys, reverse paths, accessible tables and saved journey insights', async () => {
+    const page = await context.newPage();
+    const problems: string[] = [];
+    page.on('pageerror', (e) => problems.push(e.message));
+    const spec = {
+      anchor: { event: 'signup_completed' },
+      maxSteps: 6,
+      maxDuration: '1h',
+      collapseConsecutive: true,
+    };
+    const url = `${server.glassUrl}/app#/insights/journeys?project=demo&from=-1h&spec=${encodeURIComponent(JSON.stringify(spec))}`;
+    await page.goto(url);
+    await page.waitForSelector('.journey-sankey svg');
+    assert.ok(await page.locator('.journey-sankey path').count());
+    await page.getByText('Transition table', { exact: true }).click();
+    await page.waitForSelector('.journey-view table');
+    assert.match((await page.textContent('.journey-view')) ?? '', /sessions/);
+    await page.screenshot({ path: `${SHOTS}dashboard-journeys.png`, fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.equal(
+      await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
+      false,
+    );
+    await page.setViewportSize({ width: 1280, height: 860 });
+    await api('POST', '/api/insights', {
+      project: 'demo',
+      name: 'Signup journeys',
+      kind: 'journeys',
+      spec,
+    });
+    await page.goto(`${server.glassUrl}/app#/insights/signup-journeys?project=demo&from=-1h`);
+    await page.waitForSelector('.journey-sankey svg');
+    await page.goto(
+      `${url.replace(encodeURIComponent(JSON.stringify(spec)), encodeURIComponent(JSON.stringify({ ...spec, direction: 'backward' })))}`,
+    );
+    await page.waitForSelector('.journey-sankey svg');
+    assert.match((await page.textContent('.summary')) ?? '', /backward/);
+    assert.deepEqual(problems, []);
+    await page.close();
+  });
+
+  it('optOut discards queued events and prevents future SDK collection', async () => {
+    const page = await context.newPage();
+    await page.goto(`${server.demoUrl}/`);
+    await page.waitForFunction(() =>
+      Boolean((window as unknown as { glass?: { optOut?: unknown } }).glass?.optOut),
+    );
+    await page.evaluate(() => {
+      const client = (
+        window as unknown as { glass: { capture(name: string): void; optOut(): void } }
+      ).glass;
+      client.capture('must_never_arrive');
+      client.optOut();
+      client.capture('must_never_arrive_after');
+    });
+    let requests = 0;
+    page.on('request', (request) => {
+      if (/\/(e|r|f)(\?|$)/.test(new URL(request.url()).pathname)) requests++;
+    });
+    await page.evaluate(() => {
+      window.dispatchEvent(new Event('pagehide'));
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    await page.waitForTimeout(300);
+    assert.equal(requests, 0);
+    const result = await api<{ series: { total: number }[] }>('POST', '/api/query', {
+      kind: 'trends',
+      project: 'demo',
+      from: '-1h',
+      series: [{ event: 'must_never_arrive' }, { event: 'must_never_arrive_after' }],
+    });
+    assert.deepEqual(
+      result.series.map((s) => s.total),
+      [0, 0],
+    );
+    await page.close();
+  });
+
   it('records a short visit to a page bigger than a beacon', async () => {
     // Most real pages' DOM snapshots are bigger than the 64 KB a page can send as it closes.
     const visitor = await browser.newContext({ userAgent: UA });

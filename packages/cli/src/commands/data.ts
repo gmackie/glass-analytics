@@ -5,6 +5,7 @@
  */
 
 import type { FunnelResult } from '@dataflare/core/insights/funnel';
+import type { JourneysResult } from '@dataflare/core/insights/journeys';
 import type { RetentionResult } from '@dataflare/core/insights/retention';
 import type { TrendsResult } from '@dataflare/core/insights/trends';
 import type { WebResult } from '@dataflare/core/insights/web';
@@ -42,6 +43,13 @@ function specFromFlags(kind: string, flags: Flags): Record<string, unknown> {
         })
       : undefined;
   switch (kind) {
+    case 'journeys':
+      return {
+        from: common.from,
+        to: common.to,
+        filters,
+        anchor: str(flags.event) ? { event: str(flags.event) } : undefined,
+      };
     case 'web':
       return { from: common.from, to: common.to, filters };
     case 'trends': {
@@ -88,7 +96,7 @@ function specFromFlags(kind: string, flags: Flags): Record<string, unknown> {
     default:
       throw new UsageError(
         `Unknown query "${kind}".`,
-        'Use web, trends, funnel or retention (or `dataflare sql`).',
+        'Use web, trends, funnel, retention or journeys (or `dataflare sql`).',
       );
   }
 }
@@ -97,7 +105,7 @@ export async function query(kind: string | undefined, flags: Flags): Promise<voi
   if (!kind)
     throw new UsageError(
       'Which query?',
-      'dataflare query web|trends|funnel|retention [options]; see `dataflare help query`.',
+      'dataflare query web|trends|funnel|retention|journeys [options]; see `dataflare help query`.',
     );
   const result = await call<
     Record<string, unknown> & { summary: string; sql: string[]; dashboard: string }
@@ -129,6 +137,13 @@ export async function query(kind: string | undefined, flags: Flags): Promise<voi
     table(
       ['Referrer', 'Visitors'],
       r.breakdowns.referrers.slice(0, 8).map((p) => [p.value, p.visitors]),
+    );
+  } else if (kind === 'journeys') {
+    const r = result as unknown as JourneysResult;
+    const labels = new Map(r.nodes.map((n) => [n.id, `${n.step + 1}: ${n.label}`]));
+    table(
+      ['From', 'To', 'Sessions'],
+      r.edges.map((e) => [labels.get(e.source) ?? '', labels.get(e.target) ?? '', e.count]),
     );
   } else if (kind === 'trends') {
     const r = result as unknown as TrendsResult;

@@ -11,6 +11,8 @@ export interface QueryContext {
   project: string;
   /** Override "now" (tests, reproducible reports). */
   now?: number;
+  /** Conservative source visibility delay. */
+  freshnessSeconds?: number;
 }
 
 /** Fields every insight result carries, so agents can always show their working. */

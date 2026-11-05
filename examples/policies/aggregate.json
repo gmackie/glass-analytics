@@ -1,0 +1,15 @@
+{
+  "revision": 1,
+  "profile": "aggregate",
+  "catalog": {
+    "version": 1,
+    "events": [
+      {
+        "name": "lesson_completed",
+        "description": "Synthetic completion count",
+        "eventClass": "product",
+        "properties": { "subject": { "type": "string", "values": ["math", "reading"] } }
+      }
+    ]
+  }
+}

@@ -117,7 +117,7 @@ export interface ReplayStartOptions {
 
 export interface ReplayController {
   /** Stop recording and upload what is pending. */
-  stop(): void;
+  stop(options?: { discard?: boolean }): void;
   /** Switch from buffer mode to recording: upload the buffer and keep going. */
   flushBuffer(): void;
   /** Count an error against the current chunk (shown in the replay list). */

@@ -183,7 +183,9 @@ describe('identity and persons', () => {
   beforeEach(() => setup());
 
   it('links devices to users and snapshots person properties onto events', async () => {
-    await t.ingest([wire('$pageview', { url: 'https://acme.com/pricing' })]);
+    await t.ingest([
+      wire('$pageview', { url: 'https://acme.com/pricing', ts: Date.now() - 10_000 }),
+    ]);
     await t.ingest([
       wire('$identify', {
         user_id: 'alice',

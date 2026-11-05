@@ -10,6 +10,7 @@
  */
 
 import type { FunnelResult } from '@dataflare/core/insights/funnel';
+import type { JourneysResult } from '@dataflare/core/insights/journeys';
 import type { RetentionResult } from '@dataflare/core/insights/retention';
 import type { TrendsResult } from '@dataflare/core/insights/trends';
 import { api } from '../api.ts';
@@ -27,6 +28,7 @@ import {
 import { previousRange } from '../components/date-range.ts';
 import { cleanFilters, type FilterRow, filterEditor } from '../components/filter-editor.ts';
 import { type IconName, icon } from '../components/icons.ts';
+import { journeyChart } from '../components/journeys.ts';
 import { modal, popover, selectMenu } from '../components/menu.ts';
 import { eventPicker, propertyPicker } from '../components/picker.ts';
 import { INSIGHT_PROMPT } from '../components/prompts.ts';
@@ -47,27 +49,38 @@ import { type Child, h, mount } from '../dom.ts';
 import { ago, count, percent } from '../format.ts';
 import { go, href, prefs, type Route, scope } from '../state.ts';
 
-type Kind = 'trends' | 'funnel' | 'retention';
+type Kind = 'trends' | 'funnel' | 'retention' | 'journeys';
 type Spec = Record<string, unknown>;
 
-const KINDS: Kind[] = ['trends', 'funnel', 'retention'];
+const KINDS: Kind[] = ['trends', 'funnel', 'retention', 'journeys'];
 const KIND_LABEL: Record<Kind, string> = {
+  journeys: 'Journeys',
   trends: 'Trends',
   funnel: 'Funnel',
   retention: 'Retention',
 };
 const KIND_ICON: Record<Kind, IconName> = {
+  journeys: 'funnel',
   trends: 'lineChart',
   funnel: 'funnel',
   retention: 'retention',
 };
 const KIND_BLURB: Record<Kind, string> = {
+  journeys: 'Explore branching session paths with a Sankey diagram.',
   trends: 'Counts, uniques or sums of any event over time.',
   funnel: 'How many people complete a sequence of steps.',
   retention: 'How many people come back after their first visit.',
 };
 
 const DEFAULTS: Record<Kind, Spec> = {
+  journeys: {
+    anchor: { event: '$pageview' },
+    direction: 'forward',
+    node: 'event',
+    maxSteps: 6,
+    maxDuration: '1h',
+    collapseConsecutive: true,
+  },
   trends: { series: [{ event: '$pageview', math: 'total' }], interval: 'day' },
   funnel: { steps: [{ event: '$pageview' }, { event: '' }], window: '7d' },
   retention: {
@@ -227,6 +240,104 @@ const WINDOWS = ['1h', '1d', '3d', '7d', '14d', '30d', '90d'].map((w) => ({
 function builder(kind: Kind, spec: Spec, update: () => void, project?: string): HTMLElement {
   if (!Array.isArray(spec.filters)) spec.filters = [];
 
+  if (kind === 'journeys') {
+    if (!spec.anchor) spec.anchor = { event: '$pageview' };
+    const anchor = spec.anchor as StepSpec;
+    return h(
+      'div',
+      { class: 'builder-stack' },
+      section(
+        'Anchor event',
+        eventPicker({
+          value: anchor.event,
+          project,
+          label: 'Journey anchor',
+          onChange: (v) => {
+            anchor.event = v;
+            update();
+          },
+        }),
+      ),
+      section(
+        'Direction',
+        selectMenu({
+          value: String(spec.direction ?? 'forward'),
+          label: 'Journey direction',
+          options: [
+            { value: 'forward', label: 'After anchor' },
+            { value: 'backward', label: 'Before anchor' },
+          ],
+          onChange: (v) => {
+            spec.direction = v;
+            update();
+          },
+        }),
+      ),
+      section(
+        'Nodes',
+        selectMenu({
+          value: String(spec.node ?? 'event'),
+          label: 'Journey nodes',
+          options: [
+            { value: 'event', label: 'Events' },
+            { value: 'page', label: 'Page paths' },
+          ],
+          onChange: (v) => {
+            spec.node = v;
+            update();
+          },
+        }),
+      ),
+      section(
+        'Observation window',
+        selectMenu({
+          value: String(spec.maxDuration ?? '1h'),
+          label: 'Journey duration',
+          options: ['30m', '1h', '6h', '24h'].map((v) => ({ value: v, label: v })),
+          onChange: (v) => {
+            spec.maxDuration = v;
+            update();
+          },
+        }),
+      ),
+      section(
+        'Maximum steps',
+        selectMenu({
+          value: String(spec.maxSteps ?? 6),
+          label: 'Journey steps',
+          options: [3, 6, 10].map((v) => ({ value: String(v), label: String(v) })),
+          onChange: (v) => {
+            spec.maxSteps = Number(v);
+            update();
+          },
+        }),
+      ),
+      section(
+        'Repeated steps',
+        selectMenu({
+          value: spec.collapseConsecutive ? 'collapse' : 'keep',
+          label: 'Consecutive repeats',
+          options: [
+            { value: 'collapse', label: 'Collapse consecutive repeats' },
+            { value: 'keep', label: 'Keep every repeat' },
+          ],
+          onChange: (v) => {
+            spec.collapseConsecutive = v === 'collapse';
+            update();
+          },
+        }),
+      ),
+      section(
+        'Sessions with an event matching',
+        filterEditor(spec.filters as FilterRow[], update, { project, cohorts: true }),
+      ),
+      h(
+        'p',
+        { class: 'muted small' },
+        'Choose at most seven days in the date picker. Equal-time events use event id order, not causal order.',
+      ),
+    );
+  }
   if (kind === 'trends') {
     const series = spec.series as SeriesSpec[];
     return h(
@@ -707,6 +818,13 @@ function cardPreview(insight: SavedInsight): HTMLElement {
           ),
         );
       }
+      if (insight.kind === 'journeys')
+        return h(
+          'div',
+          { class: 'card-preview' },
+          h('div', { class: 'card-number' }, count((r as unknown as JourneysResult).sessions)),
+          h('span', { class: 'muted small' }, ' session journeys'),
+        );
       const rr = r as unknown as RetentionResult;
       const now = Date.now();
       let last = rr.average.length - 1;
@@ -869,6 +987,8 @@ function editorView(options: {
     `Using the Dataflare MCP tool query_${kind}, run ${JSON.stringify(shareable())} and explain what it shows.`;
 
   const ready = () => {
+    if (kind === 'journeys')
+      return !(spec.anchor as StepSpec | undefined) || Boolean((spec.anchor as StepSpec).event);
     if (kind === 'funnel') return (spec.steps as StepSpec[]).every((s) => s.event);
     if (kind === 'trends')
       return (spec.series as SeriesSpec[]).every(
@@ -914,16 +1034,18 @@ function editorView(options: {
       ]);
       if (id !== runId) return;
       const view =
-        kind === 'trends'
-          ? trendsView(result as unknown as TrendsResult, previous, chartType)
-          : kind === 'funnel'
-            ? (result as unknown as FunnelResult).steps[0]?.count
-              ? funnelChart((result as unknown as FunnelResult).steps, {
-                  windowSeconds: (result as unknown as FunnelResult).windowSeconds,
-                  breakdowns: (result as unknown as FunnelResult).breakdowns,
-                })
-              : empty('No one did the first step in this period.', undefined, { icon: 'funnel' })
-            : retentionView(result as unknown as RetentionResult);
+        kind === 'journeys'
+          ? journeyChart(result as unknown as JourneysResult)
+          : kind === 'trends'
+            ? trendsView(result as unknown as TrendsResult, previous, chartType)
+            : kind === 'funnel'
+              ? (result as unknown as FunnelResult).steps[0]?.count
+                ? funnelChart((result as unknown as FunnelResult).steps, {
+                    windowSeconds: (result as unknown as FunnelResult).windowSeconds,
+                    breakdowns: (result as unknown as FunnelResult).breakdowns,
+                  })
+                : empty('No one did the first step in this period.', undefined, { icon: 'funnel' })
+              : retentionView(result as unknown as RetentionResult);
       mount(
         output,
         panel(
@@ -1113,9 +1235,11 @@ function editorView(options: {
         : h(
             'span',
             { class: 'muted small' },
-            kind === 'funnel'
-              ? 'Counts unique people who did each step in order.'
-              : 'Cohorts by the period of each person’s first event.',
+            kind === 'journeys'
+              ? 'Link widths count sessions; observation is bounded.'
+              : kind === 'funnel'
+                ? 'Counts unique people who did each step in order.'
+                : 'Cohorts by the period of each person’s first event.',
           ),
       h('span', { class: 'toolbar-spacer' }),
       status,

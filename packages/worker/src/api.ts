@@ -125,6 +125,15 @@ export function apiRouter(service: GlassService, env: Env, request: Request): Ro
   });
 
   r.get('/api/overview', async ({ url }) => json(await service.overview(params(url))));
+  r.get('/api/capture-policy', async ({ url }) => {
+    admin();
+    return json(await service.getCapturePolicy(params(url)));
+  });
+  r.put('/api/capture-policy', async () => {
+    admin();
+    return json(await service.setCapturePolicy(await body()));
+  });
+
   r.post('/api/query', async () => {
     const { kind, ...spec } = await body();
     return json(await service.runInsight(String(kind ?? ''), spec));

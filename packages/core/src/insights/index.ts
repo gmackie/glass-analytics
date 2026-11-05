@@ -9,8 +9,9 @@
 
 import type { z } from 'zod/v4';
 import { runFunnel } from './funnel.ts';
+import { runJourneys } from './journeys.ts';
 import { runRetention } from './retention.ts';
-import { funnelSpec, retentionSpec, trendsSpec, webSpec } from './schemas.ts';
+import { funnelSpec, journeysSpec, retentionSpec, trendsSpec, webSpec } from './schemas.ts';
 import { runTrends } from './trends.ts';
 import type { QueryContext, ResultBase } from './types.ts';
 import { runWeb } from './web.ts';
@@ -32,6 +33,12 @@ function define<S extends z.ZodType, R extends ResultBase>(
 }
 
 export const INSIGHTS = {
+  journeys: define({
+    description:
+      'Bounded forward/backward session paths with branching, repeats and observation limits. Counts sessions, not causal effects.',
+    schema: journeysSpec,
+    run: runJourneys,
+  }),
   web: define({
     description:
       'Web analytics overview for a period: visitors, pageviews, sessions, bounce rate, session length, top pages, referrers, UTMs, countries, devices, errors and web vitals.',
@@ -66,6 +73,7 @@ export function isInsightKind(kind: string): kind is InsightKind {
 
 export * from './experiment.ts';
 export * from './funnel.ts';
+export * from './journeys.ts';
 export * from './retention.ts';
 export * from './schemas.ts';
 export * from './trends.ts';

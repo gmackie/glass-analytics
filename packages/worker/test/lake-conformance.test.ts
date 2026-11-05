@@ -162,6 +162,28 @@ function fixture(now: number) {
 }
 
 const READS: [string, string, unknown?][] = [
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'journeys',
+      from: '-7d',
+      anchor: { event: '$pageview' },
+      maxDuration: '1h',
+      maxLabels: 2,
+    },
+  ],
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'journeys',
+      from: '-7d',
+      anchor: { event: 'signup_completed' },
+      direction: 'backward',
+      node: 'page',
+    },
+  ],
   ['GET', '/api/overview?from=-7d'],
   ['POST', '/api/query', { kind: 'web', from: '-7d' }],
   [
@@ -278,6 +300,9 @@ const READS: [string, string, unknown?][] = [
 
 /** Fields that legitimately differ by store: generated SQL, links, store names and freshness notes. */
 const IGNORED = new Set([
+  'asOf',
+  'contextTo',
+  'freshnessSeconds',
   'sql',
   'dashboard',
   'store',

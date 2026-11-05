@@ -1,3 +1,5 @@
+import { capturePolicySchema } from '@dataflare/core/capture-policy';
+import { loadCapturePolicy } from './capture-policy.ts';
 /**
  * The Dataflare service: every operation the HTTP API, the MCP server and the
  * dashboard can perform, in one place. Inputs are validated here (with the
@@ -93,7 +95,7 @@ const SESSION_MATCH_LIMIT = 1000;
 const SETTLED_MS = 30 * 60_000;
 /** analyse_replays computes at most this many missing summaries per call (each reads every chunk of a session). */
 const FRESH_SUMMARIES_PER_CALL = 3;
-const insightKind = z.enum(['trends', 'funnel', 'retention']);
+const insightKind = z.enum(['trends', 'funnel', 'retention', 'journeys']);
 
 const csv = (v: unknown) =>
   typeof v === 'string'
@@ -189,6 +191,8 @@ const reportRange = {
 };
 
 export const inputs = {
+  getCapturePolicy: z.object({ project }),
+  setCapturePolicy: z.object({ project, policy: capturePolicySchema }),
   overview: z.object({
     project,
     from: z.union([z.string(), z.number()]).optional(),
@@ -497,7 +501,12 @@ export class GlassService {
 
   private async context(requested?: string): Promise<QueryContext> {
     const project = await resolveProject(this.env.DB, requested);
-    return { dialect: this.store.dialect, project, execute: (sql) => this.store.query(sql) };
+    return {
+      freshnessSeconds: this.store.freshnessSeconds,
+      dialect: this.store.dialect,
+      project,
+      execute: (sql) => this.store.query(sql),
+    };
   }
 
   /** A link to the same view in the dashboard, included in every response. */
@@ -528,6 +537,45 @@ export class GlassService {
 
   // ── Queries ──────────────────────────────────────────────────────────────
 
+  async getCapturePolicy(input: unknown) {
+    const spec = inputs.getCapturePolicy.parse(input);
+    const project = await resolveProject(this.env.DB, spec.project);
+    return { project, policy: await loadCapturePolicy(this.env, project) };
+  }
+
+  async setCapturePolicy(input: unknown) {
+    const spec = inputs.setCapturePolicy.parse(input);
+    const project = await resolveProject(this.env.DB, spec.project);
+    const previous = await loadCapturePolicy(this.env, project);
+    if (previous && spec.policy.revision <= previous.revision) {
+      if (JSON.stringify(previous) === JSON.stringify(spec.policy))
+        return { project, policy: previous };
+      throw new HttpError(
+        409,
+        'Policy revision must increase.',
+        'Read the current policy and use a higher revision.',
+      );
+    }
+    // Conditional upsert also protects against concurrent stale policy updates.
+    await this.env.DB.prepare(`INSERT INTO capture_policies (project, revision, policy, updated_at) VALUES (?, ?, ?, ?)
+      ON CONFLICT(project) DO UPDATE SET revision = excluded.revision, policy = excluded.policy, updated_at = excluded.updated_at
+      WHERE excluded.revision > capture_policies.revision`)
+      .bind(project, spec.policy.revision, JSON.stringify(spec.policy), Date.now())
+      .run();
+    const saved = await loadCapturePolicy(this.env, project);
+    if (JSON.stringify(saved) !== JSON.stringify(spec.policy))
+      throw new HttpError(
+        409,
+        'A newer policy was saved concurrently.',
+        'Read it before retrying.',
+      );
+    return {
+      project,
+      policy: saved,
+      summary: `Capture policy ${spec.policy.profile} revision ${spec.policy.revision} saved. Existing data is unchanged.`,
+    };
+  }
+
   async runInsight(kind: string, input: unknown) {
     if (!isInsightKind(kind)) {
       throw new HttpError(
@@ -539,6 +587,13 @@ export class GlassService {
     const def = INSIGHTS[kind as InsightKind];
     const spec = def.schema.parse(input) as { project?: string };
     const ctx = await this.context(spec.project);
+    const policy = await loadCapturePolicy(this.env, ctx.project);
+    if (kind === 'journeys' && policy?.profile === 'aggregate')
+      throw new HttpError(
+        403,
+        'Session journeys are disabled for aggregate collection.',
+        'Aggregate events have no session identity.',
+      );
     const run = def.run as unknown as (s: unknown, c: QueryContext) => Promise<ResultBase>;
     const result = await run(await this.resolveCohorts(ctx.project, spec), ctx);
     // Web lives under Reports; trends/funnel/retention stay as ephemeral Insights links.
@@ -2059,7 +2114,7 @@ WHERE project = ${d.str(project)} AND session_id = ${d.str(row.session_id)} AND 
       key: r.key,
       name: r.name,
       description: r.description,
-      kind: r.kind as 'trends' | 'funnel' | 'retention',
+      kind: r.kind as 'trends' | 'funnel' | 'retention' | 'journeys',
       spec: safeParse(r.spec),
       updatedAt: new Date(r.updated_at).toISOString(),
       dashboard: this.link(`insights/${r.key}`, { project: ctx.project }),
@@ -2097,7 +2152,7 @@ WHERE project = ${d.str(project)} AND session_id = ${d.str(row.session_id)} AND 
       key: row.key,
       name: row.name,
       description: row.description,
-      kind: row.kind as 'trends' | 'funnel' | 'retention',
+      kind: row.kind as 'trends' | 'funnel' | 'retention' | 'journeys',
       spec: safeParse(row.spec),
       updatedAt: new Date(row.updated_at).toISOString(),
       dashboard: this.link(`insights/${row.key}`, { project: ctx.project }),

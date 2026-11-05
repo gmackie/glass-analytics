@@ -8,10 +8,11 @@
  * Every command accepts --json for machine-readable output.
  */
 
-import { realpathSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { GLASS_VERSION } from '@dataflare/core/version';
+import { call, withProject } from './client.ts';
 import { clientInit } from './commands/client-init.ts';
 import { events, person, projects, query, replays, sql } from './commands/data.ts';
 import { experiments, flags as flagCommands } from './commands/flags.ts';
@@ -20,7 +21,7 @@ import { lakeMaintain } from './commands/lake.ts';
 import { mcpBridge } from './commands/mcp.ts';
 import { ci, key, status, upgrade } from './commands/upgrade.ts';
 import { UsageError } from './config.ts';
-import { color, fail, line } from './output.ts';
+import { color, fail, line, printJson } from './output.ts';
 import { warnIfOutdated } from './upgrade-check.ts';
 
 const HELP = `${color.bold('dataflare')} ${GLASS_VERSION}: agent-first analytics in your own Cloudflare account
@@ -57,12 +58,15 @@ ${color.bold('Set up')}
     --secret <name>                Repo secret with the Cloudflare token (default CLOUDFLARE_API_TOKEN)
   dataflare status               Check the deployment end to end
   dataflare lake maintain        Lake mode: erase queued people, apply retention (CI runs it daily)
+  dataflare catalog --file <json>  Validate an app event catalog locally
+  dataflare policy get|set --file <json>   Read/set project collection policy (admin)
   dataflare key [--read]         Print the dashboard URL and API key
 
 ${color.bold('Ask questions')}
   dataflare query web [--from -7d]
   dataflare query trends --event signup_completed [--math unique_persons] [--interval week] [--breakdown browser]
   dataflare query funnel --steps '$pageview,signup_started,signup_completed' [--window 1d] [--breakdown utm_source]
+  dataflare query journeys [--event signup_started] [--from -7d]
   dataflare query retention --cohort signup_completed [--return '$pageview'] [--period week]
   dataflare query <kind> --spec '<json>'   Any spec; see GET /api/schema
     common: --from, --to, --where prop=value[,…], --project, --sql (print SQL)
@@ -95,6 +99,7 @@ Docs: https://github.com/ISNIT0/glass-analytics`;
 
 // Every option must be declared: undeclared options would parse as booleans and lose their values.
 const STRING_OPTIONS = [
+  'file',
   'host',
   'service',
   'token',
@@ -174,6 +179,8 @@ export async function main(argv: string[]): Promise<void> {
 
   // Surface an outdated Worker before the real command (skip setup/status/mcp noise).
   const skipUpgradeWarn = new Set([
+    'catalog',
+    'policy',
     'client-init',
     'init',
     'upgrade',
@@ -189,6 +196,31 @@ export async function main(argv: string[]): Promise<void> {
   }
 
   switch (command) {
+    case 'policy': {
+      if (sub === 'get')
+        return printJson(
+          await call(
+            'GET',
+            `/api/capture-policy?${new URLSearchParams(withProject(str(flags.project) ? { project: str(flags.project) } : {}) as Record<string, string>)}`,
+          ),
+        );
+      if (sub !== 'set' || !str(flags.file))
+        throw new UsageError('Use dataflare policy get or policy set --file <policy.json>.');
+      const policy = JSON.parse(readFileSync(str(flags.file)!, 'utf8'));
+      return printJson(
+        await call(
+          'PUT',
+          '/api/capture-policy',
+          withProject({ policy, ...(str(flags.project) ? { project: str(flags.project) } : {}) }),
+        ),
+      );
+    }
+    case 'catalog': {
+      const { eventCatalogSchema } = await import('@dataflare/core/capture-policy');
+      const path = str(flags.file) ?? 'dataflare.events.json';
+      eventCatalogSchema.parse(JSON.parse(readFileSync(path, 'utf8')));
+      return line(`Valid event catalog: ${path}`);
+    }
     case 'client-init':
       return clientInit({
         host: str(flags.host),

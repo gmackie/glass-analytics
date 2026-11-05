@@ -1,3 +1,4 @@
+import { requireStandardCapture } from './capture-policy.ts';
 /**
  * Session replay storage.
  *
@@ -66,6 +67,7 @@ export async function handleReplayChunk(request: Request, env: Env, url: URL): P
   const bucket = requireBucket(env);
   const q = url.searchParams;
   const project = q.get('project') ?? '';
+  await requireStandardCapture(env, project);
   let session = q.get('session') ?? '';
   let distinct = q.get('d') ?? '';
   const seq = Number(q.get('seq'));
