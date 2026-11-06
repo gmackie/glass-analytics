@@ -48,10 +48,10 @@ async function helper(root: string) {
   return import(pathToFileURL(path).href) as Promise<{
     dataflareProxy(
       request: Request,
-      env: { DATAFLARE: { fetch: (request: Request) => Promise<Response> } },
+      env: { DATAFLARE?: { fetch: (request: Request) => Promise<Response> } },
     ): Promise<Response | null>;
     capture(
-      env: { DATAFLARE: { fetch: (request: Request) => Promise<Response> } },
+      env: { DATAFLARE?: { fetch: (request: Request) => Promise<Response> } },
       event: {
         event: string;
         distinct_id: string;
@@ -65,6 +65,52 @@ async function helper(root: string) {
 }
 
 describe('client-init', () => {
+  it('prepares a nested TanStack app offline with environment-specific bindings', async () => {
+    const root = repo();
+    const app = join(root, 'apps/web');
+    mkdirSync(app, { recursive: true });
+    writeFileSync(
+      join(app, 'package.json'),
+      JSON.stringify({ dependencies: { '@tanstack/react-start': '1', vite: '7' } }),
+    );
+    writeFileSync(
+      join(app, 'wrangler.jsonc'),
+      JSON.stringify({
+        name: 'preview',
+        compatibility_date: '2026-11-01',
+        env: { production: { name: 'live-app' } },
+      }),
+    );
+    delete process.env.GLASS_API_KEY;
+    const options = {
+      host: HOST,
+      project: 'my-app',
+      service: 'analytics',
+      dir: 'apps/web',
+      config: 'wrangler.jsonc',
+      environment: 'production',
+      local: true,
+    };
+    await clientInit(options, {
+      root,
+      fetcher: async () => {
+        throw new Error('Must stay offline');
+      },
+    });
+    const binding = JSON.parse(readFileSync(join(app, '.glass/client/binding.json'), 'utf8'));
+    assert.equal(binding.env.production.services[0].service, 'analytics');
+    const guide = readFileSync(join(app, '.glass/client/README.md'), 'utf8');
+    assert.match(guide, /TanStack Start/);
+    assert.match(guide, /live-app/);
+    assert.match(guide, /env.production.services/);
+    assert.equal(existsSync(join(root, '.glass')), false);
+    await clientInit(options, { root });
+    await assert.rejects(
+      clientInit({ ...options, environment: 'staging' }, { root }),
+      /different Dataflare app|environment/,
+    );
+  });
+
   it('previews offline without credentials or writes, and detects Wrangler DO bindings', async () => {
     const root = repo();
     delete process.env.GLASS_API_KEY;
@@ -190,7 +236,12 @@ describe('client-init', () => {
     const root = repo();
     const worker = testApp();
     await worker.json('POST', '/api/projects', { body: { id: 'my-app' } });
-    const { capture } = await helper(root);
+    const { capture, dataflareProxy } = await helper(root);
+    assert.equal(
+      (await dataflareProxy(new Request('https://app.example/_glass/e', { method: 'POST' }), {}))
+        ?.status,
+      503,
+    );
     const env = {
       DATAFLARE: { fetch: (request: Request) => worker.app.fetch(request, worker.env) },
     };
@@ -203,6 +254,13 @@ describe('client-init', () => {
       props: { journey_id: 'case-1', stage: 'done' },
     };
     await capture(env, event);
+    const originalFetch = globalThis.fetch;
+    try {
+      globalThis.fetch = (input, init) => worker.app.fetch(new Request(input, init), worker.env);
+      await capture({}, event);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
     await capture(env, event);
     await assert.rejects(capture(env, { ...event, event: 'bad\u0001name' }), /custom event name/);
     const rows = worker.db.sqlite.prepare('SELECT * FROM events WHERE project = ?').all('my-app');
@@ -211,6 +269,14 @@ describe('client-init', () => {
     assert.equal(rows[0]?.distinct_id, 'case-1');
     assert.equal(rows[0]?.session_id, 'session-1');
     assert.equal(JSON.parse(String(rows[0]?.props)).journey_id, 'case-1');
+    await worker.json('PUT', '/api/capture-policy', {
+      body: { project: 'my-app', policy: { revision: 1, profile: 'disabled' } },
+    });
+    await assert.rejects(capture(env, { ...event, id: 'disabled-event' }), /rejected the event/);
+    await assert.rejects(
+      capture({ DATAFLARE: { fetch: async () => new Response(null, { status: 204 }) } }, event),
+      /did not acknowledge/,
+    );
     await assert.rejects(capture(env, { event: 'stage_changed', distinct_id: '' }), /distinct_id/);
     await assert.rejects(
       capture(env, { event: 'stage_changed', distinct_id: 'case-1', ts: NaN }),

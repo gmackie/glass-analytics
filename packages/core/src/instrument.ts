@@ -28,6 +28,7 @@ export type Framework =
   | 'sveltekit'
   | 'nuxt'
   | 'remix'
+  | 'tanstack'
   | 'vite'
   | 'worker';
 
@@ -92,6 +93,14 @@ export const FRAMEWORKS: Record<
       capture: browserCapture,
     }),
   },
+  tanstack: {
+    name: 'TanStack Start',
+    snippet: (o) => ({
+      file: 'src/routes/__root.tsx (inside the root document <head>)',
+      code: `<script defer={true} src="${o.host}/s.js" data-project="${o.project}" />`,
+      capture: browserCapture,
+    }),
+  },
   vite: {
     name: 'Vite (React, Vue, Svelte, Solid…)',
     snippet: (o) => ({
@@ -118,6 +127,7 @@ export function detectFramework(
   if (!pkg) return 'html';
   const deps = { ...pkg.dependencies, ...pkg.devDependencies };
   const has = (name: string) => Object.hasOwn(deps, name);
+  if (has('@tanstack/react-start')) return 'tanstack';
   if (has('next')) return 'nextjs';
   if (has('astro')) return 'astro';
   if (has('@sveltejs/kit')) return 'sveltekit';

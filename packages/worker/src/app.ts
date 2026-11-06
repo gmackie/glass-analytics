@@ -101,7 +101,10 @@ export function createApp(options: AppOptions) {
           return withCors(json(await service.health()));
         case '/e':
           if (request.method !== 'POST') break;
-          await handleIngest(request, env, store, now);
+          {
+            const result = await handleIngest(request, env, store, now);
+            if (request.headers.get('Accept') === 'application/json') return withCors(json(result));
+          }
           return new Response(null, { status: 204, headers: CORS_HEADERS });
         case '/r':
           if (request.method !== 'POST') break;

@@ -1,0 +1,12 @@
+{
+  "project": "kanbanger",
+  "host": "https://observe.gmac.io",
+  "framework": "tanstack",
+  "worker": "linear-clone",
+  "durableObjects": [],
+  "environment": "production",
+  "collection": "product",
+  "registered": false,
+  "deployed": false,
+  "serviceBinding": "pending confirmed Worker name and same-account access"
+}

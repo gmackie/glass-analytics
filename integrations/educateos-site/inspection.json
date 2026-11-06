@@ -1,0 +1,12 @@
+{
+  "project": "educateos-site",
+  "host": "https://observe.gmac.io",
+  "framework": "html",
+  "worker": "educateos-site",
+  "durableObjects": ["CONTROL_PLANE", "INTEREST"],
+  "environment": null,
+  "collection": "marketing-only",
+  "registered": false,
+  "deployed": false,
+  "serviceBinding": "pending confirmed Worker name and same-account access"
+}

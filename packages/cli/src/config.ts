@@ -90,6 +90,8 @@ export function loadConfig(root = projectRoot()): GlassConfig | null {
 }
 
 export interface ClientConfig {
+  wranglerConfig?: string;
+  environment?: string;
   host: string;
   project: string;
   service?: string;

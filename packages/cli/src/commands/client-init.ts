@@ -1,9 +1,9 @@
 /** Onboard an app to an existing deployment; never provision or deploy resources. */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { detectFramework, FRAMEWORKS } from '@dataflare/core/instrument';
 import { call } from '../client.ts';
-import { workerClientSource } from '../client-files.ts';
+import { browserClientSource, workerClientSource } from '../client-files.ts';
 import { loadClientConfig, loadCredentials, projectRoot, UsageError } from '../config.ts';
 import { line, printJson } from '../output.ts';
 import { ask } from '../prompt.ts';
@@ -13,6 +13,10 @@ export interface ClientInitOptions {
   project?: string;
   service?: string;
   dryRun?: boolean;
+  local?: boolean;
+  dir?: string;
+  config?: string;
+  environment?: string;
   json?: boolean;
 }
 
@@ -23,7 +27,10 @@ export async function clientInit(
     fetcher?: typeof fetch;
   } = {},
 ): Promise<void> {
-  const root = deps.root ?? projectRoot();
+  const root = options.dir
+    ? resolve(deps.root ?? process.cwd(), options.dir)
+    : (deps.root ?? projectRoot());
+  if (!existsSync(root)) throw new UsageError(`App directory does not exist: ${root}`);
   if (existsSync(join(root, '.glass', 'config.json'))) {
     throw new UsageError(
       'This repo owns a Dataflare deployment.',
@@ -31,6 +38,8 @@ export async function clientInit(
     );
   }
   const saved = loadClientConfig(root);
+  const environment = options.environment ?? saved?.environment;
+  const configPath = options.config ?? saved?.wranglerConfig;
   const rawHost =
     options.host ??
     process.env.GLASS_HOST ??
@@ -76,13 +85,28 @@ export async function clientInit(
       'Use 1–63 lowercase letters, digits, - or _, starting with a letter or digit.',
     );
   }
-  const wranglerPath = ['wrangler.jsonc', 'wrangler.json', 'wrangler.toml'].find((file) =>
-    existsSync(join(root, file)),
-  );
+  const wranglerPath =
+    configPath ??
+    ['wrangler.jsonc', 'wrangler.json', 'wrangler.toml'].find((file) =>
+      existsSync(join(root, file)),
+    );
+  if (configPath && !existsSync(resolve(root, configPath)))
+    throw new UsageError('Wrangler config does not exist.', 'Pass --config relative to --dir.');
+  if (environment && !wranglerPath)
+    throw new UsageError('An environment requires a Wrangler config.', 'Pass --config or --dir.');
   let worker: { name?: string; durable_objects?: { bindings?: { name: string }[] } } | undefined;
   if (wranglerPath) {
     const { unstable_readConfig } = await import('wrangler');
-    worker = unstable_readConfig({ config: join(root, wranglerPath) }, { hideWarnings: true });
+    const parsed = unstable_readConfig(
+      { config: resolve(root, wranglerPath), env: environment },
+      { hideWarnings: true },
+    );
+    if (environment && !parsed.definedEnvironments?.includes(environment))
+      throw new UsageError(
+        `Unknown Wrangler environment: ${environment}`,
+        'Choose an environment defined in the selected config.',
+      );
+    worker = parsed;
   }
   const service =
     options.service ??
@@ -101,7 +125,11 @@ export async function clientInit(
   }
   if (
     saved &&
-    (saved.host !== host || saved.project !== project || saved.service !== (service || undefined))
+    (saved.host !== host ||
+      saved.project !== project ||
+      saved.service !== (service || undefined) ||
+      saved.environment !== environment ||
+      saved.wranglerConfig !== (configPath ? relative(root, resolve(root, configPath)) : undefined))
   ) {
     throw new UsageError(
       'This repo is already connected to a different Dataflare app.',
@@ -113,14 +141,26 @@ export async function clientInit(
     host: service ? '/_glass' : host,
     project,
   });
-  const config = { host, project, ...(service ? { service } : {}) };
+  const config = {
+    host,
+    project,
+    ...(service ? { service } : {}),
+    ...(configPath ? { wranglerConfig: relative(root, resolve(root, configPath)) } : {}),
+    ...(environment ? { environment } : {}),
+  };
   const files: Record<string, string> = {
     '.glass/client.json': `${JSON.stringify(config, null, 2)}\n`,
   };
+  files['.glass/client/browser.js'] = browserClientSource(service ? '/_glass' : host, project);
+  files['.glass/client/worker.ts'] = workerClientSource(host, project);
   if (service) {
-    files['.glass/client/worker.ts'] = workerClientSource(host, project);
-    files['.glass/client/binding.json'] =
-      `${JSON.stringify({ services: [{ binding: 'DATAFLARE', service }] }, null, 2)}\n`;
+    files['.glass/client/binding.json'] = `${JSON.stringify(
+      environment
+        ? { env: { [environment]: { services: [{ binding: 'DATAFLARE', service }] } } }
+        : { services: [{ binding: 'DATAFLARE', service }] },
+      null,
+      2,
+    )}\n`;
   }
   files['.glass/client/README.md'] = `# Dataflare app onboarding
 
@@ -140,7 +180,9 @@ ${
 }
 ## Browser
 
-Add this to ${snippet.file}:
+For a conservative first rollout, copy browser.js to the app public assets and load it with a deferred script on approved pages only. It disables replay/flags/click/error capture, honors DNT/GPC, strips titles/referrers/query strings and groups paths into fixed screen categories. Product projects use a stored anonymous id; educateos-site uses cookieless capture. Do not install the marketing bootstrap on student, demo, intake or operator pages.
+
+For the general SDK defaults, add this to ${snippet.file}:
 
 \`\`\`
 ${snippet.code}
@@ -150,7 +192,7 @@ ${
   service
     ? `## Worker and Durable Objects
 
-Merge binding.json into the services array in ${wranglerPath ?? 'your Wrangler config'} (do not replace existing bindings). Service bindings require both Workers in the same Cloudflare account. For named Wrangler environments, add the binding to each environment you deploy; bindings are not inherited.
+Merge binding.json into ${environment ? `env.${environment}.services` : 'the services array'} in ${wranglerPath ?? 'your Wrangler config'} (do not replace existing bindings). Service bindings require both Workers in the same Cloudflare account. For named Wrangler environments, add the binding to each environment you deploy; bindings are not inherited.
 
 Import dataflareProxy and capture from .glass/client/worker.ts using the appropriate relative path. Before your Worker router:
 
@@ -175,7 +217,7 @@ Use ctx.waitUntil(capture(...)) for best-effort Worker telemetry, or await captu
 
 The proxy exposes /s.js, /replay.js, /e, /f and /r only; /api, /mcp and dashboard routes stay unavailable. Visitor metadata is forwarded through the binding; verify geolocation and cookieless counts after deployment.
 `
-    : `For same-origin capture on Cloudflare, review and remove these onboarding files, then rerun with --service <existing-dataflare-worker>. An ordinary rewrite proxy can break geolocation and cookieless counts.
+    : `The generated worker.ts capture helper also works from a Worker/DO without a service binding, using HTTPS ingest at the selected host. Pass {} as its environment for direct capture. Same-origin proxying requires a service binding and returns 503 if it is absent.\n\nFor same-origin capture on Cloudflare, review and remove these onboarding files, then rerun with --service <existing-dataflare-worker>. An ordinary rewrite proxy can break geolocation and cookieless counts.
 `
 }
 ## Correlation and verification
@@ -185,6 +227,8 @@ Use the same pseudonymous user_id (after browser identify) and session_id for br
 No replay sampling is enabled by these snippets. Apply each app's collection policy before enabling autocapture, identity linking or replay.
 
 After merging the binding, mounting the handler and installing the snippet, deploy through your app's normal pipeline. Send a custom event and confirm it with dataflare events <event> using GLASS_API_KEY. Check browser requests to /_glass/e when using the binding. No resources were deployed by client-init.
+
+If generated with --local, register this project by rerunning without --local before sending traffic.
 
 CLI queries use .glass/client.json and GLASS_API_KEY; keys are never saved here.
 `;
@@ -199,6 +243,10 @@ CLI queries use .glass/client.json and GLASS_API_KEY; keys are never saved here.
   }
   const result = {
     dryRun: Boolean(options.dryRun),
+    local: Boolean(options.local),
+    root,
+    environment: environment,
+    wranglerConfig: wranglerPath,
     host,
     project,
     framework,
@@ -207,7 +255,7 @@ CLI queries use .glass/client.json and GLASS_API_KEY; keys are never saved here.
     files,
     next: 'Review .glass/client/README.md, integrate the generated files, then deploy the app through its normal pipeline.',
   };
-  if (!options.dryRun) {
+  if (!options.dryRun && !options.local) {
     const key = process.env.GLASS_API_KEY ?? loadCredentials(root)?.adminKey;
     if (!key)
       throw new UsageError(
@@ -224,6 +272,8 @@ CLI queries use .glass/client.json and GLASS_API_KEY; keys are never saved here.
     // POST is an upsert that resets origin restrictions; never upsert existing projects.
     if (!projects.some((p) => p.id === project))
       await call('POST', '/api/projects', { id: project }, api);
+  }
+  if (!options.dryRun) {
     for (const [path, content] of Object.entries(files)) {
       mkdirSync(dirname(join(root, path)), { recursive: true });
       writeFileSync(join(root, path), content);
@@ -231,7 +281,9 @@ CLI queries use .glass/client.json and GLASS_API_KEY; keys are never saved here.
   }
   if (options.json) printJson(result);
   else {
-    line(`${options.dryRun ? 'Preview' : 'Registered'} app ${project} → ${host}`);
+    line(
+      `${options.dryRun ? 'Preview' : options.local ? 'Prepared locally (not registered)' : 'Registered'} app ${project} → ${host}`,
+    );
     for (const path of Object.keys(files)) line(`  ${path}`);
     line(result.next);
   }

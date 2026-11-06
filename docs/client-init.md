@@ -82,3 +82,9 @@ The generated browser setup does not enable replay sampling. Review autocapture,
 identity and collection settings for each app before rollout. educateOS privacy
 controls and Sankey journey queries are separate capabilities; this command
 only sets up event capture and correlation.
+
+## Monorepos and offline preparation
+
+Use `--dir apps/web --config wrangler.jsonc --env production` to select an app and its actual deploy environment. Paths for `--config` are relative to `--dir`; unknown environments are rejected. Use `--local` to write onboarding files without credentials or remote registration, then rerun without it when the deployment is ready. The selected config/environment are saved for reruns. `--dry-run` remains fully read-only. TanStack Start gets a root-document snippet.
+
+The wizard also generates browser.js for a conservative opt-in rollout and worker.ts even without a service binding (direct HTTPS capture). Load browser.js as a local script with `data-enabled="true"` only on approved pages. It defaults off, honors DNT/GPC, sends only fixed page categories and excludes replay, flags and text capture. Worker capture now requires a JSON ingest acknowledgement; upgrade the analytics Worker before using that helper. See [app rollout](app-rollout.md) for our observe.gmac.io kits, activation settings, privacy boundaries and production gates.

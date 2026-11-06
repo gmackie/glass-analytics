@@ -1,0 +1,6 @@
+{
+  "host": "https://observe.gmac.io",
+  "project": "kanbanger",
+  "wranglerConfig": "wrangler.jsonc",
+  "environment": "production"
+}

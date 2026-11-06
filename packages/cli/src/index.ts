@@ -45,6 +45,9 @@ ${color.bold('Set up')}
     --host <url>                  Existing Dataflare HTTPS URL (or GLASS_HOST)
     --project <id>                App project id (default: package.json name)
     --service <worker>            Generate same-origin Worker/DO service-binding integration
+    --dir <app-dir>               Select a package in a monorepo
+    --config <path> --env <name>   Select Wrangler config (relative to --dir) and environment
+    --local                       Write integration files without remote registration
     --dry-run                     Preview files without registering or writing
                                    Set GLASS_API_KEY for project registration; never saved
   dataflare upgrade              Move to this CLI's version of Dataflare and migrate
@@ -99,6 +102,9 @@ Docs: https://github.com/ISNIT0/glass-analytics`;
 
 // Every option must be declared: undeclared options would parse as booleans and lose their values.
 const STRING_OPTIONS = [
+  'dir',
+  'config',
+  'env',
   'file',
   'host',
   'service',
@@ -226,6 +232,10 @@ export async function main(argv: string[]): Promise<void> {
         host: str(flags.host),
         project: str(flags.project),
         service: str(flags.service),
+        dir: str(flags.dir),
+        config: str(flags.config),
+        environment: str(flags.env),
+        local: Boolean(flags.local),
         dryRun: Boolean(flags['dry-run']),
         json: Boolean(flags.json),
       });

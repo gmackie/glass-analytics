@@ -1,0 +1,5 @@
+{
+  "host": "https://observe.gmac.io",
+  "project": "forgegraph",
+  "wranglerConfig": "wrangler.toml"
+}

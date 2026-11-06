@@ -1,0 +1,16 @@
+{
+  "project": "forgegraph",
+  "host": "https://observe.gmac.io",
+  "framework": "nextjs",
+  "worker": "forgegraf",
+  "durableObjects": [
+    "WORKER_RUNTIME_ANALYTICS_COORDINATOR",
+    "REPOSITORY_COORDINATOR",
+    "FREEZE_STORE"
+  ],
+  "environment": null,
+  "collection": "product",
+  "registered": false,
+  "deployed": false,
+  "serviceBinding": "pending confirmed Worker name and same-account access"
+}

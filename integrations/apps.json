@@ -1,0 +1,27 @@
+{
+  "host": "https://observe.gmac.io",
+  "apps": [
+    {
+      "id": "forgegraph",
+      "repository": "ForgeGraph",
+      "dir": "apps/web",
+      "config": "wrangler.toml",
+      "collection": "product"
+    },
+    {
+      "id": "kanbanger",
+      "repository": "kanbanger",
+      "dir": "apps/web",
+      "config": "wrangler.jsonc",
+      "environment": "production",
+      "collection": "product"
+    },
+    {
+      "id": "educateos-site",
+      "repository": "school-os",
+      "dir": "sites/educateos-io",
+      "config": "wrangler.jsonc",
+      "collection": "marketing-only"
+    }
+  ]
+}
