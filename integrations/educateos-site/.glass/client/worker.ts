@@ -41,7 +41,7 @@ export async function dataflareProxy(request: Request, env: DataflareEnv): Promi
 
 /** Use from a Worker or a Durable Object. A binding is preferred; otherwise HTTPS ingest is used. */
 export async function capture(env: DataflareEnv, event: CaptureEvent): Promise<void> {
-  if (!event.distinct_id || !event.event || event.event.length > 200 || event.event.startsWith('$') || /[\u0000-\u001f]/.test(event.event)) {
+  if (!event.distinct_id || !event.event || event.event.length > 200 || event.event.startsWith('$') || Array.from(event.event).some((character) => character.charCodeAt(0) < 32)) {
     throw new Error('Pass a distinct_id and a custom event name.');
   }
   if ((event.id !== undefined && (!event.id || event.id.length > 64)) ||

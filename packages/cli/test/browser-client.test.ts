@@ -5,6 +5,7 @@ import { browserClientSource } from '../src/client-files.ts';
 
 function start(project: string, pathname: string, enabled = 'true', privacy = false) {
   const loaded: { src?: string; onload?: () => void }[] = [];
+  let loadedHandler: (() => void) | undefined;
   let options: Record<string, unknown> | undefined;
   const sandbox = {
     window: {
@@ -17,13 +18,17 @@ function start(project: string, pathname: string, enabled = 'true', privacy = fa
     navigator: { globalPrivacyControl: privacy },
     document: {
       currentScript: { dataset: { enabled } },
-      createElement: () => ({}),
+      createElement: () => ({
+        addEventListener: (_name: string, fn: () => void) => {
+          loadedHandler = fn;
+        },
+      }),
       head: { append: (s: (typeof loaded)[number]) => loaded.push(s) },
     },
     location: { origin: 'https://app.example', pathname },
   };
   runInNewContext(browserClientSource('https://observe.gmac.io', project), sandbox);
-  loaded[0]?.onload?.();
+  loadedHandler?.();
   return { loaded, options };
 }
 

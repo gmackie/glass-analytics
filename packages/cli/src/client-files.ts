@@ -43,7 +43,7 @@ export async function dataflareProxy(request: Request, env: DataflareEnv): Promi
 
 /** Use from a Worker or a Durable Object. A binding is preferred; otherwise HTTPS ingest is used. */
 export async function capture(env: DataflareEnv, event: CaptureEvent): Promise<void> {
-  if (!event.distinct_id || !event.event || event.event.length > 200 || event.event.startsWith('$') || /[\\u0000-\\u001f]/.test(event.event)) {
+  if (!event.distinct_id || !event.event || event.event.length > 200 || event.event.startsWith('$') || Array.from(event.event).some((character) => character.charCodeAt(0) < 32)) {
     throw new Error('Pass a distinct_id and a custom event name.');
   }
   if ((event.id !== undefined && (!event.id || event.id.length > 64)) ||
@@ -79,9 +79,9 @@ export function browserClientSource(host: string, project: string): string {
   if (!allowed()) return;
   if (window.doNotTrack === '1' || navigator.doNotTrack === '1' || navigator.globalPrivacyControl === true) return;
   const script = document.createElement('script');
-  script.src = ${JSON.stringify(host)} + '/s.js';
+  script.src = ${JSON.stringify(`${host}/s.js`)};
   // No data-project: initialize explicitly below, before any event can be captured.
-  script.onload = () => {
+  script.addEventListener('load', () => {
     if (!window.glass || typeof window.glass.init !== 'function') return;
     window.glass.init({
       host: ${JSON.stringify(host)}, project: ${JSON.stringify(project)},
@@ -97,7 +97,7 @@ export function browserClientSource(host: string, project: string): string {
         return { ...event, url: location.origin + '/' + screen, title: null, referrer: null, props: {}, flags: undefined };
       },
     });
-  };
+  });
   document.head.append(script);
 })();
 `;
