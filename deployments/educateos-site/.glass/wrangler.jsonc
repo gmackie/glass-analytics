@@ -1,0 +1,52 @@
+// Deployed by ForgeGraph from this fork (DATFLR-7). The Worker bundle and migrations are built from
+// source by `pnpm build`; edit this file, not the CLI. Never run `dataflare upgrade` here.
+{
+  "name": "glass-educateos-site",
+  "main": "../../../packages/worker/dist/worker.js",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": false,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "glass-educateos-site",
+      "database_id": "e6b0a367-5495-4eb8-9aa3-32622508d99e",
+      "migrations_dir": "../../../packages/worker/dist/migrations"
+    }
+  ],
+  "vars": {
+    "GLASS_STORE": "lake",
+    "LAKE_BUCKET": "glass-educateos-site-data",
+    "LAKE_NAMESPACE": "glass",
+    "LAKE_VERSIONS": "1",
+    "CF_ACCOUNT_ID": "c07a7e704db1808e1fff91bed2b1cd49",
+    "GLASS_PUBLIC_URL": "https://educateos.io/_glass",
+    "GLASS_RETENTION_DAYS": "395"
+  },
+  "triggers": {
+    "crons": [
+      "17 * * * *"
+    ]
+  },
+  "observability": {
+    "enabled": true
+  },
+  "r2_buckets": [
+    {
+      "binding": "REPLAYS",
+      "bucket_name": "glass-educateos-site-replays"
+    }
+  ],
+  "pipelines": [
+    {
+      "binding": "EVENTS_STREAM",
+      "stream": "047162e924054804b78aac10761d4196"
+    },
+    {
+      "binding": "IDENTITIES_STREAM",
+      "stream": "e360987f932e431dab8dd621fe97b197"
+    }
+  ],
+  "routes": [
+    "educateos.io/_glass/*"
+  ]
+}

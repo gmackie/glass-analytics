@@ -1,0 +1,34 @@
+// Deployed by ForgeGraph from this fork (DATFLR-7). The Worker bundle and migrations are built from
+// source by `pnpm build`; edit this file, not the CLI. Never run `dataflare upgrade` here.
+{
+  "name": "glass-educateos-district",
+  "main": "../../../packages/worker/dist/worker.js",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "glass-educateos-district",
+      "database_id": "89058212-e38b-4e0f-a463-d8ff8d17346d",
+      "migrations_dir": "../../../packages/worker/dist/migrations"
+    }
+  ],
+  "vars": {
+    "GLASS_STORE": "d1",
+    "GLASS_RETENTION_DAYS": "395"
+  },
+  "triggers": {
+    "crons": [
+      "17 * * * *"
+    ]
+  },
+  "observability": {
+    "enabled": true
+  },
+  "r2_buckets": [
+    {
+      "binding": "REPLAYS",
+      "bucket_name": "glass-educateos-district-replays"
+    }
+  ]
+}

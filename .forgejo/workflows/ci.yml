@@ -1,0 +1,49 @@
+# CI for the fork on ForgeGraph (DATFLR-7). Forgejo runs .forgejo/workflows and ignores upstream's
+# .github/workflows (their release and deploy jobs are for the upstream project).
+# Upstream's checks, the deployment configs, then the verdict to ForgeGraph, which gates deploys
+# of the Dataflare Workers built from this repo.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: [forgegraph-ci, forgegraph-worker]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: astral-sh/setup-uv@v6
+      - name: Install
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build
+      - name: Check deployment configs
+        run: node scripts/check-deployments.ts
+
+      - name: Report to ForgeGraph
+        if: always()
+        env:
+          FG_CI_TOKEN: ${{ secrets.FORGEGRAPH_TOKEN }}
+          FG_STATUS: ${{ job.status }}
+          FG_SHA: ${{ github.sha }}
+          FG_BRANCH: ${{ github.head_ref || github.ref_name }}
+          FG_RUN: ${{ github.run_id }}
+          FG_REPOSITORY: ${{ github.repository }}
+          FG_SERVER: ${{ github.server_url }}
+        run: |
+          python3 - <<'PYREPORT'
+          import json, os, subprocess
+          owner, repo = os.environ['FG_REPOSITORY'].split('/')
+          payload = dict(owner=owner, repo=repo, sha=os.environ['FG_SHA'], branch=os.environ['FG_BRANCH'], status=os.environ['FG_STATUS'], runId=os.environ['FG_RUN'], runUrl=f"{os.environ['FG_SERVER']}/{owner}/{repo}/actions/runs/{os.environ['FG_RUN']}", workflowName='CI')
+          subprocess.run(['curl', '--fail-with-body', '--max-time', '30', '-sS', '-X', 'POST', 'https://forgegraf.com/api/fg/ci/report', '-H', 'Authorization: Bearer ' + os.environ['FG_CI_TOKEN'], '-H', 'Content-Type: application/json', '--data-binary', '@-'], input=json.dumps(payload), text=True, check=True)
+          PYREPORT
