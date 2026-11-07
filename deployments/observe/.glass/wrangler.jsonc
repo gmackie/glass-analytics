@@ -1,0 +1,41 @@
+// Deployed by ForgeGraph from this fork (DATFLR-7). The Worker bundle and migrations are built from
+// source by `pnpm build`; edit this file, not the CLI. Never run `dataflare upgrade` here.
+{
+  "name": "dataflare-observe",
+  "main": "../../../packages/worker/dist/worker.js",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "dataflare-observe",
+      "database_id": "5bdf79c2-33b1-4edb-a5b3-393295e778b8",
+      "migrations_dir": "../../../packages/worker/dist/migrations"
+    }
+  ],
+  "vars": {
+    "GLASS_STORE": "lake",
+    "LAKE_BUCKET": "dataflare-observe-data",
+    "LAKE_NAMESPACE": "glass",
+    "LAKE_VERSIONS": "1",
+    "CF_ACCOUNT_ID": "c07a7e704db1808e1fff91bed2b1cd49"
+  },
+  "triggers": {
+    "crons": [
+      "17 * * * *"
+    ]
+  },
+  "observability": {
+    "enabled": true
+  },
+  "pipelines": [
+    {
+      "binding": "EVENTS_STREAM",
+      "stream": "0236827d11da4409abb4f2f2d29cc027"
+    },
+    {
+      "binding": "IDENTITIES_STREAM",
+      "stream": "fcf827f3d3e74ae0be8bbd789ffea53e"
+    }
+  ]
+}

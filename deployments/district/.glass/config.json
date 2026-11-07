@@ -1,0 +1,19 @@
+{
+  "name": "glass-educateos-district",
+  "accountId": "f84fe0441a84562a6abce4f921f0496a",
+  "host": "https://glass-educateos-district.dataflare-district.workers.dev",
+  "project": "educateos-district",
+  "store": "d1",
+  "d1": {
+    "name": "glass-educateos-district",
+    "id": "89058212-e38b-4e0f-a463-d8ff8d17346d"
+  },
+  "replay": {
+    "bucket": "glass-educateos-district-replays"
+  },
+  "lake": null,
+  "route": null,
+  "retentionDays": 395,
+  "eu": false,
+  "version": "0.8.2"
+}

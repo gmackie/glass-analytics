@@ -1,0 +1,28 @@
+{
+  "name": "dataflare-observe",
+  "accountId": "c07a7e704db1808e1fff91bed2b1cd49",
+  "host": "https://observe.gmac.io",
+  "project": "forgegraph",
+  "store": "lake",
+  "d1": {
+    "name": "dataflare-observe",
+    "id": "5bdf79c2-33b1-4edb-a5b3-393295e778b8"
+  },
+  "replay": null,
+  "lake": {
+    "bucket": "dataflare-observe-data",
+    "namespace": "glass",
+    "streams": {
+      "events": "0236827d11da4409abb4f2f2d29cc027",
+      "identities": "fcf827f3d3e74ae0be8bbd789ffea53e"
+    },
+    "version": 1,
+    "versions": [
+      1
+    ]
+  },
+  "route": null,
+  "retentionDays": null,
+  "eu": false,
+  "version": "0.8.0"
+}

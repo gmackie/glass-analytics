@@ -1,0 +1,30 @@
+{
+  "name": "glass-educateos-site",
+  "accountId": "c07a7e704db1808e1fff91bed2b1cd49",
+  "host": "https://educateos.io/_glass",
+  "project": "educateos-site",
+  "store": "lake",
+  "d1": {
+    "name": "glass-educateos-site",
+    "id": "e6b0a367-5495-4eb8-9aa3-32622508d99e"
+  },
+  "replay": {
+    "bucket": "glass-educateos-site-replays"
+  },
+  "lake": {
+    "bucket": "glass-educateos-site-data",
+    "namespace": "glass",
+    "streams": {
+      "events": "047162e924054804b78aac10761d4196",
+      "identities": "e360987f932e431dab8dd621fe97b197"
+    },
+    "version": 1,
+    "versions": [
+      1
+    ]
+  },
+  "route": "educateos.io/_glass/*",
+  "retentionDays": 395,
+  "eu": false,
+  "version": "0.8.2"
+}
