@@ -20,8 +20,11 @@ jobs:
           node-version: 22
       - uses: astral-sh/setup-uv@v6
       - name: Install
+        # The runner's default pnpm store lands inside the checkout, where `biome check .` would
+        # lint its index files; keep it outside.
         run: |
           corepack enable
+          pnpm config set store-dir "${RUNNER_TEMP:-/tmp}/pnpm-store"
           pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm lint
