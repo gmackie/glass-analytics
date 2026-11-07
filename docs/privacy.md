@@ -36,8 +36,10 @@ This is enough for web analytics. It is not enough for funnels across days, rete
 npx dataflare-cli person <user-id> --delete
 ```
 
-This deletes the person, their device links, their replays and every event from their user id and devices. In D1 mode the events go at once. In lake mode they are queued and removed by the daily maintenance job (`dataflare lake maintain`, run by the deploy workflow), and the old data files leave R2 when their snapshots expire, within about a week; see [lake.md](lake.md#erasure-and-retention).
+This deletes the person, their device links, their replays and every event from their user id and devices. In D1 mode the events go at once. Replays go a slice at a time, since each one is several R2 calls: if a person has more than one request can delete (about 100), the result says `"complete": false` and the hourly maintenance job deletes the rest, then the person and their device links. In lake mode they are queued and removed by the daily maintenance job (`dataflare lake maintain`, run by the deploy workflow), and the old data files leave R2 when their snapshots expire, within about a week; see [lake.md](lake.md#erasure-and-retention).
 
 ## EU data
 
 `dataflare init --eu` creates the D1 database and R2 buckets in Cloudflare's EU jurisdiction. The Worker itself runs on Cloudflare's global network.
+
+Before 0.8.1, the replay bucket's binding left out the jurisdiction, so an EU deployment's replays were written to a bucket of the same name in the default jurisdiction, which Wrangler created on deploy. `dataflare upgrade` fixes the binding and keeps the old bucket bound as `REPLAYS_LEGACY`: the Worker reads from it until the hourly job has moved every object into the EU bucket (it logs `legacyMoved` each run). Once that reaches 0, delete `legacyBucket` from `.glass/config.json`, run `dataflare upgrade` again, and delete the old bucket.

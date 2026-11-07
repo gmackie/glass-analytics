@@ -33,6 +33,7 @@ import { getProject } from './projects.ts';
 const SAFE_ID = /^[A-Za-z0-9_.:-]{1,100}$/;
 const MAX_CHUNK_BYTES = 5_000_000;
 const CHUNK_CONCURRENCY = 6;
+const CHUNK_METADATA = { contentType: 'application/json', contentEncoding: 'gzip' };
 
 export function replaysEnabled(env: Env): env is Env & { REPLAYS: R2Bucket } {
   return Boolean(env.REPLAYS);
@@ -94,13 +95,11 @@ export async function handleReplayChunk(request: Request, env: Env, url: URL): P
     '0',
   );
   const page = /^[a-z0-9]{1,16}$/i.test(q.get('page') ?? '') ? q.get('page') : 'p';
-  await bucket.put(
-    `${chunkPrefix(project, session)}${startKey}-${page}-${String(seq).padStart(6, '0')}.json.gz`,
-    body,
-    {
-      httpMetadata: { contentType: 'application/json', contentEncoding: 'gzip' },
-    },
-  );
+  const chunk = `${startKey}-${page}-${String(seq).padStart(6, '0')}`;
+  // The key is deterministic, so a retried upload overwrites the same object.
+  await bucket.put(`${chunkPrefix(project, session)}${chunk}.json.gz`, body, {
+    httpMetadata: CHUNK_METADATA,
+  });
 
   const ua = parseUserAgent(info.userAgent);
   const n = (name: string) => {
@@ -108,10 +107,14 @@ export async function handleReplayChunk(request: Request, env: Env, url: URL): P
     return Number.isFinite(v) ? v : 0;
   };
   const start = n('start') || Date.now();
-  await env.DB.prepare(
+  // The SDK retries an upload whose response was lost, so this chunk may already be counted.
+  // The index only adds its counts when the chunk is new to replay_chunks, and both writes are
+  // one transaction, so a retry after either outcome counts the chunk exactly once.
+  const counts = env.DB.prepare(
     `INSERT INTO replays (project, session_id, distinct_id, user_id, started_at, ended_at, chunks, bytes, clicks, errors, start_url, device, browser, country,
        pages, rage_clicks, console_errors, failed_requests)
-     VALUES (?1, ?2, ?3, ?4, ?5, ?6, 1, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)
+     SELECT ?1, ?2, ?3, ?4, ?5, ?6, 1, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17
+     WHERE NOT EXISTS (SELECT 1 FROM replay_chunks WHERE project = ?1 AND session_id = ?2 AND chunk = ?18)
      ON CONFLICT (project, session_id) DO UPDATE SET
        pages = replays.pages + excluded.pages,
        rage_clicks = replays.rage_clicks + excluded.rage_clicks,
@@ -125,28 +128,33 @@ export async function handleReplayChunk(request: Request, env: Env, url: URL): P
        errors = replays.errors + excluded.errors,
        user_id = COALESCE(excluded.user_id, replays.user_id),
        start_url = CASE WHEN excluded.started_at < replays.started_at THEN excluded.start_url ELSE replays.start_url END`,
-  )
-    .bind(
-      project,
-      session,
-      distinct,
-      q.get('u') || null,
-      start,
-      n('end') || start,
-      body.byteLength,
-      n('clicks'),
-      n('errors'),
-      (q.get('href') ?? '').slice(0, 500),
-      ua.device,
-      ua.browser,
-      info.country,
-      // Every page load starts its chunks at seq 0.
-      seq === 0 ? 1 : 0,
-      n('rage'),
-      n('console'),
-      n('failed'),
-    )
-    .run();
+  ).bind(
+    project,
+    session,
+    distinct,
+    q.get('u') || null,
+    start,
+    n('end') || start,
+    body.byteLength,
+    n('clicks'),
+    n('errors'),
+    (q.get('href') ?? '').slice(0, 500),
+    ua.device,
+    ua.browser,
+    info.country,
+    // Every page load starts its chunks at seq 0.
+    seq === 0 ? 1 : 0,
+    n('rage'),
+    n('console'),
+    n('failed'),
+    chunk,
+  );
+  await env.DB.batch([
+    counts,
+    env.DB.prepare(
+      'INSERT OR IGNORE INTO replay_chunks (project, session_id, chunk) VALUES (?, ?, ?)',
+    ).bind(project, session, chunk),
+  ]);
 }
 
 export interface ReplayRow {
@@ -442,14 +450,12 @@ export async function loadReplayPages(
   const bucket = requireBucket(env);
   if (!SAFE_ID.test(session)) throw new HttpError(400, 'Invalid session id');
   const prefix = chunkPrefix(project, session);
-  const keys: string[] = [];
-  let cursor: string | undefined;
-  do {
-    const listing = await bucket.list({ prefix, cursor, limit: 1000 });
-    keys.push(...listing.objects.map((o) => o.key));
-    cursor = listing.truncated ? listing.cursor : undefined;
-  } while (cursor);
-  keys.sort();
+  // Chunks not yet moved out of a legacy bucket (see `moveLegacyReplays`) are read from there.
+  const from = new Map<string, R2Bucket>();
+  for (const b of [env.REPLAYS_LEGACY, bucket]) {
+    if (b) for (const key of await listKeys(b, prefix)) from.set(key, b);
+  }
+  const keys = [...from.keys()].sort();
 
   // Fetch a few chunks at a time: one by one is slow for long sessions, all at once can exhaust memory.
   const chunks: (RrwebEvent[] | null)[] = new Array(keys.length).fill(null);
@@ -459,7 +465,7 @@ export async function loadReplayPages(
       const i = next++;
       const key = keys[i]!;
       try {
-        const object = await bucket.get(key);
+        const object = await from.get(key)!.get(key);
         if (!object) continue;
         const chunk: unknown = JSON.parse(await gunzip(await object.arrayBuffer()));
         if (!Array.isArray(chunk)) throw new Error('chunk is not an array of rrweb events');
@@ -495,38 +501,96 @@ export async function loadReplayEvents(
   return (await loadReplayPages(env, project, session)).flatMap((p) => p.events).sort(byTime);
 }
 
-/** Delete replays (R2 chunks and index rows) matching a SQL condition on the replays table. */
+async function listKeys(bucket: R2Bucket, prefix: string): Promise<string[]> {
+  const keys: string[] = [];
+  let cursor: string | undefined;
+  do {
+    const listing = await bucket.list({ prefix, cursor, limit: 1000 });
+    keys.push(...listing.objects.map((o) => o.key));
+    cursor = listing.truncated ? listing.cursor : undefined;
+  } while (cursor);
+  return keys;
+}
+
+/**
+ * Sessions deleted per call to `deleteReplays`. Each costs a few R2 calls per bucket (list,
+ * delete chunks, delete summary) and the slice one D1 batch, so a slice fits well inside one
+ * invocation's limits. Callers loop over slices within their own budget.
+ */
+export const REPLAY_DELETE_SLICE = 50;
+
+/**
+ * Delete up to `limit` replays (R2 chunks, cached summary, index row, notes) matching a SQL
+ * condition on the replays table, and return how many. Fewer than `limit` means none are left.
+ *
+ * R2 objects go first and the index rows last, in one transaction: if anything fails part way,
+ * the rows that find the session are still there, so calling again finishes the job.
+ */
 export async function deleteReplays(
   env: Env,
   project: string,
   where: string,
   args: unknown[],
+  limit = REPLAY_DELETE_SLICE,
 ): Promise<number> {
   const { results } = await env.DB.prepare(
-    `SELECT session_id FROM replays WHERE project = ? AND ${where} LIMIT 500`,
+    `SELECT session_id FROM replays WHERE project = ? AND ${where} LIMIT ${limit}`,
   )
     .bind(project, ...args)
     .all<{ session_id: string }>();
-  for (const { session_id } of results) {
-    if (env.REPLAYS) {
-      let cursor: string | undefined;
-      do {
-        const page = await env.REPLAYS.list({
-          prefix: chunkPrefix(project, session_id),
-          limit: 1000,
-          cursor,
-        });
-        if (page.objects.length) await env.REPLAYS.delete(page.objects.map((o) => o.key));
-        cursor = page.truncated ? page.cursor : undefined;
-      } while (cursor);
-      await env.REPLAYS.delete(summaryKey(project, session_id));
+  if (results.length === 0) return 0;
+  const sessions = results.map((r) => r.session_id);
+  for (const bucket of [env.REPLAYS, env.REPLAYS_LEGACY]) {
+    if (!bucket) continue;
+    for (const session of sessions) {
+      // Each page is deleted before the next listing, so list from the start each time.
+      for (;;) {
+        const page = await bucket.list({ prefix: chunkPrefix(project, session), limit: 1000 });
+        if (page.objects.length) await bucket.delete(page.objects.map((o) => o.key));
+        if (!page.truncated) break;
+      }
+      await bucket.delete(summaryKey(project, session));
     }
-    await env.DB.prepare('DELETE FROM replays WHERE project = ? AND session_id = ?')
-      .bind(project, session_id)
-      .run();
-    await env.DB.prepare('DELETE FROM replay_notes WHERE project = ? AND session_id = ?')
-      .bind(project, session_id)
-      .run();
   }
-  return results.length;
+  const json = JSON.stringify(sessions);
+  await env.DB.batch(
+    ['replays', 'replay_notes', 'replay_chunks'].map((table) =>
+      env.DB.prepare(
+        `DELETE FROM ${table} WHERE project = ? AND session_id IN (SELECT value FROM json_each(?))`,
+      ).bind(project, json),
+    ),
+  );
+  return sessions.length;
+}
+
+/**
+ * Move objects from `REPLAYS_LEGACY` into `REPLAYS`, a few at a time. Before 0.8.1, an EU
+ * deployment bound its replay bucket without the jurisdiction, so Wrangler created a bucket of
+ * the same name in the default jurisdiction and the Worker wrote there. `dataflare upgrade`
+ * binds the EU bucket and keeps the old one as `REPLAYS_LEGACY`; readers fall back to it and
+ * the hourly job empties it with this. Each object costs three R2 calls (get, put, delete).
+ */
+export async function moveLegacyReplays(
+  env: Env,
+  limit: number,
+): Promise<{ moved: number; done: boolean }> {
+  const legacy = env.REPLAYS_LEGACY;
+  if (!env.REPLAYS || !legacy) return { moved: 0, done: true };
+  const page = await legacy.list({ prefix: '', limit });
+  let moved = 0;
+  for (const { key } of page.objects) {
+    const object = await legacy.get(key);
+    if (object) {
+      await env.REPLAYS.put(key, await object.arrayBuffer(), {
+        httpMetadata: key.endsWith('.json.gz')
+          ? CHUNK_METADATA
+          : { contentType: 'application/json' },
+      });
+    }
+    // Delete only once the copy is written: a failure in between leaves both, and the next run
+    // copies again.
+    await legacy.delete(key);
+    moved++;
+  }
+  return { moved, done: !page.truncated };
 }

@@ -8,7 +8,9 @@
  */
 
 import { spawn } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
 
 export interface RunResult {
   code: number;
@@ -37,16 +39,26 @@ export class WranglerError extends Error {
   }
 }
 
-function wranglerCommand(): { cmd: string; prefix: string[] } {
+/** The installed wrangler's entry point, or undefined when it isn't installed. */
+export function localWrangler(): string | undefined {
   try {
+    // wrangler's package.json "exports" doesn't expose bin/wrangler.js, so
+    // resolving that path always throws. package.json itself is resolvable.
     const require = createRequire(import.meta.url);
-    return { cmd: process.execPath, prefix: [require.resolve('wrangler/bin/wrangler.js')] };
+    const bin = join(dirname(require.resolve('wrangler/package.json')), 'bin', 'wrangler.js');
+    return existsSync(bin) ? bin : undefined;
   } catch {
-    return {
-      cmd: process.platform === 'win32' ? 'npx.cmd' : 'npx',
-      prefix: ['--yes', 'wrangler@4'],
-    };
+    return undefined;
   }
+}
+
+function wranglerCommand(): { cmd: string; prefix: string[] } {
+  const bin = localWrangler();
+  if (bin) return { cmd: process.execPath, prefix: [bin] };
+  return {
+    cmd: process.platform === 'win32' ? 'npx.cmd' : 'npx',
+    prefix: ['--yes', 'wrangler@4'],
+  };
 }
 
 /** Wrangler authenticated with an API token, running non-interactively. */

@@ -39,18 +39,24 @@ export class D1Store implements EventStore {
   }
 
   async query(sql: string): Promise<Row[]> {
-    const { results } = await this.db.prepare(sql).all<Row>();
+    const { results, meta } = await this.db.prepare(sql).all<Row>();
+    // Every caller reads, and people's own SQL is guarded before it gets here. This can't undo
+    // a write, but if something ever slips past the guard it fails loudly instead of quietly.
+    if (meta?.changed_db) {
+      throw new Error('A read-only query changed the database. Please report this as a bug.');
+    }
     return results;
   }
 
   async deletePersonEvents(project: string, ids: string[]): Promise<'deleted'> {
     if (ids.length === 0) return 'deleted';
-    const marks = ids.map(() => '?').join(', ');
+    // One JSON parameter rather than one per id: D1 binds at most 100, and a person can have
+    // any number of devices. One statement also means all of their events go, or none do.
     await this.db
       .prepare(
-        `DELETE FROM events WHERE project = ? AND (person_id IN (${marks}) OR distinct_id IN (${marks}) OR user_id IN (${marks}))`,
+        `DELETE FROM events WHERE project = ?1 AND (person_id IN (SELECT value FROM json_each(?2)) OR distinct_id IN (SELECT value FROM json_each(?2)) OR user_id IN (SELECT value FROM json_each(?2)))`,
       )
-      .bind(project, ...ids, ...ids, ...ids)
+      .bind(project, JSON.stringify(ids))
       .run();
     return 'deleted';
   }

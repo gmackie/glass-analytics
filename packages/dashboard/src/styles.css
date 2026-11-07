@@ -987,6 +987,81 @@ pre.sql {
   background: color-mix(in srgb, var(--bad) 11%, transparent);
 }
 
+.project-mark.all {
+  background: linear-gradient(145deg, #6b7a8f, #3f4b5c);
+}
+
+/* All sites */
+.sites-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin: 0 0 12px;
+}
+
+.site-trend {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 650;
+  padding: 1px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+}
+
+.site-trend.good {
+  color: var(--good);
+  background: color-mix(in srgb, var(--good) 12%, transparent);
+}
+
+.site-trend.bad {
+  color: var(--bad);
+  background: color-mix(in srgb, var(--bad) 11%, transparent);
+}
+
+.site-trend.warn {
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 13%, transparent);
+}
+
+.site-trend.muted {
+  color: var(--muted);
+  background: color-mix(in srgb, var(--muted) 10%, transparent);
+}
+
+.sites-table .site-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: inherit;
+  text-decoration: none;
+}
+
+.sites-table .site-name:hover {
+  text-decoration: underline;
+}
+
+.sites-table .project-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  font-size: 11px;
+}
+
+.sites-table .site-spark {
+  display: block;
+  width: 120px;
+}
+
+.sites-table .site-spark .sparkline {
+  width: 100%;
+  height: 28px;
+}
+
 .meter {
   position: relative;
   height: 6px;

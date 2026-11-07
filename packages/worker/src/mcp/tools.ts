@@ -46,6 +46,15 @@ export const TOOLS: ToolDefinition[] = [
     scope: 'read',
     run: (s, a) => s.overview(a),
   },
+  {
+    name: 'compare_sites',
+    title: 'Compare sites',
+    description:
+      'Every project (site) side by side for one period: visitors and pageviews vs the previous period, a trend per site (up, down, steady, quiet, new, stopped, none) and a visitors series. Use it to find which sites are gaining or losing traffic, or have stopped sending pageviews. Then call overview with that project for detail.',
+    input: inputs.sites,
+    scope: 'read',
+    run: (s, a) => s.sites(a),
+  },
   ...queryTools,
   {
     name: 'sql',

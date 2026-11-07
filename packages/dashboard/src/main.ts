@@ -17,6 +17,7 @@ import { insightsPage } from './pages/insights.ts';
 import { peoplePage } from './pages/people.ts';
 import { replaysPage } from './pages/replays.ts';
 import { keyScreen, settingsPage } from './pages/settings.ts';
+import { sitesPage } from './pages/sites.ts';
 import { usagePage } from './pages/usage.ts';
 import { webPage } from './pages/web.ts';
 import { config, currentRoute, go, href, prefs, type Route } from './state.ts';
@@ -29,6 +30,7 @@ interface PageDef {
 
 const PAGES: Record<string, PageDef> = {
   reports: { label: 'Reports', icon: 'reports', render: webPage },
+  sites: { label: 'All sites', icon: 'layers', render: sitesPage },
   // Old #/web bookmarks land on Reports.
   web: { label: 'Reports', icon: 'reports', render: webPage },
   insights: { label: 'Insights', icon: 'insights', render: insightsPage },
@@ -59,6 +61,9 @@ function projectMark(id: string): HTMLElement {
   return h('span', { class: 'project-mark', 'aria-hidden': 'true' }, (id[0] ?? '?').toUpperCase());
 }
 
+/** Switcher value for the All sites page; not a valid project id, so it can't clash. */
+const ALL_SITES = '*all';
+
 function projectSwitcher(route: Route): HTMLElement {
   const project = route.params.get('project') ?? prefs.project ?? projects[0] ?? '';
   if (projects.length <= 1) {
@@ -74,18 +79,32 @@ function projectSwitcher(route: Route): HTMLElement {
       ),
     );
   }
+  const all = route.page === 'sites';
   const trigger = selectMenu({
-    value: project,
+    value: all ? ALL_SITES : project,
     label: 'Project',
-    options: projects.map((p) => ({ value: p, label: p })),
+    options: [
+      { value: ALL_SITES, label: 'All sites' },
+      ...projects.map((p) => ({ value: p, label: p })),
+    ],
     width: 220,
     onChange: (value) => {
+      if (value === ALL_SITES) {
+        go('sites', { project: null });
+        return;
+      }
       prefs.project = value;
-      go(route.page, { project: value });
+      // Leaving All sites opens the chosen site's reports.
+      go(all ? 'reports' : route.page, { project: value });
     },
     class: 'project-switch',
   });
-  trigger.prepend(projectMark(project), h('span', { class: 'project-kicker' }, 'Project'));
+  trigger.prepend(
+    all
+      ? h('span', { class: 'project-mark all', 'aria-hidden': 'true' }, icon('layers', 13))
+      : projectMark(project),
+    h('span', { class: 'project-kicker' }, 'Project'),
+  );
   return trigger;
 }
 
@@ -104,7 +123,8 @@ function navLink(key: string, route: Route): HTMLElement {
     h(
       'a',
       {
-        href: href(key),
+        // All sites has no project in its URL; the other pages need one.
+        href: href(key, { project: route.params.get('project') ?? prefs.project ?? projects[0] }),
         class: active ? 'active' : '',
         'aria-current': active ? 'page' : null,
         title: page.label,
@@ -548,7 +568,16 @@ async function start(): Promise<void> {
   } catch {
     if (!prefs.key) return;
   }
-  if (!currentRoute().params.get('project') && projects[0]) {
+  // With several sites, an empty URL lands on All sites; one site goes straight to its reports.
+  if (projects.length > 1 && /^#?\/?$/.test(location.hash)) {
+    go('sites', {}, false);
+    return;
+  }
+  if (currentRoute().page === 'sites' && projects.length <= 1) {
+    go('reports', {}, false);
+    return;
+  }
+  if (currentRoute().page !== 'sites' && !currentRoute().params.get('project') && projects[0]) {
     const preferred =
       prefs.project && projects.includes(prefs.project) ? prefs.project : projects[0];
     go(currentRoute().page, { project: preferred });

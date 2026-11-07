@@ -1,6 +1,6 @@
 {
   "name": "dataflare-web",
-  "version": "0.8.0",
+  "version": "0.8.2",
   "description": "Dataflare browser SDK: pageviews, custom events, identify, feature flags and session replay.",
   "license": "MIT",
   "type": "module",

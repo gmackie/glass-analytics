@@ -163,6 +163,7 @@ function fixture(now: number) {
 
 const READS: [string, string, unknown?][] = [
   ['GET', '/api/overview?from=-7d'],
+  ['GET', '/api/sites?from=-7d'],
   ['POST', '/api/query', { kind: 'web', from: '-7d' }],
   [
     'POST',

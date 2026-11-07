@@ -46,6 +46,7 @@ ${color.bold('Set up')}
     --local                        Deploy from here even though a CI workflow exists
     --allow-downgrade              Replace a newer deployed Worker with this older one
     --retention-days <n>           Delete events older than n days (0 keeps them)
+    --no-replay                    Turn session replay off; upgrades stop creating its bucket
   dataflare ci [--branch main]   Write the workflow that deploys Dataflare from CI
     --secret <name>                Repo secret with the Cloudflare token (default CLOUDFLARE_API_TOKEN)
   dataflare status               Check the deployment end to end
@@ -206,6 +207,7 @@ export async function main(argv: string[]): Promise<void> {
         allowDowngrade: Boolean(flags['allow-downgrade']),
         retentionDays:
           flags['retention-days'] !== undefined ? Number(flags['retention-days']) : undefined,
+        replay: flags['no-replay'] ? false : undefined,
       });
     case 'ci':
       return ci({

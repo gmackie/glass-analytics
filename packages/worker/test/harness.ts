@@ -29,6 +29,8 @@ type Value = null | number | bigint | string | Uint8Array;
 const toSqlite = (v: unknown): Value =>
   v === undefined || v === null ? null : typeof v === 'boolean' ? (v ? 1 : 0) : (v as Value);
 
+const D1_MAX_PARAMETERS = 100;
+
 class Statement implements D1PreparedStatement {
   private readonly db: DatabaseSync;
   private readonly sql: string;
@@ -41,6 +43,10 @@ class Statement implements D1PreparedStatement {
   }
 
   bind(...values: unknown[]): D1PreparedStatement {
+    // D1 rejects a statement with more than 100 bound parameters; plain SQLite allows 32766.
+    if (values.length > D1_MAX_PARAMETERS) {
+      throw new Error(`D1 allows ${D1_MAX_PARAMETERS} bound parameters, got ${values.length}`);
+    }
     return new Statement(this.db, this.sql, values.map(toSqlite));
   }
 
@@ -49,7 +55,14 @@ class Statement implements D1PreparedStatement {
   }
 
   async all<T>(): Promise<D1Result<T>> {
-    return { results: this.db.prepare(this.sql).all(...this.args) as T[], success: true, meta: {} };
+    // D1 reports changed_db from total_changes(), as miniflare does; the store relies on it.
+    const before = this.totalChanges();
+    const results = this.db.prepare(this.sql).all(...this.args) as T[];
+    return { results, success: true, meta: { changed_db: this.totalChanges() !== before } };
+  }
+
+  private totalChanges(): number {
+    return Number((this.db.prepare('SELECT total_changes() AS n').get() as { n: number }).n);
   }
 
   async run(): Promise<D1Result> {
@@ -118,13 +131,25 @@ export class MemoryR2 implements R2Bucket {
     const bytes = this.objects.get(key);
     return bytes ? body(key, bytes) : null;
   }
-  async list({ prefix, limit = 1000 }: { prefix: string; limit?: number }) {
-    const keys = [...this.objects.keys()].filter((k) => k.startsWith(prefix)).sort();
+  async list({
+    prefix,
+    cursor,
+    limit = 1000,
+  }: {
+    prefix: string;
+    cursor?: string;
+    limit?: number;
+  }) {
+    // Like R2, a page holds at most `limit` keys, and its cursor resumes after the last one.
+    const keys = [...this.objects.keys()]
+      .filter((k) => k.startsWith(prefix) && (cursor === undefined || k > cursor))
+      .sort();
+    const page = keys.slice(0, limit);
+    const truncated = keys.length > limit;
     return {
-      objects: keys
-        .slice(0, limit)
-        .map((key) => ({ key, size: this.objects.get(key)!.byteLength })),
-      truncated: keys.length > limit,
+      objects: page.map((key) => ({ key, size: this.objects.get(key)!.byteLength })),
+      truncated,
+      ...(truncated ? { cursor: page.at(-1) } : {}),
     };
   }
   async delete(keys: string | string[]) {

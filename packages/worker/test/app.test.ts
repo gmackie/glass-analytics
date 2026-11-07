@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { beforeEach, describe, it } from 'node:test';
 import { GLASS_VERSION, UPGRADE_COMMAND } from '@dataflare/core/version';
 import { configureLatestCheck } from '../src/latest.ts';
-import { ArrayStream, READ, type TestApp, testApp, wire } from './harness.ts';
+import { D1Store } from '../src/stores/d1.ts';
+import { ArrayStream, MemoryR2, READ, SqliteD1, type TestApp, testApp, wire } from './harness.ts';
 
 let t: TestApp;
 
@@ -565,6 +566,19 @@ describe('query API', () => {
     assert.equal(res.rows[0]!.n, 3);
     const bad = await t.call('POST', '/api/sql', { body: { query: 'DELETE FROM events' } });
     assert.equal(bad.status, 400);
+  });
+
+  it('fails loudly if a read-only query ever writes', async () => {
+    const store = new D1Store(new SqliteD1());
+    assert.equal((await store.query('SELECT 1 AS n'))[0]?.n, 1);
+    await assert.rejects(
+      store.query(
+        "INSERT INTO flags (project, key, definition, created_at, updated_at) VALUES ('p', 'k', '{}', 1, 1) RETURNING key",
+      ),
+      /changed the database/,
+    );
+    // The INSERT above went through before the check threw, so there is a row to delete.
+    await assert.rejects(store.query('DELETE FROM flags RETURNING *'), /changed the database/);
   });
 
   it('lists and describes events, and flags undocumented ones', async () => {
@@ -1378,7 +1392,7 @@ describe('lake store', () => {
         LAKE_BUCKET: 'b',
         CF_API_TOKEN: 't',
       } as never);
-      assert.deepEqual(await store.query('SELECT 1 AS n'), [{ n: 1 }]);
+      assert.equal((await store.query('SELECT 1 AS n'))[0]?.n, 1);
     } finally {
       globalThis.fetch = realFetch;
     }
@@ -1438,5 +1452,162 @@ describe('maintenance', () => {
       ['fresh'],
     );
     assert.equal(rows('SELECT * FROM replays').length, 0);
+  });
+});
+
+describe('D1 limits, idempotent replay uploads and resumable erasure', () => {
+  beforeEach(() => setup());
+
+  const now = Date.now();
+  const addPerson = (id: string) =>
+    t.db.sqlite
+      .prepare(
+        'INSERT INTO persons (project, person_id, props, first_seen, last_seen) VALUES (?, ?, ?, ?, ?)',
+      )
+      .run('acme', id, '{}', 1, 1);
+  /** A replay session for `user`, with `chunks` R2 objects and a note. */
+  const addSession = (session: string, user: string, chunks = 1) => {
+    t.db.sqlite
+      .prepare(
+        'INSERT INTO replays (project, session_id, distinct_id, user_id, started_at, ended_at) VALUES (?, ?, ?, ?, ?, ?)',
+      )
+      .run('acme', session, `device-${user}`, user, now, now);
+    t.db.sqlite
+      .prepare(
+        'INSERT INTO replay_notes (project, session_id, id, ts_ms, text, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+      )
+      .run('acme', session, 'n1', now, 'note', now);
+    for (let i = 0; i < chunks; i++) {
+      t.r2.objects.set(
+        `replays/acme/${session}/${String(i).padStart(6, '0')}.json.gz`,
+        new Uint8Array([1]),
+      );
+    }
+    t.r2.objects.set(`summaries/acme/${session}.json`, new Uint8Array([1]));
+  };
+
+  it('stamps person properties onto a batch covering more people than D1 binds at once', async () => {
+    // The harness rejects statements with over 100 parameters, as D1 does.
+    for (let i = 0; i < 200; i++) addPerson(`user-${i}`);
+    const res = await t.ingest(
+      Array.from({ length: 200 }, (_, i) => wire('x', { user_id: `user-${i}` })),
+    );
+    assert.ok(res.ok, await res.text());
+    assert.equal(rows("SELECT * FROM events WHERE event = 'x'").length, 200);
+    assert.equal(rows('SELECT * FROM persons WHERE last_seen = 1').length, 0);
+  });
+
+  it('erases a person with more device links than D1 binds at once', async () => {
+    addPerson('dave');
+    for (let i = 0; i < 60; i++) {
+      t.db.sqlite
+        .prepare(
+          'INSERT INTO identities (project, distinct_id, person_id, created_at) VALUES (?, ?, ?, ?)',
+        )
+        .run('acme', `dev-${i}`, 'dave', now);
+    }
+    await t.ingest(Array.from({ length: 60 }, (_, i) => wire('x', { distinct_id: `dev-${i}` })));
+    addSession('s-device', 'someone-else');
+    t.db.sqlite.exec("UPDATE replays SET distinct_id = 'dev-59' WHERE session_id = 's-device'");
+    const res = await t.json<{ complete: boolean; replaysDeleted: number }>(
+      'DELETE',
+      '/api/persons/dave',
+    );
+    assert.equal(res.complete, true);
+    assert.equal(res.replaysDeleted, 1);
+    assert.equal(rows('SELECT * FROM events').length, 0);
+    assert.equal(rows('SELECT * FROM identities').length, 0);
+  });
+
+  it('finishes erasing a person with more replays than one request deletes', async () => {
+    addPerson('dave');
+    for (let i = 0; i < 130; i++) addSession(`s-${i}`, 'dave');
+    addSession('s-long', 'dave', 1001); // more chunks than one R2 listing returns
+    addSession('s-other', 'erin');
+    const res = await t.json<{ complete: boolean; replaysDeleted: number; summary: string }>(
+      'DELETE',
+      '/api/persons/dave',
+    );
+    assert.equal(res.complete, false);
+    assert.equal(res.replaysDeleted, 100);
+    assert.match(res.summary, /hourly maintenance job/);
+    // Not finished, so the person and the erasure record stay until the job is done.
+    assert.equal(rows('SELECT * FROM persons').length, 1);
+    assert.equal(rows('SELECT * FROM erasures').length, 1);
+
+    await t.app.scheduled({}, t.env);
+    assert.deepEqual(
+      rows('SELECT session_id FROM replays').map((r) => r.session_id),
+      ['s-other'],
+    );
+    assert.equal(rows("SELECT * FROM replay_notes WHERE session_id != 's-other'").length, 0);
+    assert.deepEqual(
+      [...t.r2.objects.keys()].filter((k) => !k.includes('s-other')),
+      [],
+    );
+    assert.equal(rows('SELECT * FROM persons').length, 0);
+    assert.equal(rows('SELECT * FROM erasures').length, 0);
+  });
+
+  it('resumes an erasure that failed between R2 and D1', async () => {
+    addPerson('dave');
+    for (let i = 0; i < 5; i++) addSession(`s-${i}`, 'dave');
+    const realDelete = t.r2.delete.bind(t.r2);
+    let calls = 0;
+    t.r2.delete = async (keys) => {
+      if (++calls === 4) throw new Error('R2 unavailable');
+      return realDelete(keys);
+    };
+    const failed = await t.call('DELETE', '/api/persons/dave');
+    assert.equal(failed.status, 500);
+    // Every index row survives a failure part way through the R2 deletes, so nothing is orphaned.
+    assert.equal(rows('SELECT * FROM replays').length, 5);
+    t.r2.delete = realDelete;
+    await t.app.scheduled({}, t.env);
+    assert.equal(rows('SELECT * FROM replays').length, 0);
+    assert.equal(rows('SELECT * FROM replay_notes').length, 0);
+    assert.equal(t.r2.objects.size, 0);
+    assert.equal(rows('SELECT * FROM persons').length, 0);
+  });
+
+  it('counts a retried replay upload once', async () => {
+    const url = '/r?project=acme&session=retry&seq=0&page=p1&start=1000&end=2000&clicks=2&enc=json';
+    for (let i = 0; i < 2; i++) {
+      const res = await t.call('POST', url, { key: null, body: '[{"type":4,"timestamp":1000}]' });
+      assert.ok(res.ok);
+    }
+    await t.call('POST', url.replace('seq=0', 'seq=1'), {
+      key: null,
+      body: '[{"type":3,"timestamp":1500}]',
+    });
+    const [row] = rows("SELECT chunks, pages, clicks FROM replays WHERE session_id = 'retry'");
+    assert.deepEqual({ ...row }, { chunks: 2, pages: 1, clicks: 4 });
+    assert.equal(t.r2.objects.size, 2);
+  });
+
+  it('reads replays left in a legacy bucket, moves them across, and erases from both', async () => {
+    const legacy = new MemoryR2();
+    t.env.REPLAYS_LEGACY = legacy;
+    await t.call('POST', `/r?project=acme&session=old&seq=0&page=p1&start=${now}&u=dave&enc=json`, {
+      key: null,
+      body: `[{"type":4,"timestamp":${now}}]`,
+    });
+    // As before 0.8.1: the Worker wrote to what is now the legacy bucket.
+    for (const [key, value] of t.r2.objects) legacy.objects.set(key, value);
+    t.r2.objects.clear();
+    const before = await t.json<{ events: unknown[] }>('GET', '/api/replays/old/events');
+    assert.equal(before.events.length, 1);
+
+    await t.app.scheduled({}, t.env);
+    assert.equal(legacy.objects.size, 0);
+    assert.equal(t.r2.objects.size, 1);
+    const after = await t.json<{ events: unknown[] }>('GET', '/api/replays/old/events');
+    assert.equal(after.events.length, 1);
+
+    legacy.objects.set('replays/acme/old/000000000000999-p0-000000.json.gz', new Uint8Array([1]));
+    addPerson('dave');
+    await t.json('DELETE', '/api/persons/dave');
+    assert.equal(legacy.objects.size, 0);
+    assert.equal(t.r2.objects.size, 0);
   });
 });

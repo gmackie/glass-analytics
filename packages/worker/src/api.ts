@@ -46,6 +46,8 @@ export function apiRouter(service: GlassService, env: Env, request: Request): Ro
         'GET /health': 'Deployment version, latest release, upgradeAvailable',
         'GET /api/overview?from=-30d':
           'Headline stats and movers (includes upgrade notice when outdated)',
+        'GET /api/sites?from=-30d':
+          'Every project side by side: visitors, pageviews and trend vs the previous period',
         'POST /api/query': `Run an insight: { "kind": ${Object.keys(INSIGHTS)
           .map((k) => `"${k}"`)
           .join(' | ')}, ...spec }`,
@@ -125,6 +127,7 @@ export function apiRouter(service: GlassService, env: Env, request: Request): Ro
   });
 
   r.get('/api/overview', async ({ url }) => json(await service.overview(params(url))));
+  r.get('/api/sites', async ({ url }) => json(await service.sites(params(url))));
   r.post('/api/query', async () => {
     const { kind, ...spec } = await body();
     return json(await service.runInsight(String(kind ?? ''), spec));

@@ -186,7 +186,7 @@ ORDER BY ts_ms DESC
 LIMIT 5000`;
 }
 
-function defaultInterval(range: TimeRange): Interval {
+export function defaultInterval(range: TimeRange): Interval {
   const days = (range.to - range.from) / DAY_MS;
   if (days <= 2) return 'hour';
   if (days <= 92) return 'day';

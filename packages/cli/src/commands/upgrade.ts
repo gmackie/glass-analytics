@@ -29,6 +29,7 @@ import {
   pipelinesLister,
   putSecrets,
   renderWranglerConfig,
+  replayBucketConfig,
 } from '../cloudflare/provision.ts';
 import { createWrangler, type Wrangler } from '../cloudflare/wrangler.ts';
 import {
@@ -70,6 +71,8 @@ export interface UpgradeOptions {
   allowDowngrade?: boolean;
   /** Delete events older than this many days (0 keeps them forever). Saved in .glass/config.json. */
   retentionDays?: number;
+  /** `false` turns session replay off and stops upgrades from creating its R2 bucket. Saved. */
+  replay?: boolean;
 }
 
 export interface UpgradeDeps {
@@ -136,6 +139,16 @@ export async function upgrade(options: UpgradeOptions, deps: UpgradeDeps = {}): 
     );
   }
   const from = config.version;
+  // `--no-replay` records an opt-out on an install without replay storage. With a bucket, dropping
+  // the binding would strand its replays (and, mid EU move, the legacy bucket's), so refuse.
+  if (options.replay === false && config.replay)
+    throw new UsageError(
+      `Session replay is set up with bucket "${config.replay.bucket}". Nothing was changed.`,
+      '--no-replay only records the choice on installs without replay storage. To turn replay off here, delete the replays first, then set "replay": false in .glass/config.json.',
+    );
+  // An EU deployment from before 0.8.1 switches to its EU replay bucket (see replayBucketConfig).
+  if (config.replay)
+    config.replay = replayBucketConfig(config.replay.bucket, config.eu, config.replay);
 
   // With a CI workflow, a laptop upgrade only stages files; the workflow deploys them.
   if (hasCiWorkflow(root) && !ci && !options.local) {
@@ -185,12 +198,14 @@ export async function upgrade(options: UpgradeOptions, deps: UpgradeDeps = {}): 
     (status === 'skipped' ? skip : ok)(`${label}${detail ? color.dim(` (${detail})`) : ''}`);
   };
 
-  // Replay may have been skipped because R2 wasn't enabled; try again.
+  // `--no-replay` turns replay off for good; an install from before that was recorded passes it once.
+  if (options.replay === false) config.replay = false;
+  // Replay may have been skipped because R2 wasn't enabled; try again, unless it was turned off.
   if (
-    !config.replay &&
+    config.replay === null &&
     (await ensureBucket(wrangler, `${config.name}-replays`, config.eu, report, 'session replay'))
   ) {
-    config.replay = { bucket: `${config.name}-replays` };
+    config.replay = replayBucketConfig(`${config.name}-replays`, config.eu, null);
   }
   // Lake schema change: a new version gets its own streams, sinks and tables (a stream's schema is
   // fixed and a sink can't write to an existing table). The Worker switches to writing the new

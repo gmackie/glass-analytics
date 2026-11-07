@@ -3,7 +3,7 @@
  * compared to the latest `dataflare` on npm. Must match
  * `packages/cli/package.json` — `pnpm build` enforces that.
  */
-export const GLASS_VERSION = '0.8.0';
+export const GLASS_VERSION = '0.8.2';
 
 /** Canonical command to bring a deployment up to date. */
 export const UPGRADE_COMMAND = 'npx dataflare-cli@latest upgrade';

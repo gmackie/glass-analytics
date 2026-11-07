@@ -59,6 +59,11 @@ export interface Env {
   DB: D1Database;
   /** R2 bucket for replay chunks. Optional: replay is disabled without it. */
   REPLAYS?: R2Bucket;
+  /**
+   * An EU deployment from before 0.8.1 wrote replays to a default-jurisdiction bucket. It stays
+   * bound here until the hourly job has moved its objects into REPLAYS (see `moveLegacyReplays`).
+   */
+  REPLAYS_LEGACY?: R2Bucket;
   /** Lake mode: Pipelines streams feeding Iceberg tables. */
   EVENTS_STREAM?: PipelineStream;
   IDENTITIES_STREAM?: PipelineStream;

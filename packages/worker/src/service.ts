@@ -25,6 +25,7 @@ import {
   SOURCE_DIMENSIONS,
   type SourceDimension,
 } from '@dataflare/core/insights/report';
+import { runSites } from '@dataflare/core/insights/sites';
 import type { QueryContext, ResultBase } from '@dataflare/core/insights/types';
 import { runWeb } from '@dataflare/core/insights/web';
 import {
@@ -56,6 +57,7 @@ import {
 } from '@dataflare/core/version';
 import { z } from 'zod/v4';
 import type { Env } from './env.ts';
+import { continueErasure, ERASURE_SLICES_PER_REQUEST, startErasure } from './erasure.ts';
 import {
   type CreateExperimentInput,
   createExperiment,
@@ -72,7 +74,6 @@ import { createProject, listProjects, resolveProject } from './projects.ts';
 import {
   addNote,
   deleteNote,
-  deleteReplays,
   getReplay,
   listNotes,
   listReplays,
@@ -192,6 +193,13 @@ export const inputs = {
   overview: z.object({
     project,
     from: z.union([z.string(), z.number()]).optional(),
+    to: z.union([z.string(), z.number()]).optional(),
+  }),
+  sites: z.object({
+    from: z
+      .union([z.string(), z.number()])
+      .optional()
+      .describe('Start, e.g. "-30d". Default -30d.'),
     to: z.union([z.string(), z.number()]).optional(),
   }),
   markEvent: z.object({
@@ -648,6 +656,24 @@ GROUP BY event ORDER BY cur DESC, event ASC LIMIT 50`;
       summary: `${conversions ? `${baseSummary} Key events: ${conversions.summary}` : baseSummary}${health.upgradeAvailable && health.latest ? ` ${upgradeMessage(health.version, health.latest)}` : ''}`,
       sql: [...web.sql, sql],
       dashboard: this.link('reports', { project: ctx.project, from: spec.from, to: spec.to }),
+    };
+  }
+
+  /** Every project side by side for one range, with each one's change vs the previous period. */
+  async sites(input: unknown) {
+    const spec = inputs.sites.parse(input);
+    const projects = (await listProjects(this.env.DB)).map((p) => p.id);
+    const result = await runSites({ from: spec.from ?? '-30d', to: spec.to }, projects, {
+      dialect: this.store.dialect,
+      execute: (sql) => this.store.query(sql),
+    });
+    return {
+      ...result,
+      sites: result.sites.map((site) => ({
+        ...site,
+        dashboard: this.link('reports', { project: site.project, from: spec.from, to: spec.to }),
+      })),
+      dashboard: this.link('sites', { from: spec.from, to: spec.to }),
     };
   }
 
@@ -1246,23 +1272,30 @@ ORDER BY ts_ms DESC LIMIT 100`;
     ).results.map((r) => r.distinct_id);
     const ids = [spec.person_id, ...devices];
     const events = await this.store.deletePersonEvents(ctx.project, ids);
-    const marks = ids.map(() => '?').join(', ');
-    const replays = await deleteReplays(
+    // Replays go a slice at a time; whatever this request can't finish, the hourly job does.
+    await startErasure(this.env, ctx.project, spec.person_id, ids);
+    const erased = await continueErasure(
       this.env,
       ctx.project,
-      `(user_id IN (${marks}) OR distinct_id IN (${marks}))`,
-      [...ids, ...ids],
+      spec.person_id,
+      ids,
+      ERASURE_SLICES_PER_REQUEST,
     );
-    await this.env.DB.batch([
-      this.env.DB.prepare('DELETE FROM persons WHERE project = ? AND person_id = ?').bind(
-        ctx.project,
-        spec.person_id,
-      ),
-      this.env.DB.prepare('DELETE FROM identities WHERE project = ? AND person_id = ?').bind(
-        ctx.project,
-        spec.person_id,
-      ),
-    ]);
+    const replays = erased.replays;
+    const who = `person "${spec.person_id}"`;
+    const lake =
+      events === 'queued'
+        ? ' Their events in the lake are queued for deletion: the daily lake maintenance job removes them (see docs/lake.md).'
+        : '';
+    let summary: string;
+    if (erased.complete) {
+      summary =
+        events === 'deleted'
+          ? `Deleted ${who}, ${devices.length} device links, their events and ${replays} replays.`
+          : `Deleted ${who}, ${devices.length} device links and ${replays} replays.${lake}`;
+    } else {
+      summary = `Deleted ${events === 'deleted' ? 'the events and ' : ''}${replays} replays of ${who}. More replays remain: the hourly maintenance job deletes them, then the person and their ${devices.length} device links.${lake}`;
+    }
     return {
       project: ctx.project,
       id: spec.person_id,
@@ -1270,10 +1303,9 @@ ORDER BY ts_ms DESC LIMIT 100`;
       eventsDeleted: events === 'deleted',
       eventsQueued: events === 'queued',
       replaysDeleted: replays,
-      summary:
-        events === 'deleted'
-          ? `Deleted person "${spec.person_id}", ${devices.length} device links, their events and ${replays} replays.`
-          : `Deleted person "${spec.person_id}", ${devices.length} device links and ${replays} replays. Their events in the lake are queued for deletion: the daily lake maintenance job removes them (see docs/lake.md).`,
+      /** False while replays remain; the hourly job finishes the erasure. */
+      complete: erased.complete,
+      summary,
     };
   }
 

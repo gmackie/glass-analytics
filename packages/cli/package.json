@@ -1,6 +1,6 @@
 {
   "name": "dataflare-cli",
-  "version": "0.8.0",
+  "version": "0.8.2",
   "description": "Agent-first analytics in your own Cloudflare account. `npx dataflare-cli init` deploys it.",
   "license": "MIT",
   "type": "module",

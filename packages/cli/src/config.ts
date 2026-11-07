@@ -24,7 +24,24 @@ export interface GlassConfig {
   project: string;
   store: 'd1' | 'lake';
   d1: { name: string; id: string };
-  replay: { bucket: string } | null;
+  /**
+   * Session replay storage. `null`: not set up yet (for example R2 was not enabled), and
+   * `dataflare upgrade` tries again. `false`: turned off with `--no-replay`, so it stays off.
+   */
+  replay:
+    | {
+        bucket: string;
+        /** "eu" when the bucket was created in the EU jurisdiction; the Worker binding must say so. */
+        jurisdiction?: 'eu';
+        /**
+         * A default-jurisdiction bucket an EU deployment wrote replays to before 0.8.1, bound as
+         * REPLAYS_LEGACY until the hourly job has moved its objects into the EU bucket. Remove it
+         * (and the bucket) once the Worker logs `legacyMoved: 0` on consecutive runs.
+         */
+        legacyBucket?: string;
+      }
+    | null
+    | false;
   lake: {
     bucket: string;
     namespace: string;

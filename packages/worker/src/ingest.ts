@@ -315,6 +315,7 @@ async function resolvePersons(ctx: RowContext, events: WithIds[]): Promise<Map<s
 /** Step 5b: current properties for each person, stamped onto their events. */
 async function personProperties(ctx: RowContext, persons: string[]): Promise<Map<string, string>> {
   const out = new Map<string, string>();
+  // D1 binds at most 100 parameters per statement, so read and touch people 90 at a time.
   for (let i = 0; i < persons.length; i += 90) {
     const chunk = persons.slice(i, i + 90);
     const { results } = await ctx.env.DB.prepare(
@@ -322,14 +323,12 @@ async function personProperties(ctx: RowContext, persons: string[]): Promise<Map
     )
       .bind(ctx.project, ...chunk)
       .all<{ person_id: string; props: string }>();
+    if (results.length === 0) continue;
     for (const r of results) out.set(r.person_id, r.props);
-  }
-  if (out.size > 0) {
-    const ids = [...out.keys()];
     await ctx.env.DB.prepare(
-      `UPDATE persons SET last_seen = MAX(last_seen, ?) WHERE project = ? AND person_id IN (${ids.map(() => '?').join(', ')})`,
+      `UPDATE persons SET last_seen = MAX(last_seen, ?) WHERE project = ? AND person_id IN (${results.map(() => '?').join(', ')})`,
     )
-      .bind(ctx.now, ctx.project, ...ids)
+      .bind(ctx.now, ctx.project, ...results.map((r) => r.person_id))
       .run();
   }
   return out;

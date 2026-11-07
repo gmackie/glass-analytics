@@ -28,6 +28,7 @@ import {
   pipelinesLister,
   putSecrets,
   renderWranglerConfig,
+  replayBucketConfig,
   TOKEN_SCOPES,
 } from '../cloudflare/provision.ts';
 import { createWrangler, type Wrangler, WranglerError } from '../cloudflare/wrangler.ts';
@@ -261,10 +262,11 @@ export async function init(options: InitOptions, deps: InitDeps = {}): Promise<v
   const wrangler = (deps.wrangler ?? createWrangler)({ token, accountId: account.id }, root);
   try {
     const d1 = await ensureD1(wrangler, name, eu, report);
-    let replay: GlassConfig['replay'] = null;
+    let replay: GlassConfig['replay'] = wantReplay ? null : false;
     if (wantReplay) {
       const bucket = `${name}-replays`;
-      if (await ensureBucket(wrangler, bucket, eu, report, 'session replay')) replay = { bucket };
+      if (await ensureBucket(wrangler, bucket, eu, report, 'session replay'))
+        replay = replayBucketConfig(bucket, eu, existing?.replay || null);
       else
         report(
           'skipped',

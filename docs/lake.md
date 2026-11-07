@@ -38,7 +38,7 @@ D1 still holds projects, people, identity links, flags, experiments and the repl
 
 Basin SQL is read-only, so the Worker can't delete lake rows. Instead:
 
-- `dataflare person <id> --delete` deletes the person, their device links and replays at once, and queues their ids in D1 (`lake_deletions`).
+- `dataflare person <id> --delete` deletes the person, their device links and replays (the hourly job finishes any replays one request can't), and queues their ids in D1 (`lake_deletions`).
 - `dataflare lake maintain` reads the queue and deletes those people's events and identity links with [PyIceberg](https://py.iceberg.apache.org/) through Basin Catalog, then deletes events older than `--retention-days` if set. The rows disappear from queries at once.
 - The deploy workflow (`.github/workflows/glass.yml`) runs it daily at 03:17 UTC. Run it by hand from a laptop with `CLOUDFLARE_API_TOKEN` set; it needs [uv](https://docs.astral.sh/uv/).
 - Deletes rewrite data files and leave the old ones in earlier snapshots. `init --lake` turns on Basin Catalog's snapshot expiration (7 days) and compaction, so erased rows leave R2 within about a week.

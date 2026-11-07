@@ -25,12 +25,22 @@ import { fileURLToPath } from 'node:url';
 import { GLASS_VERSION } from '@dataflare/core/version';
 import { testApp } from '../../worker/test/harness.ts';
 import { agentsSection, importsAgentsMd, upsertSection } from '../src/agent-files.ts';
-import { lakeResourceNames } from '../src/cloudflare/provision.ts';
-import { type RunResult, type Wrangler, WranglerError } from '../src/cloudflare/wrangler.ts';
+import {
+  lakeResourceNames,
+  renderWranglerConfig,
+  replayBucketConfig,
+} from '../src/cloudflare/provision.ts';
+import {
+  localWrangler,
+  type RunResult,
+  type Wrangler,
+  WranglerError,
+} from '../src/cloudflare/wrangler.ts';
 import { init, normaliseRoute } from '../src/commands/init.ts';
 import { lakeMaintain, PYICEBERG } from '../src/commands/lake.ts';
 import { mcpBridge } from '../src/commands/mcp.ts';
 import { ci, upgrade } from '../src/commands/upgrade.ts';
+import type { GlassConfig } from '../src/config.ts';
 
 const HOST = 'https://glass.test-account.workers.dev';
 
@@ -603,6 +613,81 @@ describe('dataflare upgrade', () => {
     assert.equal(version(root), '99.0.0');
   });
 
+  it('keeps session replay off through upgrades after --no-replay', async () => {
+    const root = tempProject();
+    const fake = fakeWrangler(worker);
+    const deps = {
+      root,
+      wrangler: () => fake.wrangler,
+      fetcher: fetcherFor(worker),
+      bundleDir: BUNDLE,
+      pollMs: 1,
+    };
+    await init({ token: 'cf-token', replay: false, json: true }, deps);
+    const config = () => JSON.parse(readFileSync(join(root, '.glass', 'config.json'), 'utf8'));
+    assert.equal(config().replay, false);
+    fake.commands.length = 0;
+    setVersion(root, '0.0.1');
+    await quiet(() =>
+      upgrade({ json: true }, { ...deps, env: { CI: 'true', CLOUDFLARE_API_TOKEN: 'cf-token' } }),
+    );
+    assert.ok(!fake.commands.some((c) => c[0] === 'r2'), 'no replay bucket is created');
+    assert.equal(config().replay, false);
+    assert.doesNotMatch(readFileSync(join(root, '.glass', 'wrangler.jsonc'), 'utf8'), /REPLAYS/);
+  });
+
+  it('upgrade --no-replay stops retrying the replay bucket on an older install', async () => {
+    const root = tempProject();
+    const fake = fakeWrangler(worker, { r2Enabled: false });
+    const deps = {
+      root,
+      wrangler: () => fake.wrangler,
+      fetcher: fetcherFor(worker),
+      bundleDir: BUNDLE,
+      pollMs: 1,
+    };
+    await init({ token: 'cf-token', json: true }, deps);
+    const config = () => JSON.parse(readFileSync(join(root, '.glass', 'config.json'), 'utf8'));
+    assert.equal(config().replay, null, 'R2 was off, so replay is pending');
+    fake.commands.length = 0;
+    setVersion(root, '0.0.1');
+    await quiet(() =>
+      upgrade(
+        { json: true, replay: false },
+        { ...deps, env: { CI: 'true', CLOUDFLARE_API_TOKEN: 'cf-token' } },
+      ),
+    );
+    assert.ok(!fake.commands.some((c) => c[0] === 'r2'), 'no replay bucket is attempted');
+    assert.equal(config().replay, false);
+  });
+
+  it('upgrade --no-replay refuses on an install with a replay bucket', async () => {
+    const root = tempProject();
+    const fake = fakeWrangler(worker);
+    const deps = {
+      root,
+      wrangler: () => fake.wrangler,
+      fetcher: fetcherFor(worker),
+      bundleDir: BUNDLE,
+      pollMs: 1,
+    };
+    await init({ token: 'cf-token', json: true }, deps);
+    const config = () => JSON.parse(readFileSync(join(root, '.glass', 'config.json'), 'utf8'));
+    const before = config().replay;
+    assert.ok(before?.bucket, 'replay is set up');
+    fake.commands.length = 0;
+    setVersion(root, '0.0.1');
+    await assert.rejects(
+      upgrade(
+        { json: true, replay: false },
+        { ...deps, env: { CI: 'true', CLOUDFLARE_API_TOKEN: 'cf-token' } },
+      ),
+      /Session replay is set up with bucket/,
+    );
+    assert.deepEqual(fake.commands, []);
+    assert.deepEqual(config().replay, before);
+  });
+
   it('dataflare ci keeps a hand-written workflow', async () => {
     const { root } = await installed();
     writeFileSync(join(root, '.github', 'workflows', 'glass.yml'), 'name: mine\n');
@@ -646,6 +731,33 @@ describe('onboarding details', () => {
       assert.equal(normaliseRoute(input), 'acme.com/_glass/*', input);
     }
     assert.equal(normaliseRoute(undefined), undefined);
+  });
+
+  it('runs the installed wrangler rather than downloading one with npx', () => {
+    const bin = localWrangler();
+    assert.ok(bin?.endsWith(join('wrangler', 'bin', 'wrangler.js')), String(bin));
+    assert.ok(bin && existsSync(bin));
+  });
+
+  it('turns workers.dev off once the Worker has a route, so zone rules cannot be bypassed', () => {
+    const config: GlassConfig = {
+      name: 'glass-web-app',
+      accountId: 'acc',
+      host: HOST,
+      project: 'web-app',
+      store: 'd1',
+      d1: { name: 'glass-web-app', id: 'db' },
+      replay: null,
+      lake: null,
+      route: null,
+      eu: false,
+      version: GLASS_VERSION,
+    };
+    assert.match(renderWranglerConfig(config), /"workers_dev": true/);
+    assert.match(
+      renderWranglerConfig({ ...config, route: 'acme.com/_glass/*' }),
+      /"workers_dev": false/,
+    );
   });
 
   it("doesn't copy the Dataflare section into a CLAUDE.md that imports AGENTS.md", () => {
@@ -786,5 +898,64 @@ describe('lake maintenance', () => {
     mkdirSync(join(root, '.glass'));
     writeFileSync(join(root, '.glass', 'config.json'), JSON.stringify({ store: 'd1', lake: null }));
     await assert.rejects(lakeMaintain({ token: 't' }, { root }), /keeps events in D1/);
+  });
+});
+
+describe('generated wrangler config', () => {
+  const base: GlassConfig = {
+    name: 'glass-web-app',
+    accountId: 'acc',
+    host: HOST,
+    project: 'web-app',
+    store: 'd1',
+    d1: { name: 'glass-web-app', id: 'db' },
+    replay: null,
+    lake: null,
+    route: null,
+    eu: false,
+    version: GLASS_VERSION,
+  };
+  const render = (config: Partial<GlassConfig>) =>
+    JSON.parse(renderWranglerConfig({ ...base, ...config }).replace(/^\/\/.*\n/, '')) as {
+      r2_buckets?: Record<string, string>[];
+      routes?: unknown[];
+    };
+
+  it('binds an EU replay bucket with its jurisdiction', () => {
+    assert.deepEqual(render({ replay: replayBucketConfig('r', false, null) }).r2_buckets, [
+      { binding: 'REPLAYS', bucket_name: 'r' },
+    ]);
+    assert.deepEqual(render({ eu: true, replay: replayBucketConfig('r', true, null) }).r2_buckets, [
+      { binding: 'REPLAYS', bucket_name: 'r', jurisdiction: 'eu' },
+    ]);
+  });
+
+  it('moves a pre-0.8.1 EU deployment to its EU bucket and keeps the old one as legacy', () => {
+    // Before 0.8.1 an EU config recorded no jurisdiction, and the Worker wrote to a
+    // default-jurisdiction bucket of the same name.
+    const migrated = replayBucketConfig('r', true, { bucket: 'r' });
+    assert.deepEqual(migrated, { bucket: 'r', jurisdiction: 'eu', legacyBucket: 'r' });
+    assert.deepEqual(render({ eu: true, replay: migrated }).r2_buckets, [
+      { binding: 'REPLAYS', bucket_name: 'r', jurisdiction: 'eu' },
+      { binding: 'REPLAYS_LEGACY', bucket_name: 'r' },
+    ]);
+    // Running upgrade again keeps the legacy bucket, and a current config gains none.
+    assert.deepEqual(replayBucketConfig('r', true, migrated), migrated);
+    assert.deepEqual(replayBucketConfig('r', true, { bucket: 'r', jurisdiction: 'eu' }), {
+      bucket: 'r',
+      jurisdiction: 'eu',
+    });
+    assert.deepEqual(replayBucketConfig('r', false, { bucket: 'r' }), { bucket: 'r' });
+  });
+
+  it('leaves the zone of a route to Wrangler, so multi-label domains work', () => {
+    for (const route of [
+      'example.com/_glass/*',
+      'analytics.example.co.uk/_glass/*',
+      'a.team.example.com/_glass/*',
+    ]) {
+      assert.deepEqual(render({ route }).routes, [route]);
+    }
+    assert.equal(render({}).routes, undefined);
   });
 });
