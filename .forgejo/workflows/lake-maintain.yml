@@ -1,0 +1,46 @@
+# Daily Dataflare lake maintenance (DATFLR-1, moved here by DATFLR-7). For each lake deployment it
+# erases the people queued by `dataflare person <id> --delete` from the Basin (Iceberg) tables and
+# applies retention. Basin SQL is read-only, so the Worker can't delete lake rows itself. D1
+# deployments (district) need no job: deletions are immediate and the Worker's cron applies
+# retention.
+#
+# Runs the CLI built from this repo, so it always matches the deployed Worker.
+# LAKE_MAINTAIN_CLOUDFLARE_API_TOKEN is a copy of the ForgeGraph secret CLOUDFLARE_API_TOKEN (app
+# dataflare, stage production): D1, R2 Storage and R2 Data Catalog Edit on the EducateOS account.
+name: lake-maintain
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: lake-maintain
+  cancel-in-progress: false
+
+jobs:
+  maintain:
+    runs-on: [forgegraph-ci, forgegraph-worker]
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        deployment: [educateos-site, observe]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: astral-sh/setup-uv@v6
+      - name: Install and build
+        run: |
+          corepack enable
+          pnpm config set store-dir "${RUNNER_TEMP:-/tmp}/pnpm-store"
+          pnpm install --frozen-lockfile
+          pnpm build
+      - name: Erase queued people and apply retention
+        working-directory: deployments/${{ matrix.deployment }}
+        run: node ../../packages/cli/dist/glass.js lake maintain
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.LAKE_MAINTAIN_CLOUDFLARE_API_TOKEN }}
