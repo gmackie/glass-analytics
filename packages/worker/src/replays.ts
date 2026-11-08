@@ -24,11 +24,19 @@
  */
 
 import type { RrwebEvent } from '@dataflare/core/replay-summary';
+import {
+  isMinors,
+  isPseudonym,
+  type ReplayEventLike,
+  sanitizeUrl,
+  scrubReplayEvents,
+} from '@dataflare/core/student-policy';
 import { parseUserAgent } from '@dataflare/core/ua';
 import type { D1Database, Env, R2Bucket } from './env.ts';
 import { HttpError } from './http.ts';
 import { cookielessIds, requestInfo } from './ingest.ts';
 import { getProject } from './projects.ts';
+import { getPolicy } from './student-mode.ts';
 
 const SAFE_ID = /^[A-Za-z0-9_.:-]{1,100}$/;
 const MAX_CHUNK_BYTES = 5_000_000;
@@ -62,6 +70,22 @@ async function gunzip(bytes: ArrayBuffer): Promise<string> {
   return new Response(stream).text();
 }
 
+/** Student mode: decode a chunk, mask it, and re-encode it. A chunk that isn't rrweb JSON is refused. */
+async function scrubChunk(raw: Uint8Array, gzipped: boolean): Promise<string> {
+  let events: unknown;
+  try {
+    const text = gzipped
+      ? await gunzip(raw.slice().buffer as ArrayBuffer)
+      : new TextDecoder().decode(raw);
+    events = JSON.parse(text);
+  } catch {
+    throw new HttpError(400, 'Replay chunk is not JSON', 'Send a JSON array of rrweb events.');
+  }
+  if (!Array.isArray(events))
+    throw new HttpError(400, 'Replay chunk must be an array', 'Send a JSON array of rrweb events.');
+  return JSON.stringify(scrubReplayEvents(events as ReplayEventLike[]));
+}
+
 /** `POST /r` — store one chunk and update the session index. */
 export async function handleReplayChunk(request: Request, env: Env, url: URL): Promise<void> {
   const bucket = requireBucket(env);
@@ -72,8 +96,17 @@ export async function handleReplayChunk(request: Request, env: Env, url: URL): P
   const seq = Number(q.get('seq'));
   if (!(await getProject(env.DB, project)))
     throw new HttpError(404, `Unknown project "${project}"`);
+  const policy = await getPolicy(env.DB, project);
+  const minors = isMinors(policy);
+  if (minors && policy.replay !== 'scrubbed')
+    throw new HttpError(
+      403,
+      `Session replay is off for project "${project}" (student mode)`,
+      'Remove the replay option from the snippet, or set the policy\'s replay to "scrubbed" once it is approved.',
+    );
   const info = requestInfo(request);
-  if (q.get('cl') === '1') {
+  // Student mode never trusts browser-chosen ids: replays use the cookieless ids its events get.
+  if (q.get('cl') === '1' || minors) {
     // Cookieless: the browser has no ids, so derive the ones its events get. The
     // session comes from the page load's start, so every chunk of a page stays together.
     const now = Date.now();
@@ -88,7 +121,14 @@ export async function handleReplayChunk(request: Request, env: Env, url: URL): P
   const raw = new Uint8Array(await request.arrayBuffer());
   if (raw.byteLength === 0) return;
   if (raw.byteLength > MAX_CHUNK_BYTES) throw new HttpError(413, 'Replay chunk too large');
-  const body = q.get('enc') === 'gzip' ? raw : await gzip(raw);
+  const body = minors
+    ? await gzip(new TextEncoder().encode(await scrubChunk(raw, q.get('enc') === 'gzip')))
+    : q.get('enc') === 'gzip'
+      ? raw
+      : await gzip(raw);
+  const userId = q.get('u');
+  const user = userId && (!minors || isPseudonym(userId, policy)) ? userId : null;
+  const href = minors ? sanitizeUrl(q.get('href')) : (q.get('href') ?? '');
   // Keys sort by start time; the page id keeps chunks from different page loads apart.
   const startKey = String(Math.max(0, Math.floor(Number(q.get('start')) || Date.now()))).padStart(
     15,
@@ -132,13 +172,13 @@ export async function handleReplayChunk(request: Request, env: Env, url: URL): P
     project,
     session,
     distinct,
-    q.get('u') || null,
+    user,
     start,
     n('end') || start,
     body.byteLength,
     n('clicks'),
     n('errors'),
-    (q.get('href') ?? '').slice(0, 500),
+    href.slice(0, 500),
     ua.device,
     ua.browser,
     info.country,

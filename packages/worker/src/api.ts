@@ -11,6 +11,7 @@ import type { Env } from './env.ts';
 import { HttpError, json, Router, readJson } from './http.ts';
 import { TOOLS } from './mcp/tools.ts';
 import type { GlassService } from './service.ts';
+import { actorFromRequest } from './student-mode.ts';
 
 const NUMERIC = new Set(['days', 'limit']);
 const BOOLEAN = new Set(['with_errors', 'compare']);
@@ -30,6 +31,16 @@ export function apiRouter(service: GlassService, env: Env, request: Request): Ro
     if (scope !== 'admin') throw new HttpError(403, 'This action needs the admin key');
   };
   const body = () => readJson<Record<string, unknown>>(request);
+  const url = new URL(request.url);
+  service.setActor({
+    ...actorFromRequest(
+      request,
+      scope,
+      'api',
+      `${request.method} ${url.pathname.replace(/^\/_glass/, '')}`,
+    ),
+    detail: url.search.slice(1),
+  });
   const r = new Router();
 
   r.get('/api', () =>
@@ -100,6 +111,11 @@ export function apiRouter(service: GlassService, env: Env, request: Request): Ro
         'POST /api/experiments/:key/start|stop|ship': 'Change experiment state (admin)',
         'GET /api/projects': 'Projects',
         'POST /api/projects': 'Create a project (admin)',
+        'GET /api/projects/:id/policy': 'Student-mode privacy policy of a project',
+        'PUT /api/projects/:id/policy':
+          'Turn student mode on or off: { "audience": "minors", "event_properties": [...], "person_properties": [...], "replay": "off" } (admin)',
+        'GET /api/projects/:id/audit?from=-30d':
+          'Who read a student-mode project’s data, when and how (admin)',
         'GET /api/instrument?event=&framework=': 'Tracking code for an event',
       },
       tools: TOOLS.map((t) => t.name),
@@ -124,6 +140,18 @@ export function apiRouter(service: GlassService, env: Env, request: Request): Ro
   r.post('/api/projects', async () => {
     admin();
     return json(await service.createProject(await body()), { status: 201 });
+  });
+
+  r.get('/api/projects/:id/policy', async ({ params: p }) =>
+    json(await service.getProjectPolicy({ project: p.id })),
+  );
+  r.put('/api/projects/:id/policy', async ({ params: p }) => {
+    admin();
+    return json(await service.setProjectPolicy({ ...(await body()), project: p.id }));
+  });
+  r.get('/api/projects/:id/audit', async ({ url, params: p }) => {
+    admin();
+    return json(await service.auditLog({ ...params(url), project: p.id }));
   });
 
   r.get('/api/overview', async ({ url }) => json(await service.overview(params(url))));
