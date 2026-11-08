@@ -47,6 +47,7 @@ import {
 import { propertyText } from '@dataflare/core/sql/filters';
 import { assertReadOnlySql } from '@dataflare/core/sql/guard';
 import { eventsCte, num, text } from '@dataflare/core/sql/source';
+import { isMinors, studentPolicySchema } from '@dataflare/core/student-policy';
 import { DAY_MS, resolveRange } from '@dataflare/core/time';
 import { estimateUsage } from '@dataflare/core/usage';
 import {
@@ -86,6 +87,14 @@ import {
   writeCachedSummary,
 } from './replays.ts';
 import type { EventStore } from './stores/types.ts';
+import {
+  type AuditActor,
+  getPolicy,
+  listAudit,
+  minorsProjects,
+  recordAudit,
+  savePolicy,
+} from './student-mode.ts';
 
 const project = z.string().optional();
 /** Event-store matches feeding a replay search are capped (they are inlined into a D1 query). */
@@ -469,6 +478,16 @@ export const inputs = {
     action: z.enum(['start', 'stop', 'ship']),
     variant: z.string().optional().describe('Required for "ship": the variant everyone gets.'),
   }),
+  getProjectPolicy: z.object({ project }),
+  setProjectPolicy: studentPolicySchema.extend({ project }),
+  auditLog: z.object({
+    project,
+    from: z
+      .union([z.string(), z.number()])
+      .optional()
+      .describe('Start of the window, e.g. "-30d". Default -30d.'),
+    limit: z.coerce.number().int().min(1).max(1000).optional().describe('Default 200.'),
+  }),
   createProject: z.object({
     id: z.string().describe('Lowercase id, e.g. "acme-web".'),
     name: z.string().optional(),
@@ -497,15 +516,50 @@ export class GlassService {
   readonly store: EventStore;
   readonly baseUrl: string;
 
+  /** Who is calling, for the student-mode audit log. Null for internal callers (cron). */
+  actor: AuditActor | null = null;
+  private audited = new Set<string>();
+
   constructor(env: Env, store: EventStore, baseUrl: string) {
     this.env = env;
     this.store = store;
     this.baseUrl = baseUrl;
   }
 
+  /** Set who is calling and what they asked for; each project is audited once per operation. */
+  setActor(actor: AuditActor | null): void {
+    this.actor = actor;
+    this.audited.clear();
+  }
+
   private async context(requested?: string): Promise<QueryContext> {
     const project = await resolveProject(this.env.DB, requested);
+    await this.audit(project);
     return { dialect: this.store.dialect, project, execute: (sql) => this.store.query(sql) };
+  }
+
+  /**
+   * Record a read or change of a student-mode project. Writing the record is part of the
+   * request: if it fails, the request fails rather than going unrecorded.
+   */
+  private async audit(project: string, detail?: string): Promise<void> {
+    if (!this.actor || this.audited.has(project)) return;
+    if (!isMinors(await getPolicy(this.env.DB, project))) return;
+    this.audited.add(project);
+    await recordAudit(this.env.DB, project, { ...this.actor, detail: detail ?? this.actor.detail });
+  }
+
+  /** Audit every student-mode project: for reads that can reach any project's rows. */
+  private async auditAll(detail?: string): Promise<void> {
+    if (!this.actor) return;
+    for (const { project } of await minorsProjects(this.env.DB)) {
+      if (this.audited.has(project)) continue;
+      this.audited.add(project);
+      await recordAudit(this.env.DB, project, {
+        ...this.actor,
+        detail: detail ?? this.actor.detail,
+      });
+    }
   }
 
   /** A link to the same view in the dashboard, included in every response. */
@@ -560,6 +614,8 @@ export class GlassService {
 
   async sql(input: unknown) {
     const spec = sqlSpec.parse(input);
+    // SQL can read any project's rows whatever `project` says, so every student project is audited.
+    await this.auditAll(spec.query);
     const ctx = await this.context(spec.project);
     const safe = this.store.userSql(assertReadOnlySql(spec.query));
     const limit = spec.limit ?? 1000;
@@ -662,6 +718,7 @@ GROUP BY event ORDER BY cur DESC, event ASC LIMIT 50`;
   /** Every project side by side for one range, with each one's change vs the previous period. */
   async sites(input: unknown) {
     const spec = inputs.sites.parse(input);
+    await this.auditAll();
     const projects = (await listProjects(this.env.DB)).map((p) => p.id);
     const result = await runSites({ from: spec.from ?? '-30d', to: spec.to }, projects, {
       dialect: this.store.dialect,
@@ -2065,6 +2122,66 @@ WHERE project = ${d.str(project)} AND session_id = ${d.str(row.session_id)} AND 
     return {
       project: created,
       summary: `Project "${created.id}" is ready. Use data-project="${created.id}" in the snippet.`,
+    };
+  }
+
+  // ── Student mode ─────────────────────────────────────────────────────────
+
+  async getProjectPolicy(input: unknown) {
+    const spec = inputs.getProjectPolicy.parse(input ?? {});
+    const project = await resolveProject(this.env.DB, spec.project);
+    const policy = await getPolicy(this.env.DB, project);
+    return {
+      project,
+      policy: policy ?? studentPolicySchema.parse({ audience: 'general' }),
+      summary: isMinors(policy)
+        ? `Student mode is on for "${project}": pseudonymous ids only, ${policy.event_properties.length} event and ${policy.person_properties.length} person properties allowed, replay ${policy.replay}${policy.retention_days ? `, events kept ${policy.retention_days} days` : ''}. Reads are audited.`
+        : `Student mode is off for "${project}"; the deployment's normal collection applies.`,
+    };
+  }
+
+  async setProjectPolicy(input: unknown) {
+    const { project: requested, ...rest } = inputs.setProjectPolicy.parse(input ?? {});
+    const project = await resolveProject(this.env.DB, requested);
+    const policy = studentPolicySchema.parse(rest);
+    if (isMinors(policy) && policy.retention_days && this.store.kind !== 'd1')
+      throw new HttpError(
+        400,
+        'Per-project retention_days needs the D1 event store',
+        'Lake deployments apply one retention to every project: set it with `dataflare upgrade --retention-days`, and leave retention_days out.',
+      );
+    const before = await getPolicy(this.env.DB, project);
+    // Turning student mode on or off is itself recorded, whichever way it goes.
+    if (isMinors(before) || isMinors(policy)) {
+      const who = this.actor ?? {
+        surface: 'api' as const,
+        scope: 'admin' as const,
+        actor: 'internal',
+        operation: 'set_project_policy',
+      };
+      await recordAudit(this.env.DB, project, {
+        ...who,
+        operation: 'set_project_policy',
+        detail: JSON.stringify(policy),
+      });
+    }
+    await savePolicy(this.env.DB, project, policy, this.actor?.actor ?? 'internal');
+    return { ...(await this.getProjectPolicy({ project })), project };
+  }
+
+  async auditLog(input: unknown) {
+    const spec = inputs.auditLog.parse(input ?? {});
+    const project = await resolveProject(this.env.DB, spec.project);
+    const range = resolveRange(spec.from ?? '-30d', undefined);
+    const limit = spec.limit ?? 200;
+    const entries = await listAudit(this.env.DB, project, range.from, limit);
+    const policy = await getPolicy(this.env.DB, project);
+    return {
+      project,
+      entries,
+      summary: isMinors(policy)
+        ? `${entries.length} audited access${entries.length === 1 ? '' : 'es'} to "${project}"${entries.length === limit ? ` (limit ${limit} reached)` : ''}.`
+        : `"${project}" isn't in student mode, so its reads aren't audited (${entries.length} older entries).`,
     };
   }
 

@@ -16,6 +16,7 @@ import {
 } from './replays.ts';
 import { GlassService } from './service.ts';
 import type { EventStore } from './stores/types.ts';
+import { minorsProjects } from './student-mode.ts';
 
 /** Sessions summarised per run: each reads all its chunks, and a run has a subrequest budget. */
 const SUMMARIES_PER_RUN = 10;
@@ -56,11 +57,49 @@ export async function runMaintenance(
       if (changes < 5000) break;
     }
   }
+  // Student-mode projects may keep events and people for less time than the deployment.
+  const minors = await minorsProjects(env.DB);
+  if (store.kind === 'd1') {
+    for (const { project, policy } of minors) {
+      if (!policy.retention_days) continue;
+      const cutoff = now - policy.retention_days * DAY_MS;
+      for (let i = 0; i < 20; i++) {
+        const res = await env.DB.prepare(
+          'DELETE FROM events WHERE rowid IN (SELECT rowid FROM events WHERE project = ? AND ts_ms < ? LIMIT 5000)',
+        )
+          .bind(project, cutoff)
+          .run();
+        const changes = res.meta.changes ?? 0;
+        events += changes;
+        if (changes < 5000) break;
+      }
+      await env.DB.batch([
+        env.DB.prepare('DELETE FROM persons WHERE project = ? AND last_seen < ?').bind(
+          project,
+          cutoff,
+        ),
+        env.DB.prepare('DELETE FROM identities WHERE project = ? AND created_at < ?').bind(
+          project,
+          cutoff,
+        ),
+      ]);
+    }
+  }
+  const replayDaysOf = new Map(
+    minors
+      .filter((m) => m.policy.replay_retention_days)
+      .map((m) => [m.project, m.policy.replay_retention_days!]),
+  );
   const replayDays = Number(env.GLASS_REPLAY_RETENTION_DAYS ?? 30);
-  if (replayDays > 0) {
-    const cutoff = now - replayDays * DAY_MS;
+  if (replayDays > 0 || replayDaysOf.size > 0) {
     let slices = RETENTION_SLICES_PER_RUN;
     for (const project of await listProjects(env.DB)) {
+      const days = Math.min(
+        replayDays > 0 ? replayDays : Number.POSITIVE_INFINITY,
+        replayDaysOf.get(project.id) ?? Number.POSITIVE_INFINITY,
+      );
+      if (!Number.isFinite(days)) continue;
+      const cutoff = now - days * DAY_MS;
       while (slices > 0) {
         slices--;
         const n = await deleteReplays(env, project.id, 'started_at < ?', [cutoff]);
