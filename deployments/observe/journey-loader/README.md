@@ -36,6 +36,9 @@ containing `@` or a run of six or more digits.
 Entries in `only` and `exclude` match a path and everything under it; end an entry with `$` to
 match one exact path (`'/teachers$'`).
 
+Hash-routed apps (`/#/orders/123`) set `hashRouting: true`, so the route after `#` is recorded as
+the page (`/#/orders/:id`). Without it every screen of such an app is recorded as `/`.
+
 Use `persistence: 'cookieless'`, `identify: false` and an `only` allowlist for sites with child or
 student data (playtrek, educateos-site): nothing is stored on the device and the SDK never loads
 outside the listed pages.

@@ -78,6 +78,9 @@ function load(
     get search() {
       return location.search;
     },
+    get hash() {
+      return location.hash;
+    },
     get origin() {
       return location.origin;
     },
@@ -106,6 +109,7 @@ function load(
       const next = new URL(p, location);
       location.pathname = next.pathname;
       location.search = next.search;
+      location.hash = next.hash;
     },
   } as Loaded;
 }
@@ -168,6 +172,20 @@ test('excluded and non-listed paths drop every event', () => {
   assert.equal(beforeSend(ev('trip_created')), null);
   l.navigate('/pricing');
   assert.ok(beforeSend(ev('$pageview')));
+});
+
+test('hash-routed apps record the route after #, with ids normalised', () => {
+  const l = load('/#/orders/12345', { hashRouting: true });
+  const { beforeSend } = l.api._internal;
+  assert.equal(beforeSend(ev('$pageview')).url, 'https://app.example.com/#/orders/:id');
+  l.navigate('/#/settings');
+  assert.equal(beforeSend(ev('$pageleave')).url, 'https://app.example.com/#/orders/:id');
+  assert.equal(beforeSend(ev('$pageview')).url, 'https://app.example.com/#/settings');
+});
+
+test('without hashRouting the hash is ignored', () => {
+  const l = load('/#/orders/12345');
+  assert.equal(l.api._internal.beforeSend(ev('$pageview')).url, 'https://app.example.com/');
 });
 
 test('entries ending in $ match one exact path', () => {
