@@ -33,6 +33,9 @@ containing `@` or a run of six or more digits.
 4. Check it in production with a scripted visit: every beacon returns 204, the visit has one
    session, `$pageview` and `$pageleave` both arrive, and URLs show `:id`.
 
+Entries in `only` and `exclude` match a path and everything under it; end an entry with `$` to
+match one exact path (`'/teachers$'`).
+
 Use `persistence: 'cookieless'`, `identify: false` and an `only` allowlist for sites with child or
 student data (playtrek, educateos-site): nothing is stored on the device and the SDK never loads
 outside the listed pages.
