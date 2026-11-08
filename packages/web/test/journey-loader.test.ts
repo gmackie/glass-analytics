@@ -170,6 +170,16 @@ test('excluded and non-listed paths drop every event', () => {
   assert.ok(beforeSend(ev('$pageview')));
 });
 
+test('entries ending in $ match one exact path', () => {
+  const l = load('/', { only: ['/', '/teachers$', '/updates'] });
+  const { allowed } = l.api._internal;
+  assert.equal(allowed('/teachers'), true);
+  assert.equal(allowed('/teachers/'), true);
+  assert.equal(allowed('/teachers/extra'), false);
+  assert.equal(allowed('/updates/post-1'), true);
+  assert.equal(allowed('/play'), false);
+});
+
 test('custom event properties lose personal data', () => {
   const { sanitizeProps } = load('/').api._internal;
   assert.deepEqual(

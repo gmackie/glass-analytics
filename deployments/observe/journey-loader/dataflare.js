@@ -11,9 +11,9 @@
 (() => {
   const CONFIG = {
     project: '__PROJECT__',
-    // Path prefixes that are never collected: no SDK, no events.
+    // Path prefixes that are never collected: no SDK, no events. End an entry with $ for one exact path.
     exclude: ['/admin', '/api'],
-    // When non-empty, ONLY these path prefixes are collected ("/" means the home page only).
+    // When non-empty, ONLY these paths are collected ("/" means the home page only; "/pricing$" exactly /pricing).
     only: [],
     // "localStorage" links a visitor's pages into sessions and journeys.
     // "cookieless" stores nothing on the device (child- or privacy-sensitive sites).
@@ -61,10 +61,13 @@
     }
   }
 
-  const matches = (path, prefix) =>
-    prefix === '/'
+  // "/pricing" matches /pricing and everything under it; "/pricing$" matches /pricing (or /pricing/) only.
+  const matches = (path, entry) => {
+    if (entry.endsWith('$')) return path.replace(/(.)\/$/, '$1') === entry.slice(0, -1);
+    return entry === '/'
       ? path === '/'
-      : path === prefix || path.startsWith(`${prefix.replace(/\/$/, '')}/`);
+      : path === entry || path.startsWith(`${entry.replace(/\/$/, '')}/`);
+  };
 
   function allowed(path) {
     if (CONFIG.exclude.some((p) => matches(path, p))) return false;
