@@ -22,12 +22,14 @@ import {
   type WireEvent,
 } from '@dataflare/core/events';
 import { sha256Hex } from '@dataflare/core/hash';
+import { isMinors, sanitizeMinorsEvent } from '@dataflare/core/student-policy';
 import { isBot, parseUserAgent } from '@dataflare/core/ua';
 import { parsePage, referrerHost } from '@dataflare/core/url';
 import type { D1Database, Env } from './env.ts';
 import { HttpError, readJson } from './http.ts';
 import { getProject } from './projects.ts';
 import type { EventStore } from './stores/types.ts';
+import { getPolicy } from './student-mode.ts';
 
 const MAX_EVENTS = 200;
 const MAX_PROPS_BYTES = 8_000;
@@ -70,7 +72,7 @@ export async function handleIngest(
   store: EventStore,
   now = Date.now(),
 ): Promise<IngestResult> {
-  const info = requestInfo(request);
+  let info = requestInfo(request);
   const batch = await readJson<Partial<WireBatch>>(request, 1_000_000);
   if (typeof batch.project !== 'string' || !Array.isArray(batch.events)) {
     throw new HttpError(400, 'Expected { project, events: [...] }');
@@ -93,7 +95,15 @@ export async function handleIngest(
   // Server-side senders often have no user agent; only browsers that look like bots are dropped.
   if (info.userAgent && isBot(info.userAgent)) return { accepted: 0, dropped: batch.events.length };
 
-  const events = batch.events.slice(0, MAX_EVENTS).filter(isWellFormed);
+  let events = batch.events.slice(0, MAX_EVENTS).filter(isWellFormed);
+  const policy = await getPolicy(env.DB, project.id);
+  if (isMinors(policy)) {
+    // Student mode: the server decides what is kept, whatever the SDK was configured to send.
+    events = events
+      .map((e) => sanitizeMinorsEvent(e, policy).event)
+      .filter((e): e is WireEvent => e !== null);
+    info = { ...info, region: '', city: '' };
+  }
   const skew = typeof batch.sent_at === 'number' ? now - batch.sent_at : 0;
   const rows = await toRows(events, {
     project: project.id,

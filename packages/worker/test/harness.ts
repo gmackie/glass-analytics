@@ -22,6 +22,7 @@ import type {
   R2ObjectBody,
 } from '../src/env.ts';
 import { clearProjectCache } from '../src/projects.ts';
+import { clearPolicyCache } from '../src/student-mode.ts';
 
 const MIGRATIONS = new URL('../migrations/', import.meta.url);
 
@@ -245,6 +246,7 @@ export function testApp(
   options: Partial<Parameters<typeof createApp>[0]> = {},
 ): TestApp {
   clearProjectCache();
+  clearPolicyCache();
   const db = new SqliteD1();
   const r2 = new MemoryR2();
   const env: Env = {
