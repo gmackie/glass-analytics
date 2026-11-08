@@ -13,6 +13,8 @@
 const CLICKABLE =
   'a, button, [role="button"], input[type="submit"], input[type="button"], [data-glass-event]';
 const MAX_ERRORS_PER_PAGE = 10;
+/** How often to check the URL in browsers without the Navigation API. */
+const NAVIGATION_POLL_MS = 1000;
 
 export interface AutocaptureHooks {
   pageview(): void;
@@ -40,11 +42,19 @@ export function trackPageviews(hooks: AutocaptureHooks): () => void {
     queueMicrotask(onChange);
   };
   addEventListener('popstate', onChange);
+  // Routers that saved a reference to pushState before this script loaded (Next.js does) bypass
+  // the wrapper above. The Navigation API sees those navigations; elsewhere, check the URL often.
+  const nav = (globalThis as { navigation?: EventTarget }).navigation;
+  const onNavigated = () => queueMicrotask(onChange);
+  nav?.addEventListener('navigatesuccess', onNavigated);
+  const poll = nav ? null : setInterval(onChange, NAVIGATION_POLL_MS);
   hooks.pageview();
   return () => {
     history.pushState = push;
     history.replaceState = replace;
     removeEventListener('popstate', onChange);
+    nav?.removeEventListener('navigatesuccess', onNavigated);
+    if (poll) clearInterval(poll);
   };
 }
 
