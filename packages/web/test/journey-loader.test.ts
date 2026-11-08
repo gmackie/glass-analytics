@@ -9,8 +9,13 @@ const SOURCE = readFileSync(
 );
 
 interface Loaded {
-  // biome-ignore lint/suspicious/noExplicitAny: objects from the vm sandbox are untyped
-  api: Record<string, (...args: unknown[]) => unknown> & { _internal: Record<string, any> };
+  api: {
+    track: (event: string, props?: Record<string, unknown>) => void;
+    identify: (id: unknown, props?: Record<string, unknown>) => void;
+    reset: () => void;
+    // biome-ignore lint/suspicious/noExplicitAny: objects from the vm sandbox are untyped
+    _internal: Record<string, any>;
+  };
   appended: { src: string; fire: () => void }[];
   calls: unknown[][];
   // biome-ignore lint/suspicious/noExplicitAny: objects from the vm sandbox are untyped
