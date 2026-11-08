@@ -15,10 +15,9 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - uses: astral-sh/setup-uv@v6
+      # Node and uv from their own distribution points, not the GitHub API (DATFLR-10).
+      - name: Toolchain
+        run: bash scripts/ci-toolchain.sh
       - name: Install
         # The runner's default pnpm store lands inside the checkout, where `biome check .` would
         # lint its index files; keep it outside.

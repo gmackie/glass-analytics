@@ -29,10 +29,9 @@ jobs:
         deployment: [educateos-site, observe]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - uses: astral-sh/setup-uv@v6
+      # Node and uv from their own distribution points, not the GitHub API (DATFLR-10).
+      - name: Toolchain
+        run: bash scripts/ci-toolchain.sh
       - name: Install and build
         run: |
           corepack enable
