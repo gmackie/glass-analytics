@@ -23,6 +23,8 @@
     // Optional route templates for dynamic pages, e.g. "/trips/:id/edit".
     // Segments that look like ids are replaced with ":id" even without a template.
     routes: [],
+    // Set to true for hash-routed apps (#/screen/123): the route after # is recorded as the page.
+    hashRouting: false,
   };
 
   const HOST = 'https://observe.gmac.io';
@@ -154,11 +156,26 @@
   // The SDK records $pageleave after the URL has already changed, so remember the page being left.
   let lastPath = null;
 
+  // The page as a path, plus the hash route for hash-routed apps ("/#/orders/123").
+  function currentPage() {
+    const hash = location.hash || '';
+    return CONFIG.hashRouting && hash.startsWith('#/')
+      ? `${location.pathname}#${hash.slice(1).split('?')[0]}`
+      : location.pathname;
+  }
+
+  function pageUrl(page) {
+    const [path, route] = page.split('#');
+    return route === undefined
+      ? normalizePath(path)
+      : `${normalizePath(path)}#${normalizePath(route)}`;
+  }
+
   function beforeSend(event) {
     const leaving = event.event === '$pageleave' && lastPath !== null;
-    const rawPath = leaving ? lastPath : location.pathname;
-    if (event.event === '$pageview') lastPath = location.pathname;
-    if (!allowed(rawPath)) return null;
+    const rawPath = leaving ? lastPath : currentPage();
+    if (event.event === '$pageview') lastPath = currentPage();
+    if (!allowed(rawPath.split('#')[0])) return null;
     const props = { ...(event.props || {}) };
     if (event.event === '$click') {
       const text = typeof props.text === 'string' ? props.text : '';
@@ -174,7 +191,7 @@
     const finalProps = event.event.startsWith('$') ? dropUndefined(props) : sanitizeProps(props);
     return {
       ...event,
-      url: location.origin + normalizePath(rawPath) + (leaving ? '' : utmQuery(location.search)),
+      url: location.origin + pageUrl(rawPath) + (leaving ? '' : utmQuery(location.search)),
       referrer: event.referrer ? cleanUrl(event.referrer) : null,
       title: null,
       props: finalProps,
@@ -189,7 +206,7 @@
   }
 
   // Exposed for the loader's unit tests; harmless in production.
-  api._internal = { normalizePath, sanitizeProps, cleanUrl, allowed, beforeSend, CONFIG };
+  api._internal = { pageUrl, normalizePath, sanitizeProps, cleanUrl, allowed, beforeSend, CONFIG };
   window.dataflare = api;
 
   if (script && script.dataset.enabled !== 'true') return;
