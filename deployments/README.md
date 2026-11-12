@@ -4,11 +4,11 @@ The Dataflare Workers we run, deployed by ForgeGraph (app `dataflare`) from this
 A merge to `main` runs CI (`.forgejo/workflows/ci.yml`). Each ForgeGraph target then builds the
 Worker from source with `pnpm build` and deploys it: D1 migrations first, then `wrangler deploy`.
 
-| Directory         | Worker                     | Cloudflare account    | Health                                                                   | Store      |
-| ----------------- | -------------------------- | --------------------- | ------------------------------------------------------------------------ | ---------- |
+| Directory         | Worker                     | Cloudflare account    | Health                                                               | Store      |
+| ----------------- | -------------------------- | --------------------- | -------------------------------------------------------------------- | ---------- |
 | `district/`       | `glass-educateos-district` | gmacko `f84fe044…`    | `https://glass-educateos-district.educateos-demo.workers.dev/health` | D1         |
-| `educateos-site/` | `glass-educateos-site`     | EducateOS `c07a7e70…` | `https://educateos.io/_glass/health`                                     | Basin lake |
-| `observe/`        | `dataflare-observe`        | EducateOS `c07a7e70…` | `https://observe.gmac.io/health`                                         | Basin lake |
+| `educateos-site/` | `glass-educateos-site`     | EducateOS `c07a7e70…` | `https://educateos.io/_glass/health`                                 | Basin lake |
+| `observe/`        | `dataflare-observe`        | EducateOS `c07a7e70…` | `https://observe.gmac.io/health`                                     | Basin lake |
 
 Each `.glass/` has:
 
