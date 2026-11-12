@@ -27,6 +27,7 @@ import { GlassService } from './service.ts';
 import { D1Store } from './stores/d1.ts';
 import { LakeStore } from './stores/lake.ts';
 import type { EventStore } from './stores/types.ts';
+import { actorFromRequest } from './student-mode.ts';
 
 export const MOUNT_PREFIX = '/_glass';
 
@@ -140,6 +141,7 @@ export function createApp(options: AppOptions) {
           });
         case '/mcp': {
           const scope = requireScope(request, env, 'read');
+          service.setActor(actorFromRequest(request, scope, 'mcp', 'mcp'));
           return withCors(await handleMcp(request, service, scope));
         }
       }

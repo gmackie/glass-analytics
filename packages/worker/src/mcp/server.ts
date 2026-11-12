@@ -90,6 +90,15 @@ async function callTool(
     };
   }
   try {
+    if (service.actor) {
+      const args = params?.arguments;
+      const sqlText = (args as { query?: unknown } | undefined)?.query;
+      service.setActor({
+        ...service.actor,
+        operation: `tool:${name}`,
+        detail: typeof sqlText === 'string' ? sqlText : JSON.stringify(args ?? {}),
+      });
+    }
     const result = await tool.run(service, params?.arguments ?? {});
     let text = JSON.stringify(result, null, 2);
     if (text.length > MAX_TEXT)

@@ -369,6 +369,33 @@ export const TOOLS: ToolDefinition[] = [
     scope: 'admin',
     run: (s, a) => s.createProject(a),
   },
+  {
+    name: 'get_project_policy',
+    title: 'Get a project’s student-mode policy',
+    description:
+      'Whether a project is in student mode (audience "minors") and what it allows: the pseudonym format for user ids, allowed event and person properties, replay and retention. Check this before adding tracking to a K-12 product.',
+    input: inputs.getProjectPolicy,
+    scope: 'read',
+    run: (s, a) => s.getProjectPolicy(a),
+  },
+  {
+    name: 'set_project_policy',
+    title: 'Set a project’s student-mode policy',
+    description:
+      'Turn student mode on ({"audience":"minors"}) or off for a project. In student mode the server keeps only pseudonymous ids and allow-listed properties, refuses replay unless replay is "scrubbed", and audits every read. Replaces the whole policy, so send every field you want to keep.',
+    input: inputs.setProjectPolicy,
+    scope: 'admin',
+    run: (s, a) => s.setProjectPolicy(a),
+  },
+  {
+    name: 'audit_log',
+    title: 'Student-mode audit log',
+    description:
+      'Who read or changed a student-mode project’s data: time, surface (api/mcp), key scope, Access email when present, the operation and its SQL or arguments.',
+    input: inputs.auditLog,
+    scope: 'admin',
+    run: (s, a) => s.auditLog(a),
+  },
 ];
 
 export const TOOLS_BY_NAME = new Map(TOOLS.map((t) => [t.name, t]));

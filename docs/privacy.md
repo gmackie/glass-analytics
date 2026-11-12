@@ -30,6 +30,35 @@ This is enough for web analytics. It is not enough for funnels across days, rete
 - Console `warn` and `error` messages are recorded by default; they contain whatever your code logs. Turn it off with `console: false`.
 - Notes left on a session, and its cached summary, are deleted with the session (retention, or erasing a person).
 
+## Student mode
+
+For products used by children (K-12), put the project in student mode. The Worker enforces it on every write, so a misconfigured snippet or SDK can't store more than the policy allows.
+
+```sh
+npx dataflare-cli projects policy <id> --audience minors \
+  --event-props lesson_kind,score --person-props grade_band --retention-days 365
+npx dataflare-cli projects policy <id>            # show it
+npx dataflare-cli projects audit <id> --from -30d  # who read the data
+```
+
+(Or `PUT /api/projects/<id>/policy`, or the `set_project_policy` MCP tool. Setting replaces the whole policy.)
+
+| Data                  | In student mode                                                                                                                                                                                                        |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Device and session id | Always the cookieless daily ids; ids the browser sends are ignored                                                                                                                                                     |
+| User id               | Only a pseudonym matching `pseudonym_pattern` (default: a keyed HMAC, 64 hex or 43 base64url characters). Anything with `@` or spaces is refused whatever the pattern says. `identify()` with anything else is dropped |
+| URL                   | Path only: no query string or fragment; numeric, UUID, hex and token segments become `:id`, and segments with `@`, phone numbers or SSNs become `:redacted`                                                            |
+| Referrer, title       | Referrer reduced to its origin; titles are never stored                                                                                                                                                                |
+| Location              | Country only (no region or city)                                                                                                                                                                                       |
+| Event properties      | Only names in `event_properties`. Dataflare's own events keep fixed safe fields (`$click`: tag, href path, outbound; `$exception`: type only; no click text or error messages)                                         |
+| Person properties     | Only names in `person_properties`                                                                                                                                                                                      |
+| Any kept value        | Must be a number, boolean or a string of up to 100 characters that doesn't look like an email, phone number or SSN; otherwise it's dropped                                                                             |
+| Session replay        | `replay: "off"` (the default) refuses uploads. `replay: "scrubbed"` stores them with every text node, input value and non-layout attribute masked by the Worker, images and console/network records removed            |
+| Retention             | `retention_days` deletes the project's events, people and device links after that many days (D1 store; lake deployments use the deployment-wide setting). `replay_retention_days` caps replays                         |
+| Reads                 | Every API, dashboard and MCP read of the project, and every SQL query (SQL can reach any project), is recorded in `audit_log` with the time, key scope, Cloudflare Access email when present, operation and SQL text   |
+
+Student mode is a set of technical controls, not a compliance determination. Whether your use is covered by COPPA's school-authorization basis, FERPA's school-official exception or state student-privacy laws depends on your agreements with the school or district; get legal advice before turning replay on.
+
 ## Deleting a person
 
 ```sh
