@@ -1,7 +1,7 @@
 {
   "name": "glass-educateos-district",
   "accountId": "f84fe0441a84562a6abce4f921f0496a",
-  "host": "https://glass-educateos-district.dataflare-district.workers.dev",
+  "host": "https://glass-educateos-district.educateos-demo.workers.dev",
   "project": "educateos-district",
   "store": "d1",
   "d1": {

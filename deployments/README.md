@@ -6,7 +6,7 @@ Worker from source with `pnpm build` and deploys it: D1 migrations first, then `
 
 | Directory         | Worker                     | Cloudflare account    | Health                                                                   | Store      |
 | ----------------- | -------------------------- | --------------------- | ------------------------------------------------------------------------ | ---------- |
-| `district/`       | `glass-educateos-district` | gmacko `f84fe044…`    | `https://glass-educateos-district.dataflare-district.workers.dev/health` | D1         |
+| `district/`       | `glass-educateos-district` | gmacko `f84fe044…`    | `https://glass-educateos-district.educateos-demo.workers.dev/health` | D1         |
 | `educateos-site/` | `glass-educateos-site`     | EducateOS `c07a7e70…` | `https://educateos.io/_glass/health`                                     | Basin lake |
 | `observe/`        | `dataflare-observe`        | EducateOS `c07a7e70…` | `https://observe.gmac.io/health`                                         | Basin lake |
 
