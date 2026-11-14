@@ -1,0 +1,9 @@
+{
+  "name": "dataflare-native",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dataflare client for React Native and Expo apps. Distributed by copying src/dataflare-native.ts into the app.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false
+}
