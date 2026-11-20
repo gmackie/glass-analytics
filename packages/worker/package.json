@@ -16,6 +16,6 @@
     "@dataflare/dashboard": "workspace:*",
     "dataflare-web": "workspace:*",
     "rrweb": "^2.0.0",
-    "wrangler": "^4.0.0"
+    "wrangler": "^4.165.0"
   }
 }
