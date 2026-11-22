@@ -24,6 +24,8 @@ export interface EventPickerOptions {
   label?: string;
   project?: string;
   placeholder?: string;
+  /** Offer "Any event" (the value "*") at the top. */
+  anyEvent?: boolean;
 }
 
 export interface PropertyPickerOptions {
@@ -76,7 +78,8 @@ export function positionPop(trigger: HTMLElement, pop: HTMLElement, maxWidth = 6
   pop.style.top = `${Math.round(top)}px`;
 }
 
-const display = (value: string) => (value === 'cohort' ? 'Cohort' : value);
+const display = (value: string) =>
+  value === 'cohort' ? 'Cohort' : value === '*' ? 'Any event' : value;
 
 function triggerButton(value: string, placeholder: string, open: () => void): HTMLButtonElement {
   const empty = !value;
@@ -302,6 +305,8 @@ export function eventPicker(options: EventPickerOptions): HTMLElement {
           search: q,
         });
       }
+      if (options.anyEvent && (!q || 'any event'.includes(q) || q === '*'))
+        rows.unshift({ id: '*', label: 'Any event', group: 'Any', search: 'any event *' });
       return rows;
     };
 
@@ -310,6 +315,10 @@ export function eventPicker(options: EventPickerOptions): HTMLElement {
       const row = events.find((e) => e.event === id);
       if (!id) {
         detail.show(emptyDetail('Hover an event to see its description and properties.'));
+        return;
+      }
+      if (id === '*') {
+        detail.show(emptyDetail('Any event: counts everything they did.'));
         return;
       }
       const req = ++detailReq;
@@ -331,7 +340,7 @@ export function eventPicker(options: EventPickerOptions): HTMLElement {
 
     const pick = (id: string) => {
       options.onChange(id);
-      mount(trigger.querySelector('.picker-trigger-value')!, id || placeholder);
+      mount(trigger.querySelector('.picker-trigger-value')!, id ? display(id) : placeholder);
       trigger.classList.toggle('empty', !id);
       cleanup();
     };

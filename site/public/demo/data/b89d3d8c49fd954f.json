@@ -8,87 +8,118 @@
   "rows": [
     {
       "value": "Direct / None",
-      "visitors": 1681,
-      "sessions": 2143,
-      "converted": 252,
-      "rate": 0.14991076740035694,
-      "bounceRate": 0.3408685306365259
+      "visitors": 1652,
+      "sessions": 2203,
+      "converted": 269,
+      "rate": 0.16283292978208233,
+      "bounceRate": 0.31900726392251816,
+      "revenue": 1624,
+      "payers": 48,
+      "revenuePerVisitor": 0.98
     },
     {
       "value": "google.com",
-      "visitors": 1335,
-      "sessions": 1701,
-      "converted": 199,
-      "rate": 0.149063670411985,
-      "bounceRate": 0.34756554307116105
-    },
-    {
-      "value": "producthunt.com",
-      "visitors": 411,
-      "sessions": 490,
-      "converted": 57,
-      "rate": 0.1386861313868613,
-      "bounceRate": 0.35036496350364965
+      "visitors": 1438,
+      "sessions": 1770,
+      "converted": 179,
+      "rate": 0.12447844228094576,
+      "bounceRate": 0.3477051460361613,
+      "revenue": 2432,
+      "payers": 42,
+      "revenuePerVisitor": 1.69
     },
     {
       "value": "news.ycombinator.com",
-      "visitors": 388,
-      "sessions": 419,
-      "converted": 24,
-      "rate": 0.061855670103092786,
-      "bounceRate": 0.3788659793814433
+      "visitors": 428,
+      "sessions": 497,
+      "converted": 38,
+      "rate": 0.08878504672897196,
+      "bounceRate": 0.3364485981308411,
+      "revenue": 776,
+      "payers": 10,
+      "revenuePerVisitor": 1.81
     },
     {
-      "value": "reddit.com",
-      "visitors": 329,
-      "sessions": 383,
-      "converted": 37,
-      "rate": 0.11246200607902736,
-      "bounceRate": 0.3586626139817629
+      "value": "producthunt.com",
+      "visitors": 409,
+      "sessions": 522,
+      "converted": 66,
+      "rate": 0.16136919315403422,
+      "bounceRate": 0.36674816625916873,
+      "revenue": 1340,
+      "payers": 17,
+      "revenuePerVisitor": 3.28
     },
     {
       "value": "t.co",
-      "visitors": 301,
-      "sessions": 372,
+      "visitors": 310,
+      "sessions": 387,
       "converted": 32,
-      "rate": 0.10631229235880399,
-      "bounceRate": 0.3787375415282392
+      "rate": 0.1032258064516129,
+      "bounceRate": 0.3419354838709677,
+      "revenue": 45,
+      "payers": 5,
+      "revenuePerVisitor": 0.15
     },
     {
       "value": "facebook.com",
-      "visitors": 281,
-      "sessions": 353,
-      "converted": 39,
-      "rate": 0.1387900355871886,
-      "bounceRate": 0.3202846975088968
+      "visitors": 305,
+      "sessions": 361,
+      "converted": 31,
+      "rate": 0.10163934426229508,
+      "bounceRate": 0.3704918032786885,
+      "revenue": 207,
+      "payers": 5,
+      "revenuePerVisitor": 0.68
+    },
+    {
+      "value": "reddit.com",
+      "visitors": 298,
+      "sessions": 366,
+      "converted": 42,
+      "rate": 0.14093959731543623,
+      "bounceRate": 0.33221476510067116,
+      "revenue": 227,
+      "payers": 5,
+      "revenuePerVisitor": 0.76
     },
     {
       "value": "duckduckgo.com",
-      "visitors": 209,
-      "sessions": 280,
-      "converted": 31,
-      "rate": 0.14832535885167464,
-      "bounceRate": 0.3157894736842105
+      "visitors": 236,
+      "sessions": 288,
+      "converted": 18,
+      "rate": 0.07627118644067797,
+      "bounceRate": 0.3093220338983051,
+      "revenue": 36,
+      "payers": 4,
+      "revenuePerVisitor": 0.15
     },
     {
       "value": "github.com",
-      "visitors": 164,
-      "sessions": 192,
-      "converted": 15,
-      "rate": 0.09146341463414634,
-      "bounceRate": 0.3048780487804878
+      "visitors": 154,
+      "sessions": 186,
+      "converted": 18,
+      "rate": 0.11688311688311688,
+      "bounceRate": 0.3116883116883117,
+      "revenue": 279,
+      "payers": 4,
+      "revenuePerVisitor": 1.81
     },
     {
       "value": "bing.com",
-      "visitors": 161,
-      "sessions": 195,
-      "converted": 22,
-      "rate": 0.13664596273291926,
-      "bounceRate": 0.22981366459627328
+      "visitors": 148,
+      "sessions": 165,
+      "converted": 18,
+      "rate": 0.12162162162162163,
+      "bounceRate": 0.28378378378378377,
+      "revenue": 9,
+      "payers": 1,
+      "revenuePerVisitor": 0.06
     }
   ],
   "sql": [
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1786098482248\n    AND e.ts_ms < 1793874482248\n    AND e.event IN ('$pageview', 'signup_completed', 'subscription_started')\n),\nfirsts AS (SELECT distinct_id, MIN(ts_ms) AS t FROM ev WHERE event = '$pageview' GROUP BY distinct_id),\ntouch AS (\n  SELECT ev.distinct_id, MIN(COALESCE(NULLIF(ev.referrer_host, ''), 'Direct / None')) AS val\n  FROM ev JOIN firsts ON firsts.distinct_id = ev.distinct_id AND ev.ts_ms = firsts.t AND ev.event = '$pageview'\n  GROUP BY ev.distinct_id\n),\nvisits AS (SELECT distinct_id, COUNT(DISTINCT session_id) AS sessions, COUNT(*) AS views FROM ev WHERE event = '$pageview' GROUP BY distinct_id),\nconv AS (SELECT DISTINCT distinct_id FROM ev WHERE event IN ('signup_completed', 'subscription_started'))\nSELECT touch.val AS val, COUNT(*) AS visitors, SUM(visits.sessions) AS sessions,\n  SUM(CASE WHEN conv.distinct_id IS NULL THEN 0 ELSE 1 END) AS converted,\n  SUM(CASE WHEN visits.views = 1 THEN 1 ELSE 0 END) AS bounced\nFROM touch\nJOIN visits ON visits.distinct_id = touch.distinct_id\nLEFT JOIN conv ON conv.distinct_id = touch.distinct_id\nGROUP BY touch.val ORDER BY visitors DESC LIMIT 25"
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248507227\n    AND e.ts_ms < 1795024507227\n    AND e.event IN ('$pageview', 'signup_completed', 'subscription_started')\n),\nfirsts AS (SELECT distinct_id, MIN(ts_ms) AS t FROM ev WHERE event = '$pageview' GROUP BY distinct_id),\ntouch AS (\n  SELECT ev.distinct_id, MIN(COALESCE(NULLIF(ev.referrer_host, ''), 'Direct / None')) AS val\n  FROM ev JOIN firsts ON firsts.distinct_id = ev.distinct_id AND ev.ts_ms = firsts.t AND ev.event = '$pageview'\n  GROUP BY ev.distinct_id\n),\nvisits AS (SELECT distinct_id, COUNT(DISTINCT session_id) AS sessions, COUNT(*) AS views FROM ev WHERE event = '$pageview' GROUP BY distinct_id),\nconv AS (SELECT DISTINCT distinct_id FROM ev WHERE event IN ('signup_completed', 'subscription_started'))\nSELECT touch.val AS val, COUNT(*) AS visitors, SUM(visits.sessions) AS sessions,\n  SUM(CASE WHEN conv.distinct_id IS NULL THEN 0 ELSE 1 END) AS converted,\n  SUM(CASE WHEN visits.views = 1 THEN 1 ELSE 0 END) AS bounced\nFROM touch\nJOIN visits ON visits.distinct_id = touch.distinct_id\nLEFT JOIN conv ON conv.distinct_id = touch.distinct_id\nGROUP BY touch.val ORDER BY visitors DESC, touch.val ASC LIMIT 25",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248507227\n    AND e.ts_ms < 1795024507227\n    AND e.event IN ('$pageview')\n),\nmv AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248507227\n    AND e.ts_ms < 1795024507227\n    AND (json_type(e.props, '$.\"$revenue_base\"') IS NOT NULL)\n),\npfirst AS (SELECT pid, MIN(ts_ms) AS t FROM ev GROUP BY pid),\nptouch AS (\n  SELECT ev.pid AS pid, MIN(COALESCE(NULLIF(ev.referrer_host, ''), 'Direct / None')) AS val\n  FROM ev JOIN pfirst ON pfirst.pid = ev.pid AND ev.ts_ms = pfirst.t GROUP BY ev.pid\n)\nSELECT ptouch.val AS val, SUM((CASE WHEN json_type(mv.props, '$.\"$revenue_base\"') IN ('integer', 'real') THEN json_extract(mv.props, '$.\"$revenue_base\"') END)) AS revenue, COUNT(DISTINCT mv.pid) AS payers\nFROM mv JOIN ptouch ON ptouch.pid = mv.pid GROUP BY ptouch.val"
   ],
-  "summary": "Top referrers by visitors: Direct / None 1681 (15.0% converted), google.com 1335 (14.9% converted), producthunt.com 411 (13.9% converted), news.ycombinator.com 388 (6.2% converted), reddit.com 329 (11.2% converted)."
+  "summary": "Top referrers by visitors: Direct / None 1652 (16.3% converted), google.com 1438 (12.4% converted), news.ycombinator.com 428 (8.9% converted), producthunt.com 409 (16.1% converted), t.co 310 (10.3% converted)."
 }

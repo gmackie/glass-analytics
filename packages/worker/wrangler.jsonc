@@ -19,7 +19,7 @@
   "vars": {
     "GLASS_STORE": "d1"
   },
-  "triggers": { "crons": ["17 * * * *"] }
+  "triggers": { "crons": ["*/5 * * * *"] }
   // Secrets: create a .dev.vars file containing
   //   GLASS_ADMIN_KEY=dev-admin-key
   //   GLASS_READ_KEY=dev-read-key

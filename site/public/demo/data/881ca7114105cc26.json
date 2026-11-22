@@ -1,0 +1,62 @@
+{
+  "project": "demo",
+  "sampled": 711,
+  "properties": [
+    {
+      "name": "person.plan",
+      "types": [
+        "string"
+      ],
+      "coverage": 1,
+      "examples": [
+        "team",
+        "free",
+        "pro"
+      ],
+      "description": ""
+    },
+    {
+      "name": "person.signup_source",
+      "types": [
+        "string"
+      ],
+      "coverage": 0.9971870604781997,
+      "examples": [
+        "pricing",
+        "header"
+      ],
+      "description": ""
+    },
+    {
+      "name": "person.email",
+      "types": [
+        "string"
+      ],
+      "coverage": 0.9971870604781997,
+      "examples": [
+        "user_1018@example.com",
+        "user_1572@example.com",
+        "user_1610@example.com",
+        "user_1640@example.com",
+        "user_1561@example.com"
+      ],
+      "description": ""
+    },
+    {
+      "name": "person.company_size",
+      "types": [
+        "string"
+      ],
+      "coverage": 0.9971870604781997,
+      "examples": [
+        "200+",
+        "2-10",
+        "1",
+        "11-50",
+        "51-200"
+      ],
+      "description": ""
+    }
+  ],
+  "summary": "4 person properties across the 711 most recently active people. Filter on them as \"person.<name>\"."
+}

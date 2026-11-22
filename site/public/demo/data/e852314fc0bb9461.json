@@ -8,12 +8,14 @@
       "goal": {
         "event": "subscription_started"
       },
+      "metrics": [],
       "secondary": [],
       "hypothesis": "Showing the annual saving at checkout increases paid conversion.",
+      "holdout": null,
       "startedAt": null,
       "endedAt": null,
       "shippedVariant": null,
-      "createdAt": 1793874347020
+      "createdAt": 1795024408602
     },
     {
       "key": "onboarding-checklist",
@@ -22,12 +24,14 @@
       "goal": {
         "event": "document_created"
       },
+      "metrics": [],
       "secondary": [],
       "hypothesis": "A three-step checklist gets new writers to their first document.",
-      "startedAt": 1792837546978,
+      "holdout": null,
+      "startedAt": 1793987608559,
       "endedAt": null,
       "shippedVariant": null,
-      "createdAt": 1793874347017
+      "createdAt": 1795024408599
     },
     {
       "key": "pricing-page-v2",
@@ -36,14 +40,23 @@
       "goal": {
         "event": "signup_completed"
       },
-      "secondary": [],
+      "metrics": [],
+      "secondary": [
+        {
+          "kind": "conversion",
+          "event": "$exception",
+          "name": "Errors",
+          "goal": "decrease"
+        }
+      ],
       "hypothesis": "A shorter pricing page with one highlighted plan lifts signups.",
-      "startedAt": 1792232746978,
+      "holdout": null,
+      "startedAt": 1793382808559,
       "endedAt": null,
       "shippedVariant": null,
-      "createdAt": 1793874347012
+      "createdAt": 1795024408595
     }
   ],
   "summary": "3 experiments: annual-billing-nudge (draft), onboarding-checklist (running), pricing-page-v2 (running).",
-  "dashboard": "http://127.0.0.1:58904/app#/experiments?project=demo"
+  "dashboard": "http://127.0.0.1:49397/app#/experiments?project=demo"
 }

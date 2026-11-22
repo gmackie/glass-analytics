@@ -1,0 +1,15 @@
+{
+  "project": "demo",
+  "types": [
+    {
+      "type": "company",
+      "index": 0,
+      "singular": "company",
+      "plural": "companies",
+      "groups": 27
+    }
+  ],
+  "max": 5,
+  "summary": "Group types: company (27).",
+  "dashboard": "http://127.0.0.1:49397/app#/groups?project=demo"
+}

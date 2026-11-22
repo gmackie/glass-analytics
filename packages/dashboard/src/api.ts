@@ -66,7 +66,27 @@ async function request<T>(
   return data as T;
 }
 
+/** Fetch a file the API returns (CSV, for example) and save it in the browser. */
+async function download(path: string, params: Params, filename: string): Promise<void> {
+  if (config.demo) throw new ApiError(403, 'Downloads are not part of the demo.');
+  const url = new URL(`${config.base}${path}`, location.origin);
+  for (const [k, v] of Object.entries(params))
+    if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, String(v));
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${prefs.key ?? ''}` } });
+  if (!res.ok) {
+    const data = (await res.json().catch(() => ({}))) as { error?: string; hint?: string };
+    throw new ApiError(res.status, data.error ?? `Download failed (${res.status})`, data.hint);
+  }
+  const blob = URL.createObjectURL(await res.blob());
+  const a = document.createElement('a');
+  a.href = blob;
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(blob), 1000);
+}
+
 export const api = {
+  download,
   get: <T>(path: string, params?: Params) => request<T>('GET', path, undefined, params),
   post: <T>(path: string, body: unknown = {}, params?: Params) =>
     request<T>('POST', path, body, params),

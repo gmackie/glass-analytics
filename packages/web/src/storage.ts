@@ -63,7 +63,8 @@ export class Store {
   }
 
   clear(): void {
-    for (const name of ['id', 'user', 'session', 'flags']) this.set(name, null);
+    for (const name of ['id', 'user', 'session', 'flags', 'flag_payloads', 'groups'])
+      this.set(name, null);
     this.memory.clear();
   }
 

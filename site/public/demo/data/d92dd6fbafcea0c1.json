@@ -1,0 +1,45 @@
+{
+  "project": "demo",
+  "session": "01a1efca-e087-7d50-9381-599fc6e365fa",
+  "person": "01a1efca-e081-74a4-989d-844f21786473",
+  "device": "mobile, Safari, GB",
+  "started": "2026-11-18T17:53:32.821Z",
+  "transcript": "Session 01a1efca-e087-7d50-9381-599fc6e365fa\nPerson: 01a1efca-e081-74a4-989d-844f21786473\nDevice: mobile, Safari, GB\nDuration 00:12 (00:08 active), 2 pages, 0 clicks, 0 inputs, 0 errors\n\n00:02 Viewed /changelog — \"Changelog, Inkwell\"\n00:11 Viewed /pricing — \"Pricing, Inkwell\"",
+  "stats": {
+    "durationSeconds": 12,
+    "activeSeconds": 8,
+    "pages": 2,
+    "clicks": 0,
+    "rageClicks": 0,
+    "deadClicks": 0,
+    "errorClicks": 0,
+    "inputs": 0,
+    "errors": 0,
+    "consoleErrors": 0,
+    "failedRequests": 0,
+    "customEvents": 0
+  },
+  "highlights": [],
+  "notes": [],
+  "startedAt": 1795024412821,
+  "endedAt": 1795024424601,
+  "timeline": [
+    {
+      "ts": 1795024415394,
+      "kind": "page",
+      "text": "Viewed /changelog — \"Changelog, Inkwell\"",
+      "url": "http://inkwell.example/changelog",
+      "t": 2573
+    },
+    {
+      "ts": 1795024424593,
+      "kind": "page",
+      "text": "Viewed /pricing — \"Pricing, Inkwell\"",
+      "url": "http://inkwell.example/pricing",
+      "t": 11772
+    }
+  ],
+  "summary": "Session 01a1efca-e087-7d50-9381-599fc6e365fa Person: 01a1efca-e081-74a4-989d-844f21786473 Device: mobile, Safari, GB Duration 00:12 (00:08 active), 2 pages, 0 clicks, 0 inputs, 0 errors",
+  "hint": "Use replay_snapshot with a time from the transcript to read what was on screen; annotate_replay to leave a finding on the timeline.",
+  "dashboard": "http://127.0.0.1:49397/app#/replays/01a1efca-e087-7d50-9381-599fc6e365fa?project=demo"
+}

@@ -14,13 +14,26 @@ const root = join(import.meta.dirname, '..');
 
 /** Gzipped size limits in KB. */
 const BUDGETS: Record<string, number> = {
-  'packages/web/dist/index.js': 7.5, // npm SDK
-  'packages/web/dist/glass.js': 5.5, // script-tag SDK
+  // The SDKs grew with groups, flag payloads, bootstrap, overrides, early access,
+  // captureException and web experiments (deepen-coverage: 4.5 → 5.9 KB script tag).
+  // npm SDK. 9.4: flag overrides moved to a Map (CodeQL: remote property injection), +0.11 KB.
+  'packages/web/dist/index.js': 9.4,
+  'packages/web/dist/glass.js': 6.25, // script-tag SDK
   'packages/web/dist/replay.js': 65, // replay recorder, loaded on demand
-  'packages/dashboard/dist/app.js': 150,
-  'packages/dashboard/dist/app.css': 17,
-  'packages/worker/dist/worker.js': 450,
-  'packages/cli/dist/glass.js': 32,
+  // Admin-only: the Errors, Revenue, Groups and Pipelines pages, the cohort editor
+  // and the world map's country outlines (about 12 KB). Raised to 210 for the JSON and
+  // formula editors (with their checkers from core), the measure picker and the insight
+  // starters: about 4 KB, and the rest of the headroom is for user paths next.
+  // 225: dashboards (grid, tiles, templates), the report and alert dialogs, notification channels.
+  'packages/dashboard/dist/app.js': 225,
+  // 19: the code field, fold and chip styles shared by the new editors.
+  'packages/dashboard/dist/app.css': 19,
+  // Destinations, exports, issues, revenue and group analytics (Workers allow 3 MB on Free).
+  // 620: user paths (the compiler, the dashboard's Sankey and rail), +5 KB.
+  // 670: dashboards, scheduled reports and alerts (the PNG renderer and its Inter glyph atlas,
+  // about 12 KB; notices, email, schedules) and the larger dashboard it serves.
+  'packages/worker/dist/worker.js': 670,
+  'packages/cli/dist/glass.js': 42, // import, sourcemaps and stripe commands
 };
 
 const rows: string[] = [];

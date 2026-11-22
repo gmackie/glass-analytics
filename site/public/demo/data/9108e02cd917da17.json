@@ -7,67 +7,243 @@
     "goal": {
       "event": "signup_completed"
     },
-    "secondary": [],
+    "metrics": [],
+    "secondary": [
+      {
+        "kind": "conversion",
+        "event": "$exception",
+        "name": "Errors",
+        "goal": "decrease"
+      }
+    ],
     "hypothesis": "A shorter pricing page with one highlighted plan lifts signups.",
-    "startedAt": 1792232746978,
+    "holdout": null,
+    "startedAt": 1793382808559,
     "endedAt": null,
     "shippedVariant": null,
-    "createdAt": 1793874347012
+    "createdAt": 1795024408595
   },
   "results": {
     "kind": "experiment",
     "flag": "pricing-page-v2",
-    "goal": "signup_completed",
+    "goal": "signup_completed conversion",
+    "engine": "bayesian",
+    "confidence": 0.95,
+    "aggregateBy": "person",
     "variants": [
       {
         "variant": "control",
-        "exposures": 344,
-        "conversions": 87,
-        "conversionRate": 0.25290697674418605,
+        "exposures": 356,
+        "conversions": 77,
+        "conversionRate": 0.21629213483146068,
         "rateInterval": [
-          0.2098737274523313,
-          0.30139806982551015
+          0.17667389077449708,
+          0.26196778031438717
         ],
         "vsControl": null,
         "mean": null
       },
       {
         "variant": "test",
-        "exposures": 331,
-        "conversions": 84,
-        "conversionRate": 0.2537764350453172,
+        "exposures": 332,
+        "conversions": 86,
+        "conversionRate": 0.25903614457831325,
         "rateInterval": [
-          0.2099039414818501,
-          0.30329871911946116
+          0.2148559699037888,
+          0.3087287579648657
         ],
         "vsControl": {
-          "probabilityToBeatControl": 0.51115,
-          "expectedLift": 0.012024380714469176,
+          "probabilityToBeatControl": 0.90575,
+          "expectedLift": 0.19622037434087164,
           "liftInterval": [
-            -0.22629330160282884,
-            0.29886033297264325
+            -0.0843547753385115,
+            0.562022698982116
           ]
         },
         "mean": null
       }
     ],
+    "metrics": [
+      {
+        "name": "signup_completed conversion",
+        "kind": "conversion",
+        "goal": "increase",
+        "variants": [
+          {
+            "variant": "control",
+            "exposures": 356,
+            "conversions": 77,
+            "value": 0.21629213483146068,
+            "interval": [
+              0.17667389077449708,
+              0.26196778031438717
+            ],
+            "vsControl": null,
+            "probabilityToBeBest": 0.09105
+          },
+          {
+            "variant": "test",
+            "exposures": 332,
+            "conversions": 86,
+            "value": 0.25903614457831325,
+            "interval": [
+              0.2148559699037888,
+              0.3087287579648657
+            ],
+            "vsControl": {
+              "probabilityToBeatControl": 0.90575,
+              "expectedLift": 0.19622037434087164,
+              "liftInterval": [
+                -0.0843547753385115,
+                0.562022698982116
+              ],
+              "pValue": 0.18802892993394016,
+              "differenceInterval": [
+                -0.020895178956469113,
+                0.10638319845017427
+              ]
+            },
+            "probabilityToBeBest": 0.90895
+          }
+        ],
+        "significantVariant": null,
+        "timeline": {
+          "days": [
+            1793404800000,
+            1793491200000,
+            1793577600000,
+            1793664000000,
+            1793750400000,
+            1793836800000,
+            1793923200000,
+            1794009600000,
+            1794096000000,
+            1794182400000,
+            1794268800000,
+            1794355200000,
+            1794441600000,
+            1794528000000,
+            1794614400000,
+            1794700800000,
+            1794787200000,
+            1794873600000,
+            1794960000000
+          ],
+          "variants": {
+            "control": [
+              0.21428571428571427,
+              0.20833333333333334,
+              0.18181818181818182,
+              0.18867924528301888,
+              0.23376623376623376,
+              0.21739130434782608,
+              0.23008849557522124,
+              0.21052631578947367,
+              0.21232876712328766,
+              0.22839506172839505,
+              0.23204419889502761,
+              0.22926829268292684,
+              0.21739130434782608,
+              0.20866141732283464,
+              0.21254355400696864,
+              0.21782178217821782,
+              0.2138364779874214,
+              0.2182890855457227,
+              0.21629213483146068
+            ],
+            "test": [
+              0.07142857142857142,
+              0.07692307692307693,
+              0.2222222222222222,
+              0.18518518518518517,
+              0.171875,
+              0.20224719101123595,
+              0.2,
+              0.2032520325203252,
+              0.19852941176470587,
+              0.22297297297297297,
+              0.23529411764705882,
+              0.234375,
+              0.26046511627906976,
+              0.2672413793103448,
+              0.28346456692913385,
+              0.2767527675276753,
+              0.2695035460992908,
+              0.2645161290322581,
+              0.25903614457831325
+            ]
+          }
+        }
+      }
+    ],
+    "secondary": [
+      {
+        "name": "Errors",
+        "kind": "conversion",
+        "goal": "decrease",
+        "variants": [
+          {
+            "variant": "control",
+            "exposures": 356,
+            "conversions": 2,
+            "value": 0.0056179775280898875,
+            "interval": [
+              0.001542006478540199,
+              0.020249420369416522
+            ],
+            "vsControl": null,
+            "probabilityToBeBest": 0.95615
+          },
+          {
+            "variant": "test",
+            "exposures": 332,
+            "conversions": 7,
+            "value": 0.02108433734939759,
+            "interval": [
+              0.010249977341585875,
+              0.04287466929736489
+            ],
+            "vsControl": {
+              "probabilityToBeatControl": 0.04105000000000003,
+              "expectedLift": 2.0878838448453347,
+              "liftInterval": [
+                -0.132618004722585,
+                14.309664272518752
+              ],
+              "pValue": 0.07963768307955466,
+              "differenceInterval": [
+                -0.0018280558365645766,
+                0.03276077547917998
+              ]
+            },
+            "probabilityToBeBest": 0.04385
+          }
+        ],
+        "significantVariant": null
+      }
+    ],
     "excludedMultipleVariants": 0,
     "srm": {
-      "chiSquare": 0.25037037037037035,
-      "pValue": 0.6168144089718607,
+      "chiSquare": 0.8372093023255814,
+      "pValue": 0.36019613338600154,
       "mismatch": false
     },
     "winner": null,
-    "estimatedDaysToSignificance": 247,
+    "status": "no_winner_yet",
+    "daysRunning": 19.00177273148148,
+    "estimatedDaysToSignificance": 307,
     "sql": [
-      "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1792232146978\n    AND e.ts_ms < 1793874549344\n    AND e.event IN ('$exposure', 'signup_completed')\n),\nx AS (\n  SELECT pid, MIN(ts_ms) AS t0, MIN((CASE json_type(props, '$.\"variant\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"variant\"') AS TEXT) END)) AS variant, COUNT(DISTINCT (CASE json_type(props, '$.\"variant\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"variant\"') AS TEXT) END)) AS nv\n  FROM ev\n  WHERE event = '$exposure' AND (CASE json_type(props, '$.\"flag\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"flag\"') AS TEXT) END) = 'pricing-page-v2'\n  GROUP BY pid\n),\nxe AS (SELECT pid, t0, variant FROM x WHERE nv = 1),\ng AS (\n  SELECT xe.pid, SUM(0) AS total\n  FROM xe JOIN ev ON ev.pid = xe.pid\n  WHERE ev.event = 'signup_completed' AND ev.ts_ms >= xe.t0 AND 1 = 1\n  GROUP BY xe.pid\n)\nSELECT xe.variant AS variant,\n  COUNT(*) AS exposures,\n  SUM(CASE WHEN g.pid IS NULL THEN 0 ELSE 1 END) AS conversions,\n  SUM(COALESCE(g.total, 0)) AS value_sum,\n  SUM(COALESCE(g.total, 0) * COALESCE(g.total, 0)) AS value_sumsq,\n  MIN(xe.t0) AS first_exposure,\n  (SELECT COUNT(*) FROM x WHERE nv > 1) AS multi\nFROM xe LEFT JOIN g ON g.pid = xe.pid\nGROUP BY xe.variant"
+      "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793382208559\n    AND e.ts_ms < 1795024561723\n    AND e.event IN ('$exposure', 'signup_completed', '$exception')\n),\nxr AS (\n  SELECT ev.actor AS actor, ev.ts_ms AS ts_ms, (CASE json_type(ev.props, '$.\"variant\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(ev.props, '$.\"variant\"') AS TEXT) END) AS variant FROM ev\n  WHERE ev.event = '$exposure' AND (CASE json_type(ev.props, '$.\"flag\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(ev.props, '$.\"flag\"') AS TEXT) END) = 'pricing-page-v2' AND ev.ts_ms < 1795024561723 AND 1 = 1\n    AND (CASE json_type(ev.props, '$.\"variant\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(ev.props, '$.\"variant\"') AS TEXT) END) IS NOT NULL AND (CASE json_type(ev.props, '$.\"variant\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(ev.props, '$.\"variant\"') AS TEXT) END) <> ''\n),\nx AS (SELECT actor, MIN(ts_ms) AS t0, COUNT(DISTINCT variant) AS nv, MIN(variant) AS anyv FROM xr GROUP BY actor),\nxe AS (SELECT actor, t0, anyv AS variant FROM x WHERE nv = 1)\nSELECT variant, COUNT(*) AS exposures, MIN(t0) AS first_exposure, (SELECT COUNT(*) FROM x WHERE nv > 1) AS multi FROM xe GROUP BY variant",
+      "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793382208559\n    AND e.ts_ms < 1795024561723\n    AND e.event IN ('$exposure', 'signup_completed', '$exception')\n),\nxr AS (\n  SELECT ev.actor AS actor, ev.ts_ms AS ts_ms, (CASE json_type(ev.props, '$.\"variant\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(ev.props, '$.\"variant\"') AS TEXT) END) AS variant FROM ev\n  WHERE ev.event = '$exposure' AND (CASE json_type(ev.props, '$.\"flag\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(ev.props, '$.\"flag\"') AS TEXT) END) = 'pricing-page-v2' AND ev.ts_ms < 1795024561723 AND 1 = 1\n    AND (CASE json_type(ev.props, '$.\"variant\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(ev.props, '$.\"variant\"') AS TEXT) END) IS NOT NULL AND (CASE json_type(ev.props, '$.\"variant\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(ev.props, '$.\"variant\"') AS TEXT) END) <> ''\n),\nx AS (SELECT actor, MIN(ts_ms) AS t0, COUNT(DISTINCT variant) AS nv, MIN(variant) AS anyv FROM xr GROUP BY actor),\nxe AS (SELECT actor, t0, anyv AS variant FROM x WHERE nv = 1),\nmc AS (SELECT DISTINCT xe.actor FROM xe JOIN ev ON ev.actor = xe.actor AND ev.ts_ms >= xe.t0 AND ev.event = 'signup_completed' AND 1 = 1)\nSELECT xe.variant AS variant, COUNT(*) AS n, SUM(CASE WHEN mc.actor IS NULL THEN 0 ELSE 1 END) AS a\nFROM xe LEFT JOIN mc ON mc.actor = xe.actor  GROUP BY xe.variant",
+      "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793382208559\n    AND e.ts_ms < 1795024561723\n    AND e.event IN ('$exposure', 'signup_completed', '$exception')\n),\nxr AS (\n  SELECT ev.actor AS actor, ev.ts_ms AS ts_ms, (CASE json_type(ev.props, '$.\"variant\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(ev.props, '$.\"variant\"') AS TEXT) END) AS variant FROM ev\n  WHERE ev.event = '$exposure' AND (CASE json_type(ev.props, '$.\"flag\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(ev.props, '$.\"flag\"') AS TEXT) END) = 'pricing-page-v2' AND ev.ts_ms < 1795024561723 AND 1 = 1\n    AND (CASE json_type(ev.props, '$.\"variant\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(ev.props, '$.\"variant\"') AS TEXT) END) IS NOT NULL AND (CASE json_type(ev.props, '$.\"variant\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(ev.props, '$.\"variant\"') AS TEXT) END) <> ''\n),\nx AS (SELECT actor, MIN(ts_ms) AS t0, COUNT(DISTINCT variant) AS nv, MIN(variant) AS anyv FROM xr GROUP BY actor),\nxe AS (SELECT actor, t0, anyv AS variant FROM x WHERE nv = 1),\nmc AS (SELECT DISTINCT xe.actor FROM xe JOIN ev ON ev.actor = xe.actor AND ev.ts_ms >= xe.t0 AND ev.event = '$exception' AND 1 = 1)\nSELECT xe.variant AS variant, COUNT(*) AS n, SUM(CASE WHEN mc.actor IS NULL THEN 0 ELSE 1 END) AS a\nFROM xe LEFT JOIN mc ON mc.actor = xe.actor  GROUP BY xe.variant",
+      "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793382208559\n    AND e.ts_ms < 1795024561723\n    AND e.event IN ('$exposure', 'signup_completed', '$exception')\n),\nxr AS (\n  SELECT ev.actor AS actor, ev.ts_ms AS ts_ms, (CASE json_type(ev.props, '$.\"variant\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(ev.props, '$.\"variant\"') AS TEXT) END) AS variant FROM ev\n  WHERE ev.event = '$exposure' AND (CASE json_type(ev.props, '$.\"flag\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(ev.props, '$.\"flag\"') AS TEXT) END) = 'pricing-page-v2' AND ev.ts_ms < 1795024561723 AND 1 = 1\n    AND (CASE json_type(ev.props, '$.\"variant\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(ev.props, '$.\"variant\"') AS TEXT) END) IS NOT NULL AND (CASE json_type(ev.props, '$.\"variant\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(ev.props, '$.\"variant\"') AS TEXT) END) <> ''\n),\nx AS (SELECT actor, MIN(ts_ms) AS t0, COUNT(DISTINCT variant) AS nv, MIN(variant) AS anyv FROM xr GROUP BY actor),\nxe AS (SELECT actor, t0, anyv AS variant FROM x WHERE nv = 1),\nmc AS (SELECT DISTINCT xe.actor FROM xe JOIN ev ON ev.actor = xe.actor AND ev.ts_ms >= xe.t0 AND ev.event = 'signup_completed' AND 1 = 1)\nSELECT ((xe.t0 / 86400000) * 86400000) AS day, xe.variant AS variant, COUNT(*) AS n, SUM(CASE WHEN mc.actor IS NULL THEN 0 ELSE 1 END) AS a\nFROM xe LEFT JOIN mc ON mc.actor = xe.actor  GROUP BY ((xe.t0 / 86400000) * 86400000), xe.variant"
     ],
     "range": {
-      "from": "2026-10-17T10:15:46.978Z",
-      "to": "2026-11-05T10:29:09.344Z"
+      "from": "2026-10-30T17:43:28.559Z",
+      "to": "2026-11-18T17:56:01.723Z"
     },
-    "summary": "control: 87/344 = 25.3% (control); test: 84/331 = 25.4%, 51.1% chance to beat control (lift 1.2%). No winner yet; roughly 247 more days to detect a 10% lift at the current pace."
+    "summary": "688 people exposed over 19.0 days. signup_completed conversion: control: 21.6% (control); test: 25.9%, 90.6% chance to beat control (lift 19.6%). No winner yet; roughly 307 more days to detect a 10% change at the current pace."
   },
-  "summary": "[running] control: 87/344 = 25.3% (control); test: 84/331 = 25.4%, 51.1% chance to beat control (lift 1.2%). No winner yet; roughly 247 more days to detect a 10% lift at the current pace.",
-  "dashboard": "http://127.0.0.1:58904/app#/experiments/pricing-page-v2?project=demo"
+  "summary": "[running] 688 people exposed over 19.0 days. signup_completed conversion: control: 21.6% (control); test: 25.9%, 90.6% chance to beat control (lift 19.6%). No winner yet; roughly 307 more days to detect a 10% change at the current pace.",
+  "dashboard": "http://127.0.0.1:49397/app#/experiments/pricing-page-v2?project=demo"
 }

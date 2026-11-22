@@ -67,6 +67,30 @@ npx dataflare-cli person <user-id> --delete
 
 This deletes the person, their device links, their replays and every event from their user id and devices. In D1 mode the events go at once. Replays go a slice at a time, since each one is several R2 calls: if a person has more than one request can delete (about 100), the result says `"complete": false` and the hourly maintenance job deletes the rest, then the person and their device links. In lake mode they are queued and removed by the daily maintenance job (`dataflare lake maintain`, run by the deploy workflow), and the old data files leave R2 when their snapshots expire, within about a week; see [lake.md](lake.md#erasure-and-retention).
 
+## Deleting a group
+
+```sh
+npx dataflare-cli group company <key> --delete
+```
+
+This deletes the group's row and removes its key and property snapshot from every event (the events stay with their people). In lake mode it is queued like a person's erasure.
+
+## Data that leaves Dataflare
+
+Nothing is sent to a third party unless you set it up:
+
+- **Destinations** forward events as they arrive to the tools you configure (Slack, Meta Conversions API, GA4, HubSpot, a webhook…). Each sends only the events and fields its mapping names. Ad platforms get email and phone hashed with SHA-256 first, as they require. Credentials are encrypted in D1 with a key only the Worker holds (`GLASS_ENCRYPTION_KEY`). See [destinations](destinations.md).
+- **Batch exports** write events to your own S3, R2, BigQuery or HTTPS endpoint.
+- **Error alerts** go to the chat destination you pick.
+- **Scheduled reports and alerts** go to the channels and email addresses you pick. The chart images in chat messages are public links, signed and expiring after 90 days, that show the chart only (labels and numbers, no people). See [dashboards](dashboards.md).
+
+## Payments, imports and source maps
+
+- **Stripe**: webhook events become revenue events. To link a customer to a person, Dataflare reads a metadata key you name, or, if you turn it on, matches the customer's email to a person's: the email is hashed for matching and never stored. The restricted API key, if you give one, is encrypted like destination credentials.
+- **Imports** (`dataflare import`, or Pipelines › Imports) keep the original timestamps and are subject to the same retention and erasure as everything else.
+- **Source maps** are stored in your R2 bucket, used only to map stack traces back to your code, and listed (and deleted) per release.
+- **Transformations** run before anything is stored: they can drop events, remove properties, hash them, or redact emails and phone numbers in text.
+
 ## EU data
 
 `dataflare init --eu` creates the D1 database and R2 buckets in Cloudflare's EU jurisdiction. The Worker itself runs on Cloudflare's global network.

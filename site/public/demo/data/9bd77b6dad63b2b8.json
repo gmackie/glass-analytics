@@ -2,8 +2,8 @@
   "project": "demo",
   "flag": {
     "key": "offline-mode",
-    "description": "Keep writing without a connection.",
     "enabled": false,
-    "rollout": 0
+    "rollout": 0,
+    "description": "Keep writing without a connection."
   }
 }

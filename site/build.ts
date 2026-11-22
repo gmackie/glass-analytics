@@ -27,7 +27,7 @@ import { AGENT_PROMPT, INSTALL, REPO, SITE_URL } from './src/config.ts';
 import { COMPETITORS } from './src/content/compare.ts';
 import { GUIDES } from './src/content/guides.ts';
 import { FAQ, type Facts, type HeroLayout, homePage } from './src/home.ts';
-import { metaPixel } from './src/layout.ts';
+import { metaPixel, stripTags } from './src/layout.ts';
 import {
   changelogPage,
   DOCS,
@@ -45,6 +45,14 @@ const site = dirname(fileURLToPath(import.meta.url));
 const root = join(site, '..');
 const dist = join(site, 'dist');
 const read = (...p: string[]) => readFileSync(join(root, ...p), 'utf8');
+/** A built file's text, or undefined when that step didn't produce it. */
+function readIfPresent(file: string): string | undefined {
+  try {
+    return readFileSync(file, 'utf8');
+  } catch {
+    return undefined;
+  }
+}
 
 rmSync(dist, { recursive: true, force: true });
 mkdirSync(dist, { recursive: true });
@@ -131,12 +139,11 @@ write('/404.html', notFoundPage());
 {
   const demo = join(dist, 'demo', 'index.html');
   const pixel = metaPixel();
-  if (existsSync(demo) && pixel.head)
+  const html = pixel.head ? readIfPresent(demo) : undefined;
+  if (html !== undefined)
     writeFileSync(
       demo,
-      readFileSync(demo, 'utf8')
-        .replace('</head>', `${pixel.head}\n</head>`)
-        .replace('<body>', `<body>\n${pixel.body}`),
+      html.replace('</head>', `${pixel.head}\n</head>`).replace('<body>', `<body>\n${pixel.body}`),
     );
 }
 
@@ -268,10 +275,11 @@ Or paste this into your coding agent:
 
 ${FAQ.map(
   ([q, a]) =>
-    `### ${q}\n\n${a
-      .replace(/<code>(.*?)<\/code>/g, '`$1`')
-      .replace(/<a href="(.*?)">(.*?)<\/a>/g, `[$2](${SITE_URL}$1)`)
-      .replace(/<[^>]+>/g, '')}`,
+    `### ${q}\n\n${stripTags(
+      a
+        .replace(/<code>(.*?)<\/code>/g, '`$1`')
+        .replace(/<a href="(.*?)">(.*?)<\/a>/g, `[$2](${SITE_URL}$1)`),
+    )}`,
 ).join('\n\n')}
 `,
 );

@@ -4,72 +4,72 @@
   "events": [
     {
       "event": "$pageview",
-      "count": 1944,
-      "lastSeen": "2026-11-05T10:26:04.084Z",
+      "count": 2202,
+      "lastSeen": "2026-11-18T17:53:44.593Z",
       "description": "",
       "role": null,
       "system": true
     },
     {
       "event": "$web_vitals",
-      "count": 755,
-      "lastSeen": "2026-11-05T08:25:29.222Z",
+      "count": 882,
+      "lastSeen": "2026-11-18T15:40:37.745Z",
       "description": "",
       "role": null,
       "system": true
     },
     {
       "event": "document_created",
-      "count": 511,
-      "lastSeen": "2026-11-05T10:16:25.174Z",
+      "count": 577,
+      "lastSeen": "2026-11-18T17:39:13.889Z",
       "description": "Fired when a writer creates a document, blank or from a template.",
       "role": null,
       "system": false
     },
     {
       "event": "$exposure",
-      "count": 356,
-      "lastSeen": "2026-11-05T07:48:07.941Z",
+      "count": 393,
+      "lastSeen": "2026-11-18T15:41:47.352Z",
       "description": "",
       "role": null,
       "system": true
     },
     {
       "event": "signup_started",
-      "count": 139,
-      "lastSeen": "2026-11-05T07:11:31.992Z",
+      "count": 155,
+      "lastSeen": "2026-11-18T15:28:37.022Z",
       "description": "Fired when someone opens the signup form, from the header button or the pricing page.",
       "role": null,
       "system": false
     },
     {
       "event": "$identify",
-      "count": 100,
-      "lastSeen": "2026-11-05T10:26:03.762Z",
+      "count": 104,
+      "lastSeen": "2026-11-18T17:53:44.300Z",
       "description": "",
       "role": null,
       "system": true
     },
     {
       "event": "signup_completed",
-      "count": 100,
-      "lastSeen": "2026-11-05T10:26:03.762Z",
+      "count": 104,
+      "lastSeen": "2026-11-18T17:53:44.300Z",
       "description": "Fired once the account exists and the person is signed in, right after identify().",
       "role": "conversion",
       "system": false
     },
     {
       "event": "document_shared",
-      "count": 65,
-      "lastSeen": "2026-11-05T08:52:39.086Z",
+      "count": 89,
+      "lastSeen": "2026-11-18T17:54:28.559Z",
       "description": "Fired when a writer shares a document by link, email or export.",
       "role": "important",
       "system": false
     },
     {
       "event": "subscription_started",
-      "count": 18,
-      "lastSeen": "2026-11-05T07:14:00.440Z",
+      "count": 21,
+      "lastSeen": "2026-11-18T06:20:36.874Z",
       "description": "Fired when the first payment succeeds and the plan becomes active.",
       "role": "conversion",
       "system": false
@@ -77,23 +77,15 @@
     {
       "event": "$exception",
       "count": 12,
-      "lastSeen": "2026-11-05T10:26:06.839Z",
+      "lastSeen": "2026-11-18T17:53:47.375Z",
       "description": "",
       "role": null,
       "system": true
     },
     {
-      "event": "invite_sent",
-      "count": 9,
-      "lastSeen": "2026-11-04T07:10:27.136Z",
-      "description": "Fired when a team admin invites someone to their workspace.",
-      "role": null,
-      "system": false
-    },
-    {
       "event": "$click",
       "count": 8,
-      "lastSeen": "2026-11-05T10:26:09.586Z",
+      "lastSeen": "2026-11-18T17:53:50.157Z",
       "description": "",
       "role": null,
       "system": true
@@ -101,20 +93,36 @@
     {
       "event": "upgrade_clicked",
       "count": 6,
-      "lastSeen": "2026-11-05T10:26:09.586Z",
+      "lastSeen": "2026-11-18T17:53:50.157Z",
       "description": "",
       "role": null,
       "system": false
+    },
+    {
+      "event": "invite_sent",
+      "count": 4,
+      "lastSeen": "2026-11-18T14:33:34.872Z",
+      "description": "Fired when a team admin invites someone to their workspace.",
+      "role": null,
+      "system": false
+    },
+    {
+      "event": "$groupidentify",
+      "count": 3,
+      "lastSeen": "2026-11-15T00:01:09.441Z",
+      "description": "",
+      "role": null,
+      "system": true
     }
   ],
   "undocumented": [
     "upgrade_clicked"
   ],
-  "summary": "13 distinct events in the last 7 days; 1 custom events have no description (use define_event).",
+  "summary": "14 distinct events in the last 7 days; 1 custom events have no description (use define_event).",
   "namingGuide": "Name events object_action in snake_case and past tense (signup_completed, plan_upgraded, invite_sent). Put variable details in properties ({ plan: \"pro\" }), never in the event name. Never send emails, names or other personal data as properties.",
   "documentationGuide": "After a custom event is shipping, call define_event (or `dataflare events <name> --describe \"…\"`). The description must say how and when the event is fired (which user action or code path). Document every property with what it means and which values to expect (e.g. description: \"Fired when the user finishes checkout after payment succeeds.\"; properties: { plan: \"Chosen plan id (free|pro|enterprise)\", amount: \"Charge in the account currency\" }). list_events returns undocumented custom events — document those before relying on them in funnels or trends.",
   "sql": [
-    "SELECT event, COUNT(*) AS n, MAX(ts_ms) AS last_seen FROM events\nWHERE project = 'demo' AND ts_ms >= 1793269656581\nGROUP BY event ORDER BY n DESC LIMIT 500"
+    "SELECT event, COUNT(*) AS n, MAX(ts_ms) AS last_seen FROM events\nWHERE project = 'demo' AND ts_ms >= 1794419689337\nGROUP BY event ORDER BY n DESC, event ASC LIMIT 500"
   ],
-  "dashboard": "http://127.0.0.1:58904/app#/events?project=demo"
+  "dashboard": "http://127.0.0.1:49397/app#/events?project=demo"
 }

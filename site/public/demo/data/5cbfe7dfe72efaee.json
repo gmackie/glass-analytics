@@ -2,7 +2,7 @@
   "project": "demo",
   "event": "$web_vitals",
   "sampled": 500,
-  "lastSeen": "2026-11-05T08:25:29.222Z",
+  "lastSeen": "2026-11-18T15:40:37.745Z",
   "description": "",
   "owner": "",
   "properties": [
@@ -13,11 +13,11 @@
       ],
       "coverage": 1,
       "examples": [
-        "INP",
-        "TTFB",
         "CLS",
         "FCP",
-        "LCP"
+        "LCP",
+        "INP",
+        "TTFB"
       ],
       "description": ""
     },
@@ -28,17 +28,17 @@
       ],
       "coverage": 1,
       "examples": [
-        "246.501",
-        "84.952",
-        "82.208",
-        "0.012",
-        "0.017"
+        "0.275",
+        "1859.938",
+        "537.707",
+        "976.227",
+        "697.722"
       ],
       "description": ""
     }
   ],
   "summary": "\"$web_vitals\": 2 properties across the latest 500 events.",
   "sql": [
-    "SELECT props, ts_ms FROM events\nWHERE project = 'demo' AND event = '$web_vitals' AND ts_ms >= 1791282550827\nORDER BY ts_ms DESC LIMIT 500"
+    "SELECT props, ts_ms FROM events\nWHERE project = 'demo' AND event = '$web_vitals' AND ts_ms >= 1792432563271\nORDER BY ts_ms DESC LIMIT 500"
   ]
 }

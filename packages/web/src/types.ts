@@ -15,6 +15,38 @@ export interface WireEvent {
   title?: string | null;
   props?: Record<string, unknown>;
   flags?: Record<string, string>;
+  /** Server-side senders only (imports, dataflare-node with a key). */
+  context?: {
+    country?: string;
+    region?: string;
+    city?: string;
+    browser?: string;
+    os?: string;
+    device?: string;
+  };
+}
+
+/** Values to start with before the Worker answers, e.g. rendered by your server (no flicker). */
+export interface Bootstrap {
+  /** The device id your server used, so both sides bucket the same way. */
+  distinctId?: string;
+  /** The signed-in user, if your server knows them. */
+  userId?: string;
+  /** Flag values: "on", a variant key, or false/null for off. */
+  flags?: Record<string, string | boolean | null>;
+  /** Flag payloads, as `flagPayload()` returns them. */
+  payloads?: Record<string, unknown>;
+}
+
+/** An early-access feature this person may opt into. */
+export interface EarlyAccessFeature {
+  key: string;
+  name: string;
+  description?: string;
+  docsUrl?: string;
+  stage: 'concept' | 'alpha' | 'beta';
+  /** true: opted in; false: opted out; null: hasn't chosen. */
+  enrolled: boolean | null;
 }
 
 export type Persistence = 'localStorage' | 'cookieless';
@@ -84,12 +116,20 @@ export interface GlassOptions {
   replay?: ReplayOptions | false;
   /** Fetch feature flags on init. Default true. */
   flags?: boolean;
+  /** Start with these ids and flag values (server-side rendering), before the Worker answers. */
+  bootstrap?: Bootstrap;
+  /** Apply web experiments (page changes defined in Dataflare). Default true. */
+  webExperiments?: boolean;
+  /** Hide elements a web experiment changes for at most this long while flags load. Default 1000 ms. */
+  antiFlickerMs?: number;
   /** Inspect or rewrite every event before it is queued. Return null to drop it. */
   beforeSend?: (event: WireEvent) => WireEvent | null;
   /** Send at most this often, in ms. Default 5000. */
   flushIntervalMs?: number;
   /** Log every event to the console. */
   debug?: boolean;
+  /** Your app's version (a git SHA, say), attached to errors so their stacks map to source. */
+  release?: string;
 }
 
 /** The interface implemented by `replay.js`, loaded on demand from the Worker. */

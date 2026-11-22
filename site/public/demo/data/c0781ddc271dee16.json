@@ -1,0 +1,20 @@
+{
+  "project": "demo",
+  "key": "new-editor",
+  "history": [
+    {
+      "at": "2026-11-18T17:53:28.587Z",
+      "action": "create",
+      "actor": "admin key",
+      "changed": [],
+      "before": null,
+      "after": {
+        "key": "new-editor",
+        "enabled": true,
+        "rollout": 25,
+        "description": "The rebuilt editor with inline comments."
+      }
+    }
+  ],
+  "summary": "1 change to \"new-editor\"; latest 2026-11-18 17:53: create by admin key."
+}

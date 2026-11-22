@@ -8,63 +8,85 @@
   "rows": [
     {
       "value": "Direct",
-      "visitors": 329,
-      "sessions": 417,
-      "converted": 29,
-      "rate": 0.08814589665653495,
-      "bounceRate": 0.44072948328267475
+      "visitors": 340,
+      "sessions": 430,
+      "converted": 23,
+      "rate": 0.06764705882352941,
+      "bounceRate": 0.4411764705882353,
+      "revenue": 198,
+      "payers": 4,
+      "revenuePerVisitor": 0.58
     },
     {
       "value": "Organic search",
-      "visitors": 217,
-      "sessions": 223,
+      "visitors": 269,
+      "sessions": 288,
       "converted": 36,
-      "rate": 0.16589861751152074,
-      "bounceRate": 0.3317972350230415
+      "rate": 0.13382899628252787,
+      "bounceRate": 0.3345724907063197,
+      "revenue": 274,
+      "payers": 8,
+      "revenuePerVisitor": 1.02
     },
     {
       "value": "Social",
-      "visitors": 147,
-      "sessions": 149,
-      "converted": 17,
-      "rate": 0.11564625850340136,
-      "bounceRate": 0.3469387755102041
+      "visitors": 163,
+      "sessions": 171,
+      "converted": 21,
+      "rate": 0.12883435582822086,
+      "bounceRate": 0.37423312883435583,
+      "revenue": 117,
+      "payers": 4,
+      "revenuePerVisitor": 0.72
     },
     {
       "value": "Email",
-      "visitors": 47,
-      "sessions": 56,
+      "visitors": 56,
+      "sessions": 59,
       "converted": 12,
-      "rate": 0.2553191489361702,
-      "bounceRate": 0.425531914893617
+      "rate": 0.21428571428571427,
+      "bounceRate": 0.375,
+      "revenue": 128,
+      "payers": 3,
+      "revenuePerVisitor": 2.29
     },
     {
       "value": "Paid",
-      "visitors": 33,
-      "sessions": 34,
-      "converted": 3,
-      "rate": 0.09090909090909091,
-      "bounceRate": 0.5151515151515151
+      "visitors": 54,
+      "sessions": 56,
+      "converted": 5,
+      "rate": 0.09259259259259259,
+      "bounceRate": 0.42592592592592593,
+      "revenue": 0,
+      "payers": 0,
+      "revenuePerVisitor": 0
     },
     {
       "value": "Other campaigns",
-      "visitors": 25,
-      "sessions": 26,
-      "converted": 2,
-      "rate": 0.08,
-      "bounceRate": 0.36
+      "visitors": 26,
+      "sessions": 27,
+      "converted": 3,
+      "rate": 0.11538461538461539,
+      "bounceRate": 0.38461538461538464,
+      "revenue": 9,
+      "payers": 1,
+      "revenuePerVisitor": 0.35
     },
     {
       "value": "Referral",
-      "visitors": 20,
-      "sessions": 23,
-      "converted": 1,
-      "rate": 0.05,
-      "bounceRate": 0.35
+      "visitors": 23,
+      "sessions": 24,
+      "converted": 4,
+      "rate": 0.17391304347826086,
+      "bounceRate": 0.34782608695652173,
+      "revenue": 90,
+      "payers": 1,
+      "revenuePerVisitor": 3.91
     }
   ],
   "sql": [
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793269640116\n    AND e.ts_ms < 1793874440116\n    AND e.event IN ('$pageview', 'signup_completed', 'subscription_started')\n),\nfirsts AS (SELECT distinct_id, MIN(ts_ms) AS t FROM ev WHERE event = '$pageview' GROUP BY distinct_id),\ntouch AS (\n  SELECT ev.distinct_id, MIN(CASE\n    WHEN LOWER(COALESCE(ev.utm_medium, '')) IN ('cpc', 'ppc', 'paid', 'paidsearch', 'paid_search', 'paid-search', 'paidsocial', 'paid_social', 'paid-social', 'display', 'cpm', 'banner', 'ads') THEN 'Paid'\n    WHEN LOWER(COALESCE(ev.utm_medium, '')) IN ('email', 'e-mail', 'newsletter') OR LOWER(COALESCE(ev.utm_source, '')) IN ('email', 'newsletter') THEN 'Email'\n    WHEN LOWER(COALESCE(ev.utm_medium, '')) IN ('social', 'social-media', 'social_media', 'sm', 'organic_social') THEN 'Social'\n    WHEN LOWER(COALESCE(ev.referrer_host, '')) LIKE '%chatgpt.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%openai.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%perplexity.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%claude.ai' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%gemini.google.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%copilot.microsoft.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%you.com' THEN 'AI assistants'\n    WHEN LOWER(COALESCE(ev.referrer_host, '')) LIKE '%google.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%bing.com%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%duckduckgo.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%yahoo.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%ecosia.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%baidu.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%yandex.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%search.brave.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%startpage.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%qwant.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%kagi.%' THEN 'Organic search'\n    WHEN LOWER(COALESCE(ev.referrer_host, '')) LIKE '%facebook.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE 'fb.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%instagram.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE 't.co' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%twitter.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE 'x.com' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%linkedin.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE 'lnkd.in' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%reddit.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%youtube.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE 'youtu.be' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%tiktok.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%pinterest.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%threads.net' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%bsky.app' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%mastodon%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%whatsapp.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%telegram.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%news.ycombinator.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%substack.%' THEN 'Social'\n    WHEN LOWER(COALESCE(ev.utm_source, '')) <> '' OR LOWER(COALESCE(ev.utm_campaign, '')) <> '' THEN 'Other campaigns'\n    WHEN LOWER(COALESCE(ev.referrer_host, '')) <> '' THEN 'Referral'\n    ELSE 'Direct'\n  END) AS val\n  FROM ev JOIN firsts ON firsts.distinct_id = ev.distinct_id AND ev.ts_ms = firsts.t AND ev.event = '$pageview'\n  GROUP BY ev.distinct_id\n),\nvisits AS (SELECT distinct_id, COUNT(DISTINCT session_id) AS sessions, COUNT(*) AS views FROM ev WHERE event = '$pageview' GROUP BY distinct_id),\nconv AS (SELECT DISTINCT distinct_id FROM ev WHERE event IN ('signup_completed', 'subscription_started'))\nSELECT touch.val AS val, COUNT(*) AS visitors, SUM(visits.sessions) AS sessions,\n  SUM(CASE WHEN conv.distinct_id IS NULL THEN 0 ELSE 1 END) AS converted,\n  SUM(CASE WHEN visits.views = 1 THEN 1 ELSE 0 END) AS bounced\nFROM touch\nJOIN visits ON visits.distinct_id = touch.distinct_id\nLEFT JOIN conv ON conv.distinct_id = touch.distinct_id\nGROUP BY touch.val ORDER BY visitors DESC LIMIT 20"
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1794419680435\n    AND e.ts_ms < 1795024480435\n    AND e.event IN ('$pageview', 'signup_completed', 'subscription_started')\n),\nfirsts AS (SELECT distinct_id, MIN(ts_ms) AS t FROM ev WHERE event = '$pageview' GROUP BY distinct_id),\ntouch AS (\n  SELECT ev.distinct_id, MIN(CASE\n    WHEN LOWER(COALESCE(ev.utm_medium, '')) IN ('cpc', 'ppc', 'paid', 'paidsearch', 'paid_search', 'paid-search', 'paidsocial', 'paid_social', 'paid-social', 'display', 'cpm', 'banner', 'ads') THEN 'Paid'\n    WHEN LOWER(COALESCE(ev.utm_medium, '')) IN ('email', 'e-mail', 'newsletter') OR LOWER(COALESCE(ev.utm_source, '')) IN ('email', 'newsletter') THEN 'Email'\n    WHEN LOWER(COALESCE(ev.utm_medium, '')) IN ('social', 'social-media', 'social_media', 'sm', 'organic_social') THEN 'Social'\n    WHEN LOWER(COALESCE(ev.referrer_host, '')) LIKE '%chatgpt.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%openai.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%perplexity.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%claude.ai' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%gemini.google.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%copilot.microsoft.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%you.com' OR LOWER(COALESCE(ev.utm_source, '')) LIKE '%chatgpt.%' OR LOWER(COALESCE(ev.utm_source, '')) LIKE '%openai.%' OR LOWER(COALESCE(ev.utm_source, '')) LIKE '%perplexity.%' OR LOWER(COALESCE(ev.utm_source, '')) LIKE '%claude.ai' OR LOWER(COALESCE(ev.utm_source, '')) LIKE '%gemini.google.%' OR LOWER(COALESCE(ev.utm_source, '')) LIKE '%copilot.microsoft.%' OR LOWER(COALESCE(ev.utm_source, '')) LIKE '%you.com' OR LOWER(COALESCE(ev.utm_source, '')) LIKE 'chatgpt' OR LOWER(COALESCE(ev.utm_source, '')) LIKE 'openai' OR LOWER(COALESCE(ev.utm_source, '')) LIKE 'perplexity' OR LOWER(COALESCE(ev.utm_source, '')) LIKE 'claude' OR LOWER(COALESCE(ev.utm_source, '')) LIKE 'gemini' OR LOWER(COALESCE(ev.utm_source, '')) LIKE 'copilot' THEN 'AI assistants'\n    WHEN LOWER(COALESCE(ev.referrer_host, '')) LIKE '%google.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%bing.com%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%duckduckgo.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%yahoo.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%ecosia.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%baidu.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%yandex.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%search.brave.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%startpage.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%qwant.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%kagi.%' THEN 'Organic search'\n    WHEN LOWER(COALESCE(ev.referrer_host, '')) LIKE '%facebook.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE 'fb.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%instagram.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE 't.co' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%twitter.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE 'x.com' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%linkedin.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE 'lnkd.in' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%reddit.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%youtube.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE 'youtu.be' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%tiktok.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%pinterest.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%threads.net' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%bsky.app' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%mastodon%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%whatsapp.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%telegram.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%news.ycombinator.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%substack.%' THEN 'Social'\n    WHEN LOWER(COALESCE(ev.utm_source, '')) <> '' OR LOWER(COALESCE(ev.utm_campaign, '')) <> '' THEN 'Other campaigns'\n    WHEN LOWER(COALESCE(ev.referrer_host, '')) <> '' THEN 'Referral'\n    ELSE 'Direct'\n  END) AS val\n  FROM ev JOIN firsts ON firsts.distinct_id = ev.distinct_id AND ev.ts_ms = firsts.t AND ev.event = '$pageview'\n  GROUP BY ev.distinct_id\n),\nvisits AS (SELECT distinct_id, COUNT(DISTINCT session_id) AS sessions, COUNT(*) AS views FROM ev WHERE event = '$pageview' GROUP BY distinct_id),\nconv AS (SELECT DISTINCT distinct_id FROM ev WHERE event IN ('signup_completed', 'subscription_started'))\nSELECT touch.val AS val, COUNT(*) AS visitors, SUM(visits.sessions) AS sessions,\n  SUM(CASE WHEN conv.distinct_id IS NULL THEN 0 ELSE 1 END) AS converted,\n  SUM(CASE WHEN visits.views = 1 THEN 1 ELSE 0 END) AS bounced\nFROM touch\nJOIN visits ON visits.distinct_id = touch.distinct_id\nLEFT JOIN conv ON conv.distinct_id = touch.distinct_id\nGROUP BY touch.val ORDER BY visitors DESC, touch.val ASC LIMIT 20",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1794419680435\n    AND e.ts_ms < 1795024480435\n    AND e.event IN ('$pageview')\n),\nmv AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1794419680435\n    AND e.ts_ms < 1795024480435\n    AND (json_type(e.props, '$.\"$revenue_base\"') IS NOT NULL)\n),\npfirst AS (SELECT pid, MIN(ts_ms) AS t FROM ev GROUP BY pid),\nptouch AS (\n  SELECT ev.pid AS pid, MIN(CASE\n    WHEN LOWER(COALESCE(ev.utm_medium, '')) IN ('cpc', 'ppc', 'paid', 'paidsearch', 'paid_search', 'paid-search', 'paidsocial', 'paid_social', 'paid-social', 'display', 'cpm', 'banner', 'ads') THEN 'Paid'\n    WHEN LOWER(COALESCE(ev.utm_medium, '')) IN ('email', 'e-mail', 'newsletter') OR LOWER(COALESCE(ev.utm_source, '')) IN ('email', 'newsletter') THEN 'Email'\n    WHEN LOWER(COALESCE(ev.utm_medium, '')) IN ('social', 'social-media', 'social_media', 'sm', 'organic_social') THEN 'Social'\n    WHEN LOWER(COALESCE(ev.referrer_host, '')) LIKE '%chatgpt.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%openai.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%perplexity.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%claude.ai' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%gemini.google.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%copilot.microsoft.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%you.com' OR LOWER(COALESCE(ev.utm_source, '')) LIKE '%chatgpt.%' OR LOWER(COALESCE(ev.utm_source, '')) LIKE '%openai.%' OR LOWER(COALESCE(ev.utm_source, '')) LIKE '%perplexity.%' OR LOWER(COALESCE(ev.utm_source, '')) LIKE '%claude.ai' OR LOWER(COALESCE(ev.utm_source, '')) LIKE '%gemini.google.%' OR LOWER(COALESCE(ev.utm_source, '')) LIKE '%copilot.microsoft.%' OR LOWER(COALESCE(ev.utm_source, '')) LIKE '%you.com' OR LOWER(COALESCE(ev.utm_source, '')) LIKE 'chatgpt' OR LOWER(COALESCE(ev.utm_source, '')) LIKE 'openai' OR LOWER(COALESCE(ev.utm_source, '')) LIKE 'perplexity' OR LOWER(COALESCE(ev.utm_source, '')) LIKE 'claude' OR LOWER(COALESCE(ev.utm_source, '')) LIKE 'gemini' OR LOWER(COALESCE(ev.utm_source, '')) LIKE 'copilot' THEN 'AI assistants'\n    WHEN LOWER(COALESCE(ev.referrer_host, '')) LIKE '%google.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%bing.com%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%duckduckgo.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%yahoo.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%ecosia.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%baidu.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%yandex.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%search.brave.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%startpage.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%qwant.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%kagi.%' THEN 'Organic search'\n    WHEN LOWER(COALESCE(ev.referrer_host, '')) LIKE '%facebook.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE 'fb.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%instagram.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE 't.co' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%twitter.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE 'x.com' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%linkedin.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE 'lnkd.in' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%reddit.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%youtube.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE 'youtu.be' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%tiktok.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%pinterest.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%threads.net' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%bsky.app' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%mastodon%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%whatsapp.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%telegram.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%news.ycombinator.%' OR LOWER(COALESCE(ev.referrer_host, '')) LIKE '%substack.%' THEN 'Social'\n    WHEN LOWER(COALESCE(ev.utm_source, '')) <> '' OR LOWER(COALESCE(ev.utm_campaign, '')) <> '' THEN 'Other campaigns'\n    WHEN LOWER(COALESCE(ev.referrer_host, '')) <> '' THEN 'Referral'\n    ELSE 'Direct'\n  END) AS val\n  FROM ev JOIN pfirst ON pfirst.pid = ev.pid AND ev.ts_ms = pfirst.t GROUP BY ev.pid\n)\nSELECT ptouch.val AS val, SUM((CASE WHEN json_type(mv.props, '$.\"$revenue_base\"') IN ('integer', 'real') THEN json_extract(mv.props, '$.\"$revenue_base\"') END)) AS revenue, COUNT(DISTINCT mv.pid) AS payers\nFROM mv JOIN ptouch ON ptouch.pid = mv.pid GROUP BY ptouch.val"
   ],
-  "summary": "Top channels by visitors: Direct 329 (8.8% converted), Organic search 217 (16.6% converted), Social 147 (11.6% converted), Email 47 (25.5% converted), Paid 33 (9.1% converted)."
+  "summary": "Top channels by visitors: Direct 340 (6.8% converted), Organic search 269 (13.4% converted), Social 163 (12.9% converted), Email 56 (21.4% converted), Paid 54 (9.3% converted)."
 }

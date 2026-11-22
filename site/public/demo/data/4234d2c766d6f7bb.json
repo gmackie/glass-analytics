@@ -2,97 +2,97 @@
   "project": "demo",
   "interval": "day",
   "buckets": [
-    1793232000000,
-    1793318400000,
-    1793404800000,
-    1793491200000,
-    1793577600000,
-    1793664000000,
-    1793750400000,
-    1793836800000
+    1794355200000,
+    1794441600000,
+    1794528000000,
+    1794614400000,
+    1794700800000,
+    1794787200000,
+    1794873600000,
+    1794960000000
   ],
-  "visitors": 818,
+  "visitors": 931,
   "goals": [
     {
       "event": "signup_completed",
       "role": "conversion",
       "description": "Fired once the account exists and the person is signed in, right after identify().",
-      "count": 100,
-      "visitors": 100,
-      "rate": 0.12224938875305623,
+      "count": 104,
+      "visitors": 104,
+      "rate": 0.11170784103114931,
       "previous": {
-        "count": 105,
-        "visitors": 105,
-        "rate": 0.12223515715948778
+        "count": 91,
+        "visitors": 91,
+        "rate": 0.10508083140877598
       },
       "series": [
-        5,
-        19,
-        15,
-        10,
-        11,
-        13,
-        16,
-        11
+        0,
+        23,
+        14,
+        20,
+        9,
+        6,
+        20,
+        12
       ]
     },
     {
       "event": "subscription_started",
       "role": "conversion",
       "description": "Fired when the first payment succeeds and the plan becomes active.",
-      "count": 18,
-      "visitors": 18,
-      "rate": 0.022004889975550123,
+      "count": 21,
+      "visitors": 21,
+      "rate": 0.022556390977443608,
       "previous": {
-        "count": 16,
-        "visitors": 16,
-        "rate": 0.018626309662398137
+        "count": 22,
+        "visitors": 22,
+        "rate": 0.025404157043879907
       },
       "series": [
-        1,
-        2,
-        2,
-        2,
+        0,
+        3,
+        4,
         5,
         2,
         2,
-        2
+        4,
+        1
       ]
     },
     {
       "event": "document_shared",
       "role": "important",
       "description": "Fired when a writer shares a document by link, email or export.",
-      "count": 65,
-      "visitors": 60,
-      "rate": 0.07334963325183375,
+      "count": 89,
+      "visitors": 81,
+      "rate": 0.08700322234156821,
       "previous": {
-        "count": 107,
-        "visitors": 81,
-        "rate": 0.09429569266589057
+        "count": 127,
+        "visitors": 93,
+        "rate": 0.10739030023094688
       },
       "series": [
-        5,
-        7,
-        9,
-        9,
+        4,
+        12,
+        13,
+        14,
+        11,
         10,
-        10,
-        8,
-        6
+        16,
+        9
       ]
     }
   ],
   "converted": {
-    "visitors": 100,
-    "rate": 0.12224938875305623,
-    "previous": 0.12223515715948778
+    "visitors": 104,
+    "rate": 0.11170784103114931,
+    "previous": 0.10508083140877598
   },
   "sql": [
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793269640098\n    AND e.ts_ms < 1793874440098\n    AND e.event IN ('$pageview', 'signup_completed', 'subscription_started', 'document_shared')\n)\nSELECT event AS ev_name, COUNT(*) AS n, COUNT(DISTINCT distinct_id) AS visitors FROM ev WHERE event IN ('signup_completed', 'subscription_started', 'document_shared') GROUP BY event\nUNION ALL\nSELECT '$visitors' AS ev_name, 0 AS n, COUNT(DISTINCT distinct_id) AS visitors FROM ev WHERE event = '$pageview'",
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1792664840098\n    AND e.ts_ms < 1793269640098\n    AND e.event IN ('$pageview', 'signup_completed', 'subscription_started', 'document_shared')\n)\nSELECT event AS ev_name, COUNT(*) AS n, COUNT(DISTINCT distinct_id) AS visitors FROM ev WHERE event IN ('signup_completed', 'subscription_started', 'document_shared') GROUP BY event\nUNION ALL\nSELECT '$visitors' AS ev_name, 0 AS n, COUNT(DISTINCT distinct_id) AS visitors FROM ev WHERE event = '$pageview'",
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793269640098\n    AND e.ts_ms < 1793874440098\n    AND e.event IN ('signup_completed', 'subscription_started', 'document_shared')\n)\nSELECT event AS ev_name, ((ts_ms / 86400000) * 86400000) AS bucket, COUNT(DISTINCT distinct_id) AS visitors\nFROM ev GROUP BY event, ((ts_ms / 86400000) * 86400000) ORDER BY bucket LIMIT 20000",
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793269640098\n    AND e.ts_ms < 1793874440098\n    AND e.event IN ('signup_completed', 'subscription_started')\n)\nSELECT COUNT(DISTINCT distinct_id) AS visitors FROM ev"
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1794419680421\n    AND e.ts_ms < 1795024480421\n    AND e.event IN ('$pageview', 'signup_completed', 'subscription_started', 'document_shared')\n)\nSELECT event AS ev_name, COUNT(*) AS n, COUNT(DISTINCT distinct_id) AS visitors FROM ev WHERE event IN ('signup_completed', 'subscription_started', 'document_shared') GROUP BY event\nUNION ALL\nSELECT '$visitors' AS ev_name, 0 AS n, COUNT(DISTINCT distinct_id) AS visitors FROM ev WHERE event = '$pageview'",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793814880421\n    AND e.ts_ms < 1794419680421\n    AND e.event IN ('$pageview', 'signup_completed', 'subscription_started', 'document_shared')\n)\nSELECT event AS ev_name, COUNT(*) AS n, COUNT(DISTINCT distinct_id) AS visitors FROM ev WHERE event IN ('signup_completed', 'subscription_started', 'document_shared') GROUP BY event\nUNION ALL\nSELECT '$visitors' AS ev_name, 0 AS n, COUNT(DISTINCT distinct_id) AS visitors FROM ev WHERE event = '$pageview'",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1794419680421\n    AND e.ts_ms < 1795024480421\n    AND e.event IN ('signup_completed', 'subscription_started', 'document_shared')\n)\nSELECT event AS ev_name, ((ts_ms / 86400000) * 86400000) AS bucket, COUNT(DISTINCT distinct_id) AS visitors\nFROM ev GROUP BY event, ((ts_ms / 86400000) * 86400000) ORDER BY bucket LIMIT 20000",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1794419680421\n    AND e.ts_ms < 1795024480421\n    AND e.event IN ('signup_completed', 'subscription_started')\n)\nSELECT COUNT(DISTINCT distinct_id) AS visitors FROM ev"
   ],
-  "summary": "818 visitors; 100 converted (12.2%). signup_completed: 100 visitors (12.2%), subscription_started: 18 visitors (2.2%), document_shared: 60 visitors (7.3%)."
+  "summary": "931 visitors; 104 converted (11.2%). signup_completed: 104 visitors (11.2%), subscription_started: 21 visitors (2.3%), document_shared: 81 visitors (8.7%)."
 }

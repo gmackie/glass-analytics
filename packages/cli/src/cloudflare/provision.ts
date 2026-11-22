@@ -81,6 +81,36 @@ export async function ensureBucket(
   }
 }
 
+/**
+ * The delivery queue for destinations and its dead-letter queue. Returns null when the token
+ * can't create queues: destinations still work, through the Worker's five-minute outbox.
+ */
+export async function ensureQueues(
+  wrangler: Wrangler,
+  name: string,
+  report: ProvisionReport,
+): Promise<{ deliveries: string; dlq: string } | null> {
+  const names = { deliveries: `${name}-deliveries`, dlq: `${name}-deliveries-dlq` };
+  for (const queue of [names.dlq, names.deliveries]) {
+    try {
+      await must(wrangler, ['queues', 'create', queue]);
+      report('created', `Queue "${queue}" for destinations`);
+    } catch (err) {
+      if (isAlreadyExists(err)) {
+        report('ok', `Queue "${queue}" for destinations`, 'exists');
+        continue;
+      }
+      report(
+        'skipped',
+        'Destination queue',
+        'the API token needs Account › Queues › Edit; deliveries use the five-minute outbox until then',
+      );
+      return null;
+    }
+  }
+  return names;
+}
+
 /** One Pipelines resource, as the REST API lists it. */
 export interface PipelinesItem {
   id: string;
@@ -305,6 +335,17 @@ export function replayBucketConfig(
   return { bucket, jurisdiction: 'eu', ...(legacyBucket ? { legacyBucket } : {}) };
 }
 
+/** Email Sending: the EMAIL binding (only the configured sender allowed) and the sender var. */
+function addEmail(
+  config: GlassConfig,
+  wrangler: Record<string, unknown>,
+  vars: Record<string, string>,
+): void {
+  if (!config.email?.from) return;
+  vars.GLASS_EMAIL_FROM = config.email.from;
+  wrangler.send_email = [{ name: 'EMAIL', allowed_sender_addresses: [config.email.from] }];
+}
+
 /** The Worker's wrangler.jsonc, generated from config. */
 export function renderWranglerConfig(config: GlassConfig): string {
   const vars: Record<string, string> = { GLASS_STORE: config.store };
@@ -332,7 +373,8 @@ export function renderWranglerConfig(config: GlassConfig): string {
       },
     ],
     vars,
-    triggers: { crons: ['17 * * * *'] },
+    // Every five minutes: scheduled flag changes, alerts and exports; hourly housekeeping runs on one tick an hour.
+    triggers: { crons: ['*/5 * * * *'] },
     observability: { enabled: true },
   };
   if (config.replay) {
@@ -344,6 +386,23 @@ export function renderWranglerConfig(config: GlassConfig): string {
       ...(legacyBucket ? [{ binding: 'REPLAYS_LEGACY', bucket_name: legacyBucket }] : []),
     ];
   }
+  if (config.queues) {
+    wrangler.queues = {
+      producers: [{ binding: 'DELIVERIES', queue: config.queues.deliveries }],
+      consumers: [
+        {
+          queue: config.queues.deliveries,
+          // A delivery is a request or two; 25 keeps a batch inside the Free plan's 50 subrequests.
+          max_batch_size: 25,
+          max_batch_timeout: 5,
+          // The Worker retries with its own backoff (message.retry) before giving up.
+          max_retries: 8,
+          dead_letter_queue: config.queues.dlq,
+        },
+      ],
+    };
+  }
+  addEmail(config, wrangler, vars);
   if (config.lake) {
     wrangler.pipelines = [
       { binding: 'EVENTS_STREAM', stream: config.lake.streams.events },

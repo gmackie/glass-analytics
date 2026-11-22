@@ -1,0 +1,16 @@
+{
+  "project": "demo",
+  "connected": false,
+  "webhookUrl": "http://127.0.0.1:49397/hooks/stripe/demo",
+  "events": [
+    "invoice.paid",
+    "charge.succeeded",
+    "charge.refunded",
+    "customer.subscription.created",
+    "customer.subscription.updated",
+    "customer.subscription.deleted",
+    "customer.created",
+    "customer.updated"
+  ],
+  "summary": "Stripe is not connected. Add a webhook endpoint at http://127.0.0.1:49397/hooks/stripe/demo in Stripe, then call connect_stripe with its signing secret."
+}

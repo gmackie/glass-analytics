@@ -9,13 +9,14 @@ export type Child = Node | string | number | null | undefined | false | Child[];
 type Handler = (event: Event) => void;
 export type Attrs = Record<string, string | number | boolean | Handler | null | undefined>;
 
-function append(parent: Node, child: Child): void {
+/** Strings and numbers go in as text (`append` makes a text node, never markup). */
+function append(parent: ParentNode, child: Child): void {
   if (child === null || child === undefined || child === false) return;
   if (Array.isArray(child)) {
     for (const c of child) append(parent, c);
     return;
   }
-  parent.appendChild(typeof child === 'object' ? child : document.createTextNode(String(child)));
+  parent.append(typeof child === 'object' ? child : String(child));
 }
 
 function applyAttrs(el: Element, attrs: Attrs): void {

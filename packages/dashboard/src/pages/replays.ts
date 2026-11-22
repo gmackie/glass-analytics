@@ -413,19 +413,15 @@ function list(route: Route): Node[] {
   };
 
   return [
-    pageHeader(
-      'Replays',
-      'Recorded sessions with a timeline agents can read. Filter by what went wrong, where people went and what they did.',
-      [
-        copyButton(agentPrompt, 'Ask an agent', 'bot'),
-        h(
-          'a',
-          { class: 'button ghost small', href: href('replays/patterns') },
-          icon('layers', 14),
-          'Patterns',
-        ),
-      ],
-    ),
+    pageHeader('Replays', 'Recorded sessions with a timeline agents can read.', [
+      copyButton(agentPrompt, 'Ask an agent', 'bot'),
+      h(
+        'a',
+        { class: 'button ghost small', href: href('replays/patterns') },
+        icon('layers', 14),
+        'Patterns',
+      ),
+    ]),
     h(
       'div',
       { class: 'toolbar replay-toolbar' },
@@ -625,18 +621,14 @@ function patterns(): Node[] {
       { icon: iconName },
     );
   return [
-    pageHeader(
-      'Replay patterns',
-      'What frustrates people across recent sessions in this period. Each finding links to the moment it happened.',
-      [
-        h(
-          'a',
-          { class: 'button ghost small', href: href('replays') },
-          icon('replay', 14),
-          'All recordings',
-        ),
-      ],
-    ),
+    pageHeader('Replay patterns', 'What frustrates people across recent sessions in this period.', [
+      h(
+        'a',
+        { class: 'button ghost small', href: href('replays') },
+        icon('replay', 14),
+        'All recordings',
+      ),
+    ]),
     later(
       async () => {
         const a = await api.get<{
@@ -1398,7 +1390,7 @@ function detail(session: string, route: Route): Node[] {
           )
         : null,
       item.kind === 'note' && item.author
-        ? h('span', { class: 'muted activity-author' }, `— ${item.author}`)
+        ? h('span', { class: 'muted activity-author' }, `by ${item.author}`)
         : null,
       expandable ? h('pre', { class: 'activity-detail', hidden: true }, item.detail) : null,
     );

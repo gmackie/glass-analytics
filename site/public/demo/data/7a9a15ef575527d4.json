@@ -1,0 +1,186 @@
+{
+  "project": "demo",
+  "id": "user_1610",
+  "identified": true,
+  "properties": {
+    "signup_source": "header",
+    "plan": "free",
+    "email": "user_1610@example.com",
+    "company_size": "1"
+  },
+  "groups": [],
+  "firstSeen": "2026-11-12T10:14:20.213Z",
+  "lastSeen": "2026-11-18T17:20:00.423Z",
+  "devices": [
+    "b53a797d-7aae-46c1-a3c4-0c8d18ec09b2"
+  ],
+  "revenue": {
+    "net": 0,
+    "gross": 0,
+    "orders": 0,
+    "firstAt": null,
+    "lastAt": null,
+    "currency": "USD"
+  },
+  "recentEvents": [
+    {
+      "event": "document_created",
+      "time": "2026-11-18T17:19:55.423Z",
+      "path": "/app",
+      "session": "d4aae217-dc61-49a8-a898-85fd03ca7257",
+      "properties": {
+        "template": "daily-journal",
+        "words": 1332
+      }
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-18T17:14:55.423Z",
+      "path": "/app",
+      "session": "d4aae217-dc61-49a8-a898-85fd03ca7257",
+      "properties": {
+        "template": "blog-post",
+        "words": 1359
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-18T17:09:55.423Z",
+      "path": "/app",
+      "session": "d4aae217-dc61-49a8-a898-85fd03ca7257",
+      "properties": {}
+    },
+    {
+      "event": "document_shared",
+      "time": "2026-11-17T23:13:08.059Z",
+      "path": "/app",
+      "session": "97febc7e-c6cf-4272-aa1a-7634481f755e",
+      "properties": {
+        "via": "email"
+      }
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-17T22:58:08.059Z",
+      "path": "/app",
+      "session": "97febc7e-c6cf-4272-aa1a-7634481f755e",
+      "properties": {
+        "template": "blog-post",
+        "words": 1500
+      }
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-17T22:53:08.059Z",
+      "path": "/app",
+      "session": "97febc7e-c6cf-4272-aa1a-7634481f755e",
+      "properties": {
+        "template": "blank",
+        "words": 1922
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-17T22:48:08.059Z",
+      "path": "/app",
+      "session": "97febc7e-c6cf-4272-aa1a-7634481f755e",
+      "properties": {}
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-16T00:33:28.699Z",
+      "path": "/app",
+      "session": "bec3ab21-0715-43e4-a0fb-2934aa15cc23",
+      "properties": {
+        "template": "blank",
+        "words": 1304
+      }
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-16T00:28:28.699Z",
+      "path": "/app",
+      "session": "bec3ab21-0715-43e4-a0fb-2934aa15cc23",
+      "properties": {
+        "template": "daily-journal",
+        "words": 1496
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-16T00:23:28.699Z",
+      "path": "/app",
+      "session": "bec3ab21-0715-43e4-a0fb-2934aa15cc23",
+      "properties": {}
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-12T10:16:32.926Z",
+      "path": "/app",
+      "session": "cs_e8b2b5ebea3c93f534d8_996932",
+      "properties": {
+        "template": "blank",
+        "words": 727
+      }
+    },
+    {
+      "event": "$exposure",
+      "time": "2026-11-12T10:14:21.213Z",
+      "path": "/app",
+      "session": "cs_e8b2b5ebea3c93f534d8_996932",
+      "properties": {
+        "flag": "onboarding-checklist",
+        "variant": "control"
+      }
+    },
+    {
+      "event": "signup_completed",
+      "time": "2026-11-12T10:14:20.413Z",
+      "path": "/welcome",
+      "session": "fca83d83-18bc-4fb2-a321-c6a73a7485ff",
+      "properties": {
+        "plan": "free",
+        "method": "email"
+      }
+    },
+    {
+      "event": "$identify",
+      "time": "2026-11-12T10:14:20.213Z",
+      "path": "",
+      "session": "fca83d83-18bc-4fb2-a321-c6a73a7485ff",
+      "properties": {
+        "$set": {
+          "plan": "free",
+          "email": "user_1610@example.com",
+          "company_size": "1"
+        },
+        "$set_once": {
+          "signup_source": "header"
+        }
+      }
+    },
+    {
+      "event": "signup_started",
+      "time": "2026-11-12T10:13:49.003Z",
+      "path": "/signup",
+      "session": "fca83d83-18bc-4fb2-a321-c6a73a7485ff",
+      "properties": {
+        "source": "header"
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-12T10:13:40.533Z",
+      "path": "/",
+      "session": "fca83d83-18bc-4fb2-a321-c6a73a7485ff",
+      "properties": {}
+    }
+  ],
+  "replays": [],
+  "summary": "Identified person \"user_1610\": 16 events in 90 days.",
+  "sql": [
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248535242\n    AND e.ts_ms < 1795024595242\n)\nSELECT event, ts_ms, path, session_id, props FROM ev WHERE pid = 'user_1610' OR distinct_id = 'user_1610'\nORDER BY ts_ms DESC LIMIT 100",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248535242\n    AND e.ts_ms < 1795024595242\n)\nSELECT 'company' AS type, (CASE json_type(props, '$.\"$groups\".\"company\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$groups\".\"company\"') AS TEXT) END) AS group_key, MAX(ts_ms) AS last_ts FROM ev WHERE (pid = 'user_1610' OR distinct_id = 'user_1610') AND (CASE json_type(props, '$.\"$groups\".\"company\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$groups\".\"company\"') AS TEXT) END) IS NOT NULL GROUP BY (CASE json_type(props, '$.\"$groups\".\"company\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$groups\".\"company\"') AS TEXT) END)"
+  ],
+  "dashboard": "http://127.0.0.1:49397/app#/users/user_1610?project=demo"
+}

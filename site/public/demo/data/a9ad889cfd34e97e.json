@@ -1,48 +1,55 @@
 {
   "kind": "funnel",
+  "order": "ordered",
   "windowSeconds": 604800,
+  "aggregateBy": "person",
   "steps": [
     {
       "label": "Visited",
       "event": "$pageview",
-      "count": 3078,
+      "count": 3199,
       "conversionFromStart": 1,
       "conversionFromPrevious": 1,
-      "avgSecondsFromPrevious": null
+      "avgSecondsFromPrevious": null,
+      "medianSecondsFromPrevious": null
     },
     {
       "label": "Started signup",
       "event": "signup_started",
-      "count": 623,
-      "conversionFromStart": 0.2024041585445094,
-      "conversionFromPrevious": 0.2024041585445094,
-      "avgSecondsFromPrevious": 144.48931460674157
+      "count": 664,
+      "conversionFromStart": 0.20756486402000626,
+      "conversionFromPrevious": 0.20756486402000626,
+      "avgSecondsFromPrevious": 138.0756325301205,
+      "medianSecondsFromPrevious": 124.61791508536096
     },
     {
       "label": "Signed up",
       "event": "signup_completed",
-      "count": 414,
-      "conversionFromStart": 0.13450292397660818,
-      "conversionFromPrevious": 0.6645264847512039,
-      "avgSecondsFromPrevious": 54.42159661835748
+      "count": 422,
+      "conversionFromStart": 0.13191622381994372,
+      "conversionFromPrevious": 0.6355421686746988,
+      "avgSecondsFromPrevious": 54.28571800947867,
+      "medianSecondsFromPrevious": 53.18303226372926
     },
     {
       "label": "Paid",
       "event": "subscription_started",
-      "count": 79,
-      "conversionFromStart": 0.025666016894087068,
-      "conversionFromPrevious": 0.19082125603864733,
-      "avgSecondsFromPrevious": 89.8
+      "count": 87,
+      "conversionFromStart": 0.027195998749609252,
+      "conversionFromPrevious": 0.20616113744075829,
+      "avgSecondsFromPrevious": 89.8,
+      "medianSecondsFromPrevious": 88.99744956639913
     }
   ],
   "sql": [
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1791282513552\n    AND e.ts_ms < 1794479313552\n    AND e.event IN ('$pageview', 'signup_started', 'signup_completed', 'subscription_started')\n),\ns1 AS (\n  SELECT pid, MIN(ts_ms) AS t1\n  FROM ev\n  WHERE event = '$pageview' AND ts_ms < 1793874513552 AND 1 = 1\n  GROUP BY pid\n),\ns2 AS (\n  SELECT s1.pid, s1.t1, MIN(ev.ts_ms) AS t2\n  FROM s1 JOIN ev ON ev.pid = s1.pid\n  WHERE ev.event = 'signup_started'\n    AND ev.ts_ms > s1.t1\n    AND ev.ts_ms <= s1.t1 + 604800000\n    AND 1 = 1\n  GROUP BY s1.pid, s1.t1\n),\ns3 AS (\n  SELECT s2.pid, s2.t1, s2.t2, MIN(ev.ts_ms) AS t3\n  FROM s2 JOIN ev ON ev.pid = s2.pid\n  WHERE ev.event = 'signup_completed'\n    AND ev.ts_ms > s2.t2\n    AND ev.ts_ms <= s2.t1 + 604800000\n    AND 1 = 1\n  GROUP BY s2.pid, s2.t1, s2.t2\n),\ns4 AS (\n  SELECT s3.pid, s3.t1, s3.t2, s3.t3, MIN(ev.ts_ms) AS t4\n  FROM s3 JOIN ev ON ev.pid = s3.pid\n  WHERE ev.event = 'subscription_started'\n    AND ev.ts_ms > s3.t3\n    AND ev.ts_ms <= s3.t1 + 604800000\n    AND 1 = 1\n  GROUP BY s3.pid, s3.t1, s3.t2, s3.t3\n)\nSELECT 1 AS step, '' AS bd, COUNT(*) AS n, 0 AS dt_ms FROM s1\nUNION ALL\nSELECT 2 AS step, '' AS bd, COUNT(*) AS n, SUM(s2.t2 - s2.t1) AS dt_ms FROM s2\nUNION ALL\nSELECT 3 AS step, '' AS bd, COUNT(*) AS n, SUM(s3.t3 - s3.t2) AS dt_ms FROM s3\nUNION ALL\nSELECT 4 AS step, '' AS bd, COUNT(*) AS n, SUM(s4.t4 - s4.t3) AS dt_ms FROM s4"
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1792432530591\n    AND e.ts_ms < 1795629330591\n    AND e.event IN ('$pageview', 'signup_started', 'signup_completed', 'subscription_started')\n),\nevb AS (SELECT actor, ts_ms, event, '' AS bd, CASE WHEN event = '$pageview' AND 1 = 1 THEN 1 ELSE 0 END AS m1, CASE WHEN event = 'signup_started' AND 1 = 1 THEN 1 ELSE 0 END AS m2, CASE WHEN event = 'signup_completed' AND 1 = 1 THEN 1 ELSE 0 END AS m3, CASE WHEN event = 'subscription_started' AND 1 = 1 THEN 1 ELSE 0 END AS m4, 0 AS noise FROM ev),\ns1 AS (SELECT DISTINCT actor, ts_ms AS t1, bd AS bd1 FROM evb WHERE m1 = 1 AND ts_ms < 1795024530591),\ns2 AS (\n  SELECT p.actor, p.bd1, p.t1, MIN(e.ts_ms) AS t2\n  FROM s1 p LEFT JOIN evb e ON e.actor = p.actor AND e.m2 = 1 AND e.ts_ms > p.t1 AND e.ts_ms <= p.t1 + 604800000\n  GROUP BY p.actor, p.bd1, p.t1\n),\ns3 AS (\n  SELECT p.actor, p.bd1, p.t1, p.t2, MIN(e.ts_ms) AS t3\n  FROM s2 p LEFT JOIN evb e ON e.actor = p.actor AND e.m3 = 1 AND e.ts_ms > p.t2 AND e.ts_ms <= p.t1 + 604800000 AND p.t2 IS NOT NULL\n  GROUP BY p.actor, p.bd1, p.t1, p.t2\n),\ns4 AS (\n  SELECT p.actor, p.bd1, p.t1, p.t2, p.t3, MIN(e.ts_ms) AS t4\n  FROM s3 p LEFT JOIN evb e ON e.actor = p.actor AND e.m4 = 1 AND e.ts_ms > p.t3 AND e.ts_ms <= p.t1 + 604800000 AND p.t2 IS NOT NULL AND p.t3 IS NOT NULL\n  GROUP BY p.actor, p.bd1, p.t1, p.t2, p.t3\n),\nr AS (SELECT actor, bd1, t1, t2, t3, t4, CASE WHEN t4 IS NOT NULL THEN 4 WHEN t3 IS NOT NULL THEN 3 WHEN t2 IS NOT NULL THEN 2 ELSE 1 END AS reach FROM s4),\nbest AS (SELECT actor, MAX(reach) AS reach FROM r GROUP BY actor),\npick AS (SELECT r.actor, MIN(r.t1) AS t1 FROM r JOIN best b ON b.actor = r.actor AND b.reach = r.reach GROUP BY r.actor),\nf0 AS (SELECT r.* FROM r JOIN pick k ON k.actor = r.actor AND k.t1 = r.t1),\nf AS (SELECT f0.actor, f0.bd1 AS bd, f0.t1, f0.t2, f0.t3, f0.t4, f0.reach FROM f0)\nSELECT f.bd AS bd, COUNT(*) AS n1, SUM(CASE WHEN f.t2 IS NOT NULL THEN 1 ELSE 0 END) AS n2, SUM(CASE WHEN f.t2 IS NOT NULL THEN (f.t2 - f.t1) ELSE 0 END) AS dt2, SUM(CASE WHEN f.t3 IS NOT NULL THEN 1 ELSE 0 END) AS n3, SUM(CASE WHEN f.t3 IS NOT NULL THEN (f.t3 - f.t2) ELSE 0 END) AS dt3, SUM(CASE WHEN f.t4 IS NOT NULL THEN 1 ELSE 0 END) AS n4, SUM(CASE WHEN f.t4 IS NOT NULL THEN (f.t4 - f.t3) ELSE 0 END) AS dt4 FROM f GROUP BY f.bd",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1792432530591\n    AND e.ts_ms < 1795629330591\n    AND e.event IN ('$pageview', 'signup_started', 'signup_completed', 'subscription_started')\n),\nevb AS (SELECT actor, ts_ms, event, '' AS bd, CASE WHEN event = '$pageview' AND 1 = 1 THEN 1 ELSE 0 END AS m1, CASE WHEN event = 'signup_started' AND 1 = 1 THEN 1 ELSE 0 END AS m2, CASE WHEN event = 'signup_completed' AND 1 = 1 THEN 1 ELSE 0 END AS m3, CASE WHEN event = 'subscription_started' AND 1 = 1 THEN 1 ELSE 0 END AS m4, 0 AS noise FROM ev),\ns1 AS (SELECT DISTINCT actor, ts_ms AS t1, bd AS bd1 FROM evb WHERE m1 = 1 AND ts_ms < 1795024530591),\ns2 AS (\n  SELECT p.actor, p.bd1, p.t1, MIN(e.ts_ms) AS t2\n  FROM s1 p LEFT JOIN evb e ON e.actor = p.actor AND e.m2 = 1 AND e.ts_ms > p.t1 AND e.ts_ms <= p.t1 + 604800000\n  GROUP BY p.actor, p.bd1, p.t1\n),\ns3 AS (\n  SELECT p.actor, p.bd1, p.t1, p.t2, MIN(e.ts_ms) AS t3\n  FROM s2 p LEFT JOIN evb e ON e.actor = p.actor AND e.m3 = 1 AND e.ts_ms > p.t2 AND e.ts_ms <= p.t1 + 604800000 AND p.t2 IS NOT NULL\n  GROUP BY p.actor, p.bd1, p.t1, p.t2\n),\ns4 AS (\n  SELECT p.actor, p.bd1, p.t1, p.t2, p.t3, MIN(e.ts_ms) AS t4\n  FROM s3 p LEFT JOIN evb e ON e.actor = p.actor AND e.m4 = 1 AND e.ts_ms > p.t3 AND e.ts_ms <= p.t1 + 604800000 AND p.t2 IS NOT NULL AND p.t3 IS NOT NULL\n  GROUP BY p.actor, p.bd1, p.t1, p.t2, p.t3\n),\nr AS (SELECT actor, bd1, t1, t2, t3, t4, CASE WHEN t4 IS NOT NULL THEN 4 WHEN t3 IS NOT NULL THEN 3 WHEN t2 IS NOT NULL THEN 2 ELSE 1 END AS reach FROM s4),\nbest AS (SELECT actor, MAX(reach) AS reach FROM r GROUP BY actor),\npick AS (SELECT r.actor, MIN(r.t1) AS t1 FROM r JOIN best b ON b.actor = r.actor AND b.reach = r.reach GROUP BY r.actor),\nf0 AS (SELECT r.* FROM r JOIN pick k ON k.actor = r.actor AND k.t1 = r.t1),\nf AS (SELECT f0.actor, f0.bd1 AS bd, f0.t1, f0.t2, f0.t3, f0.t4, f0.reach FROM f0)\nSELECT k, bd, (CASE WHEN dur > 0 THEN 1 WHEN dur < 0 THEN -1 ELSE 0 END) AS sign, CAST(floor(ln(abs((abs(dur) + (CASE WHEN dur = 0 THEN 1 ELSE 0 END)))) / 0.01980262729617973) AS INTEGER) AS key, COUNT(*) AS n FROM (\n  SELECT v.column1 AS k, f.bd AS bd, CASE v.column1 WHEN 2 THEN (f.t2 - f.t1) WHEN 3 THEN (f.t3 - f.t2) WHEN 4 THEN (f.t4 - f.t3) END AS dur FROM f CROSS JOIN (VALUES (2), (3), (4)) v\n) x WHERE dur IS NOT NULL GROUP BY k, bd, (CASE WHEN dur > 0 THEN 1 WHEN dur < 0 THEN -1 ELSE 0 END), CAST(floor(ln(abs((abs(dur) + (CASE WHEN dur = 0 THEN 1 ELSE 0 END)))) / 0.01980262729617973) AS INTEGER)"
   ],
   "range": {
-    "from": "2026-10-06T10:28:33.552Z",
-    "to": "2026-11-05T10:28:33.552Z"
+    "from": "2026-10-19T17:55:30.591Z",
+    "to": "2026-11-18T17:55:30.591Z"
   },
-  "summary": "3,078 people started; 79 completed (2.6%). Biggest drop-off: into \"Paid\" (19.1% of the previous step).",
+  "summary": "3,199 people started; 87 completed (2.7%). Biggest drop-off: into \"Paid\" (20.6% of the previous step). Median time into the last step: 89s.",
   "project": "demo",
-  "dashboard": "http://127.0.0.1:58904/app#/insights/funnel?project=demo&spec=%7B%22from%22%3A%22-30d%22%2C%22steps%22%3A%5B%7B%22event%22%3A%22%24pageview%22%2C%22label%22%3A%22Visited%22%7D%2C%7B%22event%22%3A%22signup_started%22%2C%22label%22%3A%22Started+signup%22%7D%2C%7B%22event%22%3A%22signup_completed%22%2C%22label%22%3A%22Signed+up%22%7D%2C%7B%22event%22%3A%22subscription_started%22%2C%22label%22%3A%22Paid%22%7D%5D%2C%22window%22%3A%227d%22%7D"
+  "dashboard": "http://127.0.0.1:49397/app#/insights/funnel?project=demo&spec=%7B%22from%22%3A%22-30d%22%2C%22steps%22%3A%5B%7B%22event%22%3A%22%24pageview%22%2C%22label%22%3A%22Visited%22%7D%2C%7B%22event%22%3A%22signup_started%22%2C%22label%22%3A%22Started+signup%22%7D%2C%7B%22event%22%3A%22signup_completed%22%2C%22label%22%3A%22Signed+up%22%7D%2C%7B%22event%22%3A%22subscription_started%22%2C%22label%22%3A%22Paid%22%7D%5D%2C%22window%22%3A%227d%22%7D"
 }

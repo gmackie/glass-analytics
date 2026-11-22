@@ -103,7 +103,7 @@ export function sitesPage(route: Route): Node[] {
   return [
     pageHeader(
       'All sites',
-      'Visitors per site vs the previous period of the same length. Pick a site to open its reports.',
+      'Visitors per site vs the previous period of the same length.',
       tabs(
         [
           { value: 'traffic', label: 'Most traffic', icon: 'barChart' },

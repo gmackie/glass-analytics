@@ -1,32 +1,37 @@
 {
   "kind": "funnel",
+  "order": "ordered",
   "windowSeconds": 86400,
+  "aggregateBy": "person",
   "steps": [
     {
       "label": "$pageview",
       "event": "$pageview",
-      "count": 3078,
+      "count": 3199,
       "conversionFromStart": 1,
       "conversionFromPrevious": 1,
-      "avgSecondsFromPrevious": null
+      "avgSecondsFromPrevious": null,
+      "medianSecondsFromPrevious": null
     },
     {
       "label": "signup_completed",
       "event": "signup_completed",
-      "count": 416,
-      "conversionFromStart": 0.13515269655620532,
-      "conversionFromPrevious": 0.13515269655620532,
-      "avgSecondsFromPrevious": 195.7104495192308
+      "count": 424,
+      "conversionFromStart": 0.13254141919349796,
+      "conversionFromPrevious": 0.13254141919349796,
+      "avgSecondsFromPrevious": 192.980375,
+      "medianSecondsFromPrevious": 185.17566641334386
     }
   ],
   "sql": [
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1791282509851\n    AND e.ts_ms < 1793960909851\n    AND e.event IN ('$pageview', 'signup_completed')\n),\ns1 AS (\n  SELECT pid, MIN(ts_ms) AS t1\n  FROM ev\n  WHERE event = '$pageview' AND ts_ms < 1793874509851 AND 1 = 1\n  GROUP BY pid\n),\nb AS (\n  SELECT s1.pid, MIN(COALESCE(NULLIF(ev.utm_source, ''), '(none)')) AS bd\n  FROM s1 JOIN ev ON ev.pid = s1.pid AND ev.ts_ms = s1.t1\n  WHERE ev.event = '$pageview' AND 1 = 1\n  GROUP BY s1.pid\n),\ns2 AS (\n  SELECT s1.pid, s1.t1, MIN(ev.ts_ms) AS t2\n  FROM s1 JOIN ev ON ev.pid = s1.pid\n  WHERE ev.event = 'signup_completed'\n    AND ev.ts_ms > s1.t1\n    AND ev.ts_ms <= s1.t1 + 86400000\n    AND 1 = 1\n  GROUP BY s1.pid, s1.t1\n)\nSELECT 1 AS step, COALESCE(b.bd, '(none)') AS bd, COUNT(*) AS n, 0 AS dt_ms FROM s1 LEFT JOIN b ON b.pid = s1.pid GROUP BY COALESCE(b.bd, '(none)')\nUNION ALL\nSELECT 2 AS step, COALESCE(b.bd, '(none)') AS bd, COUNT(*) AS n, SUM(s2.t2 - s2.t1) AS dt_ms FROM s2 LEFT JOIN b ON b.pid = s2.pid GROUP BY COALESCE(b.bd, '(none)')"
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1792432529027\n    AND e.ts_ms < 1795110929027\n    AND e.event IN ('$pageview', 'signup_completed')\n),\nevb AS (SELECT actor, ts_ms, event, COALESCE(NULLIF(utm_source, ''), '(none)') AS bd, CASE WHEN event = '$pageview' AND 1 = 1 THEN 1 ELSE 0 END AS m1, CASE WHEN event = 'signup_completed' AND 1 = 1 THEN 1 ELSE 0 END AS m2, 0 AS noise FROM ev),\ns1 AS (SELECT DISTINCT actor, ts_ms AS t1, bd AS bd1 FROM evb WHERE m1 = 1 AND ts_ms < 1795024529027),\ns2 AS (\n  SELECT p.actor, p.bd1, p.t1, MIN(e.ts_ms) AS t2\n  FROM s1 p LEFT JOIN evb e ON e.actor = p.actor AND e.m2 = 1 AND e.ts_ms > p.t1 AND e.ts_ms <= p.t1 + 86400000\n  GROUP BY p.actor, p.bd1, p.t1\n),\nr AS (SELECT actor, bd1, t1, t2, CASE WHEN t2 IS NOT NULL THEN 2 ELSE 1 END AS reach FROM s2),\nbest AS (SELECT actor, MAX(reach) AS reach FROM r GROUP BY actor),\npick AS (SELECT r.actor, MIN(r.t1) AS t1 FROM r JOIN best b ON b.actor = r.actor AND b.reach = r.reach GROUP BY r.actor),\nf0 AS (SELECT r.* FROM r JOIN pick k ON k.actor = r.actor AND k.t1 = r.t1),\nf AS (SELECT f0.actor, f0.bd1 AS bd, f0.t1, f0.t2, f0.reach FROM f0)\nSELECT f.bd AS bd, COUNT(*) AS n1, SUM(CASE WHEN f.t2 IS NOT NULL THEN 1 ELSE 0 END) AS n2, SUM(CASE WHEN f.t2 IS NOT NULL THEN (f.t2 - f.t1) ELSE 0 END) AS dt2 FROM f GROUP BY f.bd",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1792432529027\n    AND e.ts_ms < 1795110929027\n    AND e.event IN ('$pageview', 'signup_completed')\n),\nevb AS (SELECT actor, ts_ms, event, COALESCE(NULLIF(utm_source, ''), '(none)') AS bd, CASE WHEN event = '$pageview' AND 1 = 1 THEN 1 ELSE 0 END AS m1, CASE WHEN event = 'signup_completed' AND 1 = 1 THEN 1 ELSE 0 END AS m2, 0 AS noise FROM ev),\ns1 AS (SELECT DISTINCT actor, ts_ms AS t1, bd AS bd1 FROM evb WHERE m1 = 1 AND ts_ms < 1795024529027),\ns2 AS (\n  SELECT p.actor, p.bd1, p.t1, MIN(e.ts_ms) AS t2\n  FROM s1 p LEFT JOIN evb e ON e.actor = p.actor AND e.m2 = 1 AND e.ts_ms > p.t1 AND e.ts_ms <= p.t1 + 86400000\n  GROUP BY p.actor, p.bd1, p.t1\n),\nr AS (SELECT actor, bd1, t1, t2, CASE WHEN t2 IS NOT NULL THEN 2 ELSE 1 END AS reach FROM s2),\nbest AS (SELECT actor, MAX(reach) AS reach FROM r GROUP BY actor),\npick AS (SELECT r.actor, MIN(r.t1) AS t1 FROM r JOIN best b ON b.actor = r.actor AND b.reach = r.reach GROUP BY r.actor),\nf0 AS (SELECT r.* FROM r JOIN pick k ON k.actor = r.actor AND k.t1 = r.t1),\nf AS (SELECT f0.actor, f0.bd1 AS bd, f0.t1, f0.t2, f0.reach FROM f0)\nSELECT k, bd, (CASE WHEN dur > 0 THEN 1 WHEN dur < 0 THEN -1 ELSE 0 END) AS sign, CAST(floor(ln(abs((abs(dur) + (CASE WHEN dur = 0 THEN 1 ELSE 0 END)))) / 0.01980262729617973) AS INTEGER) AS key, COUNT(*) AS n FROM (\n  SELECT v.column1 AS k, f.bd AS bd, CASE v.column1 WHEN 2 THEN (f.t2 - f.t1) END AS dur FROM f CROSS JOIN (VALUES (2)) v\n) x WHERE dur IS NOT NULL GROUP BY k, bd, (CASE WHEN dur > 0 THEN 1 WHEN dur < 0 THEN -1 ELSE 0 END), CAST(floor(ln(abs((abs(dur) + (CASE WHEN dur = 0 THEN 1 ELSE 0 END)))) / 0.01980262729617973) AS INTEGER)"
   ],
   "range": {
-    "from": "2026-10-06T10:28:29.851Z",
-    "to": "2026-11-05T10:28:29.851Z"
+    "from": "2026-10-19T17:55:29.027Z",
+    "to": "2026-11-18T17:55:29.027Z"
   },
-  "summary": "3,078 people started; 416 completed (13.5%). Biggest drop-off: into \"signup_completed\" (13.5% of the previous step).",
+  "summary": "3,199 people started; 424 completed (13.3%). Biggest drop-off: into \"signup_completed\" (13.3% of the previous step). Median time into the last step: 3m.",
   "breakdowns": [
     {
       "value": "(none)",
@@ -34,18 +39,20 @@
         {
           "label": "$pageview",
           "event": "$pageview",
-          "count": 2253,
+          "count": 2344,
           "conversionFromStart": 1,
           "conversionFromPrevious": 1,
-          "avgSecondsFromPrevious": null
+          "avgSecondsFromPrevious": null,
+          "medianSecondsFromPrevious": null
         },
         {
           "label": "signup_completed",
           "event": "signup_completed",
-          "count": 281,
-          "conversionFromStart": 0.12472259209942299,
-          "conversionFromPrevious": 0.12472259209942299,
-          "avgSecondsFromPrevious": 192.18082562277579
+          "count": 296,
+          "conversionFromStart": 0.12627986348122866,
+          "conversionFromPrevious": 0.12627986348122866,
+          "avgSecondsFromPrevious": 187.66210472972972,
+          "medianSecondsFromPrevious": 181.54477099347434
         }
       ]
     },
@@ -55,18 +62,20 @@
         {
           "label": "$pageview",
           "event": "$pageview",
-          "count": 305,
+          "count": 330,
           "conversionFromStart": 1,
           "conversionFromPrevious": 1,
-          "avgSecondsFromPrevious": null
+          "avgSecondsFromPrevious": null,
+          "medianSecondsFromPrevious": null
         },
         {
           "label": "signup_completed",
           "event": "signup_completed",
-          "count": 49,
-          "conversionFromStart": 0.16065573770491803,
-          "conversionFromPrevious": 0.16065573770491803,
-          "avgSecondsFromPrevious": 189.580693877551
+          "count": 55,
+          "conversionFromStart": 0.16666666666666666,
+          "conversionFromPrevious": 0.16666666666666666,
+          "avgSecondsFromPrevious": 199.2786,
+          "medianSecondsFromPrevious": 177.98506960144545
         }
       ]
     },
@@ -76,18 +85,20 @@
         {
           "label": "$pageview",
           "event": "$pageview",
-          "count": 200,
+          "count": 180,
           "conversionFromStart": 1,
           "conversionFromPrevious": 1,
-          "avgSecondsFromPrevious": null
+          "avgSecondsFromPrevious": null,
+          "medianSecondsFromPrevious": null
         },
         {
           "label": "signup_completed",
           "event": "signup_completed",
-          "count": 43,
-          "conversionFromStart": 0.215,
-          "conversionFromPrevious": 0.215,
-          "avgSecondsFromPrevious": 212.13409302325582
+          "count": 35,
+          "conversionFromStart": 0.19444444444444445,
+          "conversionFromPrevious": 0.19444444444444445,
+          "avgSecondsFromPrevious": 195.58714285714288,
+          "medianSecondsFromPrevious": 216.96280668654052
         }
       ]
     },
@@ -97,18 +108,20 @@
         {
           "label": "$pageview",
           "event": "$pageview",
-          "count": 161,
+          "count": 175,
           "conversionFromStart": 1,
           "conversionFromPrevious": 1,
-          "avgSecondsFromPrevious": null
+          "avgSecondsFromPrevious": null,
+          "medianSecondsFromPrevious": null
         },
         {
           "label": "signup_completed",
           "event": "signup_completed",
-          "count": 23,
-          "conversionFromStart": 0.14285714285714285,
-          "conversionFromPrevious": 0.14285714285714285,
-          "avgSecondsFromPrevious": 202.0734347826087
+          "count": 20,
+          "conversionFromStart": 0.11428571428571428,
+          "conversionFromPrevious": 0.11428571428571428,
+          "avgSecondsFromPrevious": 236.33775,
+          "medianSecondsFromPrevious": 212.70863400641227
         }
       ]
     },
@@ -118,22 +131,24 @@
         {
           "label": "$pageview",
           "event": "$pageview",
-          "count": 159,
+          "count": 170,
           "conversionFromStart": 1,
           "conversionFromPrevious": 1,
-          "avgSecondsFromPrevious": null
+          "avgSecondsFromPrevious": null,
+          "medianSecondsFromPrevious": null
         },
         {
           "label": "signup_completed",
           "event": "signup_completed",
-          "count": 20,
-          "conversionFromStart": 0.12578616352201258,
-          "conversionFromPrevious": 0.12578616352201258,
-          "avgSecondsFromPrevious": 217.69129999999998
+          "count": 18,
+          "conversionFromStart": 0.10588235294117647,
+          "conversionFromPrevious": 0.10588235294117647,
+          "avgSecondsFromPrevious": 207.94822222222223,
+          "medianSecondsFromPrevious": 204.44889850673997
         }
       ]
     }
   ],
   "project": "demo",
-  "dashboard": "http://127.0.0.1:58904/app#/insights/funnel?project=demo&spec=%7B%22from%22%3A%22-30d%22%2C%22steps%22%3A%5B%7B%22event%22%3A%22%24pageview%22%7D%2C%7B%22event%22%3A%22signup_completed%22%7D%5D%2C%22window%22%3A%221d%22%2C%22breakdown%22%3A%5B%22utm_source%22%5D%7D"
+  "dashboard": "http://127.0.0.1:49397/app#/insights/funnel?project=demo&spec=%7B%22from%22%3A%22-30d%22%2C%22steps%22%3A%5B%7B%22event%22%3A%22%24pageview%22%7D%2C%7B%22event%22%3A%22signup_completed%22%7D%5D%2C%22window%22%3A%221d%22%2C%22breakdown%22%3A%5B%22utm_source%22%5D%7D"
 }

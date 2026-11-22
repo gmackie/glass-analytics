@@ -26,7 +26,7 @@ import {
   type TimeRange,
 } from '../time.ts';
 import type { WebSpec } from './schemas.ts';
-import { fmt, type QueryContext, type ResultBase } from './types.ts';
+import { fmt, type QueryContext, type ResultBase, zoneOf } from './types.ts';
 
 export interface WebTotals {
   visitors: number;
@@ -207,10 +207,11 @@ export async function runWeb(spec: WebSpec, ctx: QueryContext): Promise<WebResul
   const interval = spec.interval ?? defaultInterval(range);
   const previous = { from: range.from - (range.to - range.from), to: range.from };
   const compare = spec.compare ?? true;
+  const zone = zoneOf(spec, ctx, range);
 
   const seriesSql = `WITH ${eventsCte(d, { project: ctx.project, ...range, events: [PV], filters: spec.filters })}
 SELECT bucket, COUNT(DISTINCT distinct_id) AS visitors, COUNT(*) AS pageviews
-FROM (SELECT ${bucketExpr(d, 'ts_ms', interval, spec.utcOffsetMinutes)} AS bucket, distinct_id FROM ev) t
+FROM (SELECT ${bucketExpr(d, 'ts_ms', interval, zone)} AS bucket, distinct_id FROM ev) t
 GROUP BY bucket ORDER BY bucket LIMIT 5000`;
 
   const breakdownQueries = breakdownsSql(d, ctx, range, spec.filters);
@@ -230,7 +231,7 @@ GROUP BY bucket ORDER BY bucket LIMIT 5000`;
   ]);
   const breakdownRows = breakdownChunks.flat();
 
-  const buckets = bucketsBetween(range, interval, spec.utcOffsetMinutes);
+  const buckets = bucketsBetween(range, interval, zone);
   const slot = new Map(buckets.map((b, i) => [b, i]));
   const visitors = new Array<number>(buckets.length).fill(0);
   const pageviews = new Array<number>(buckets.length).fill(0);

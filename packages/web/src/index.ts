@@ -18,7 +18,9 @@ import { Dataflare } from './client.ts';
 
 export type {
   AutocaptureOptions,
+  Bootstrap,
   ConsoleLevel,
+  EarlyAccessFeature,
   GlassOptions,
   Persistence,
   ReplayOptions,

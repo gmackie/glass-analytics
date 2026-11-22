@@ -1,0 +1,81 @@
+{
+  "project": "demo",
+  "session": "01a1efca-e087-7ca9-89cb-444b7d46abe9",
+  "person": "user-sam",
+  "device": "desktop, Chrome, GB",
+  "started": "2026-11-18T17:53:32.824Z",
+  "transcript": "Session 01a1efca-e087-7ca9-89cb-444b7d46abe9\nPerson: user-sam\nDevice: desktop, Chrome, GB\nDuration 00:10 (00:06 active), 3 pages, 2 clicks, 1 input, 0 errors\n\n00:00 Viewed /pricing — \"Pricing, Inkwell\"\n00:05 Clicked \"Choose Free\" (button)\n00:05 Viewed /signup — \"Sign up, Inkwell\"\n00:09 Typed into \"Email\" (input) · #email\n00:09 Clicked \"Create account\" (button) · #signup > button\n00:09 Event signup_completed (plan=\"free\")\n00:09 Viewed /app — \"Your notes, Inkwell\"",
+  "stats": {
+    "durationSeconds": 10,
+    "activeSeconds": 6,
+    "pages": 3,
+    "clicks": 2,
+    "rageClicks": 0,
+    "deadClicks": 0,
+    "errorClicks": 0,
+    "inputs": 1,
+    "errors": 0,
+    "consoleErrors": 0,
+    "failedRequests": 0,
+    "customEvents": 1
+  },
+  "highlights": [],
+  "notes": [],
+  "startedAt": 1795024412812,
+  "endedAt": 1795024422737,
+  "timeline": [
+    {
+      "ts": 1795024412812,
+      "kind": "page",
+      "text": "Viewed /pricing — \"Pricing, Inkwell\"",
+      "url": "http://inkwell.example/pricing",
+      "t": 0
+    },
+    {
+      "ts": 1795024418419,
+      "kind": "click",
+      "text": "Clicked \"Choose Free\" (button)",
+      "label": "\"Choose Free\" (button)",
+      "t": 5607
+    },
+    {
+      "ts": 1795024418438,
+      "kind": "page",
+      "text": "Viewed /signup — \"Sign up, Inkwell\"",
+      "url": "http://inkwell.example/signup",
+      "t": 5626
+    },
+    {
+      "ts": 1795024422701,
+      "kind": "input",
+      "text": "Typed into \"Email\" (input)",
+      "label": "\"Email\" (input)",
+      "selector": "#email",
+      "t": 9889
+    },
+    {
+      "ts": 1795024422701,
+      "kind": "click",
+      "text": "Clicked \"Create account\" (button)",
+      "label": "\"Create account\" (button)",
+      "selector": "#signup > button",
+      "t": 9889
+    },
+    {
+      "ts": 1795024422707,
+      "kind": "event",
+      "text": "Event signup_completed (plan=\"free\")",
+      "t": 9895
+    },
+    {
+      "ts": 1795024422729,
+      "kind": "page",
+      "text": "Viewed /app — \"Your notes, Inkwell\"",
+      "url": "http://inkwell.example/app",
+      "t": 9917
+    }
+  ],
+  "summary": "Session 01a1efca-e087-7ca9-89cb-444b7d46abe9 Person: user-sam Device: desktop, Chrome, GB Duration 00:10 (00:06 active), 3 pages, 2 clicks, 1 input, 0 errors",
+  "hint": "Use replay_snapshot with a time from the transcript to read what was on screen; annotate_replay to leave a finding on the timeline.",
+  "dashboard": "http://127.0.0.1:49397/app#/replays/01a1efca-e087-7ca9-89cb-444b7d46abe9?project=demo"
+}

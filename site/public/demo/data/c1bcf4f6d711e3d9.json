@@ -1,0 +1,257 @@
+{
+  "project": "demo",
+  "id": "user_1570",
+  "identified": true,
+  "properties": {
+    "signup_source": "pricing",
+    "plan": "free",
+    "email": "user_1570@example.com",
+    "company_size": "2-10"
+  },
+  "groups": [],
+  "firstSeen": "2026-11-09T02:07:51.295Z",
+  "lastSeen": "2026-11-18T05:51:41.463Z",
+  "devices": [
+    "fe3abbd9-a303-45f0-a6a8-114d227373ee"
+  ],
+  "revenue": {
+    "net": 0,
+    "gross": 0,
+    "orders": 0,
+    "firstAt": null,
+    "lastAt": null,
+    "currency": "USD"
+  },
+  "recentEvents": [
+    {
+      "event": "document_created",
+      "time": "2026-11-18T05:51:36.463Z",
+      "path": "/app",
+      "session": "d7482a27-4bbb-4cf6-ab66-dd6facd4c8de",
+      "properties": {
+        "template": "daily-journal",
+        "words": 1980
+      }
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-18T05:46:36.463Z",
+      "path": "/app",
+      "session": "d7482a27-4bbb-4cf6-ab66-dd6facd4c8de",
+      "properties": {
+        "template": "blank",
+        "words": 244
+      }
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-18T05:41:36.463Z",
+      "path": "/app",
+      "session": "d7482a27-4bbb-4cf6-ab66-dd6facd4c8de",
+      "properties": {
+        "template": "blog-post",
+        "words": 842
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-18T05:36:36.463Z",
+      "path": "/app",
+      "session": "d7482a27-4bbb-4cf6-ab66-dd6facd4c8de",
+      "properties": {}
+    },
+    {
+      "event": "document_shared",
+      "time": "2026-11-12T18:36:30.215Z",
+      "path": "/app",
+      "session": "7bf8aca4-78e5-49b6-a8fe-4b334a625393",
+      "properties": {
+        "via": "link"
+      }
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-12T18:26:30.215Z",
+      "path": "/app",
+      "session": "7bf8aca4-78e5-49b6-a8fe-4b334a625393",
+      "properties": {
+        "template": "daily-journal",
+        "words": 1003
+      }
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-12T18:21:30.215Z",
+      "path": "/app",
+      "session": "7bf8aca4-78e5-49b6-a8fe-4b334a625393",
+      "properties": {
+        "template": "blog-post",
+        "words": 361
+      }
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-12T18:16:30.215Z",
+      "path": "/app",
+      "session": "7bf8aca4-78e5-49b6-a8fe-4b334a625393",
+      "properties": {
+        "template": "novel-chapter",
+        "words": 1576
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-12T18:11:30.215Z",
+      "path": "/app",
+      "session": "7bf8aca4-78e5-49b6-a8fe-4b334a625393",
+      "properties": {}
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-11T05:51:41.463Z",
+      "path": "/app",
+      "session": "27773352-cf31-46e7-ac31-4db0a5c3e6d5",
+      "properties": {
+        "template": "blank",
+        "words": 2564
+      }
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-11T05:51:41.463Z",
+      "path": "/app",
+      "session": "27773352-cf31-46e7-ac31-4db0a5c3e6d5",
+      "properties": {
+        "template": "blank",
+        "words": 799
+      }
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-11T05:51:41.463Z",
+      "path": "/app",
+      "session": "27773352-cf31-46e7-ac31-4db0a5c3e6d5",
+      "properties": {
+        "template": "daily-journal",
+        "words": 1889
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-11T05:51:41.463Z",
+      "path": "/app",
+      "session": "27773352-cf31-46e7-ac31-4db0a5c3e6d5",
+      "properties": {}
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-11T05:51:41.463Z",
+      "path": "/app",
+      "session": "cs_c1876315d5605156a30c_996875",
+      "properties": {
+        "template": "daily-journal",
+        "words": 152
+      }
+    },
+    {
+      "event": "$exposure",
+      "time": "2026-11-11T05:51:41.463Z",
+      "path": "/app",
+      "session": "cs_c1876315d5605156a30c_996875",
+      "properties": {
+        "flag": "onboarding-checklist",
+        "variant": "control"
+      }
+    },
+    {
+      "event": "signup_completed",
+      "time": "2026-11-09T02:07:51.495Z",
+      "path": "/welcome",
+      "session": "745088ee-cc13-4a3b-afc2-76e449778fe0",
+      "properties": {
+        "plan": "free",
+        "method": "email"
+      }
+    },
+    {
+      "event": "$identify",
+      "time": "2026-11-09T02:07:51.295Z",
+      "path": "",
+      "session": "745088ee-cc13-4a3b-afc2-76e449778fe0",
+      "properties": {
+        "$set": {
+          "plan": "free",
+          "email": "user_1570@example.com",
+          "company_size": "2-10"
+        },
+        "$set_once": {
+          "signup_source": "pricing"
+        }
+      }
+    },
+    {
+      "event": "signup_started",
+      "time": "2026-11-09T02:07:20.978Z",
+      "path": "/signup",
+      "session": "745088ee-cc13-4a3b-afc2-76e449778fe0",
+      "properties": {
+        "source": "pricing"
+      }
+    },
+    {
+      "event": "$exposure",
+      "time": "2026-11-09T02:07:16.978Z",
+      "path": "/pricing",
+      "session": "745088ee-cc13-4a3b-afc2-76e449778fe0",
+      "properties": {
+        "flag": "pricing-page-v2",
+        "variant": "test"
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-09T02:06:43.635Z",
+      "path": "/pricing",
+      "session": "745088ee-cc13-4a3b-afc2-76e449778fe0",
+      "properties": {}
+    },
+    {
+      "event": "$web_vitals",
+      "time": "2026-11-09T02:06:32.048Z",
+      "path": "/blog/writing-every-day",
+      "session": "745088ee-cc13-4a3b-afc2-76e449778fe0",
+      "properties": {
+        "metric": "INP",
+        "value": 181.38
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-09T02:06:29.548Z",
+      "path": "/blog/writing-every-day",
+      "session": "745088ee-cc13-4a3b-afc2-76e449778fe0",
+      "properties": {}
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-09T02:05:00.767Z",
+      "path": "/about",
+      "session": "745088ee-cc13-4a3b-afc2-76e449778fe0",
+      "properties": {}
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-09T02:04:50.402Z",
+      "path": "/blog/markdown-for-writers",
+      "session": "745088ee-cc13-4a3b-afc2-76e449778fe0",
+      "properties": {}
+    }
+  ],
+  "replays": [],
+  "summary": "Identified person \"user_1570\": 24 events in 90 days.",
+  "sql": [
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248549540\n    AND e.ts_ms < 1795024609540\n)\nSELECT event, ts_ms, path, session_id, props FROM ev WHERE pid = 'user_1570' OR distinct_id = 'user_1570'\nORDER BY ts_ms DESC LIMIT 100",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248549540\n    AND e.ts_ms < 1795024609540\n)\nSELECT 'company' AS type, (CASE json_type(props, '$.\"$groups\".\"company\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$groups\".\"company\"') AS TEXT) END) AS group_key, MAX(ts_ms) AS last_ts FROM ev WHERE (pid = 'user_1570' OR distinct_id = 'user_1570') AND (CASE json_type(props, '$.\"$groups\".\"company\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$groups\".\"company\"') AS TEXT) END) IS NOT NULL GROUP BY (CASE json_type(props, '$.\"$groups\".\"company\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$groups\".\"company\"') AS TEXT) END)"
+  ],
+  "dashboard": "http://127.0.0.1:49397/app#/users/user_1570?project=demo"
+}

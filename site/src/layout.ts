@@ -10,6 +10,19 @@ export function esc(text: string): string {
     .replaceAll('"', '&quot;');
 }
 
+/** Text with every tag removed. A scan, not a regex, so a fragment like `<scr<script>ipt>` can't
+ * leave a tag behind; an unclosed `<` drops the rest. */
+export function stripTags(html: string): string {
+  let out = '';
+  let inTag = false;
+  for (const ch of html) {
+    if (ch === '<') inTag = true;
+    else if (inTag) inTag = ch !== '>';
+    else out += ch;
+  }
+  return out;
+}
+
 export interface PageOptions {
   /** URL path, e.g. "/" or "/docs/sdk/". */
   path: string;

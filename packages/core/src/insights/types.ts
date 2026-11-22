@@ -1,4 +1,5 @@
 import type { Dialect } from '../sql/dialect.ts';
+import { type TimeRange, type Zone, zoneFor } from '../time.ts';
 
 export type Row = Record<string, unknown>;
 
@@ -11,6 +12,24 @@ export interface QueryContext {
   project: string;
   /** Override "now" (tests, reproducible reports). */
   now?: number;
+  /** The project's IANA time zone, used when a spec names neither `timezone` nor `utcOffsetMinutes`. */
+  timezone?: string;
+  /** The project's path cleaning rules (paths insights apply them unless told not to). */
+  pathCleaning?: { match: string; alias: string }[];
+}
+
+/**
+ * The zone a spec buckets in: its own `timezone`, else its `utcOffsetMinutes`,
+ * else the project's time zone, else UTC. `window` is the span of timestamps read.
+ */
+export function zoneOf(
+  spec: { timezone?: string; utcOffsetMinutes?: number },
+  ctx: Pick<QueryContext, 'timezone'>,
+  window: TimeRange,
+): Zone {
+  if (spec.timezone) return zoneFor(spec.timezone, undefined, window);
+  if (spec.utcOffsetMinutes !== undefined) return zoneFor(undefined, spec.utcOffsetMinutes, window);
+  return zoneFor(ctx.timezone, undefined, window);
 }
 
 /** Fields every insight result carries, so agents can always show their working. */

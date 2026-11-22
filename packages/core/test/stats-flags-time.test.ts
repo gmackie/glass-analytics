@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { bucketOf, evaluateFlag, validateFlag } from '../src/flags.ts';
+import {
+  bucketOf,
+  evaluateFlag,
+  MAX_PAYLOAD_BYTES,
+  payloadBytes,
+  validateFlag,
+  webPayloadProblems,
+} from '../src/flags.ts';
 import { uuidv7 } from '../src/ids.ts';
 import {
   chiSquareSurvival,
@@ -12,7 +19,7 @@ import {
 } from '../src/stats/tests.ts';
 import { bucketStart, bucketsBetween, parseDuration, parseTime } from '../src/time.ts';
 import { parseUserAgent } from '../src/ua.ts';
-import { parsePage, referrerHost } from '../src/url.ts';
+import { parsePage, referrerHost, trimSlashes, trimTrailingSlashes } from '../src/url.ts';
 import { NOW } from './helpers.ts';
 
 const close = (a: number, b: number, tol: number) =>
@@ -133,6 +140,42 @@ describe('feature flags', () => {
     assert.deepEqual(validateFlag({ key: 'ok', enabled: true, rollout: 10 }), []);
     assert.ok(validateFlag({ key: 'bad key!', enabled: true, rollout: 150 }).length === 2);
   });
+
+  it('measures payloads in UTF-8 bytes, as the dashboard does', () => {
+    assert.equal(payloadBytes({ on: 'é' }), JSON.stringify({ on: 'é' }).length + 1);
+    const big = { on: 'é'.repeat(5_000) };
+    assert.ok(JSON.stringify(big).length < MAX_PAYLOAD_BYTES);
+    assert.deepEqual(validateFlag({ key: 'k', enabled: true, rollout: 1, payloads: big }), [
+      'payloads must be at most 10 KB of JSON',
+    ]);
+  });
+
+  it('checks the shape of web experiment payloads', () => {
+    assert.deepEqual(webPayloadProblems({ headline: 'not a web payload' }), []);
+    assert.deepEqual(
+      webPayloadProblems({ type: 'web', transforms: [{ selector: 'h1', text: 'Hi' }] }),
+      [],
+    );
+    assert.deepEqual(
+      webPayloadProblems({ type: 'web', transforms: [{ text: 'Hi' }, { selector: 'p' }] }),
+      [
+        'change 1 needs a "selector", e.g. "h1" or "#signup"',
+        'change 2 needs one of "text", "html", "css", "attributes", "hide"',
+      ],
+    );
+    assert.deepEqual(webPayloadProblems({ type: 'web' }), [
+      'a web payload needs a "transforms" list',
+    ]);
+    assert.deepEqual(
+      validateFlag({
+        key: 'k',
+        enabled: true,
+        rollout: 1,
+        payloads: { on: { type: 'web', transforms: [{ selector: '', text: 'x' }] } },
+      }),
+      ['payload for "on": change 1 needs a "selector", e.g. "h1" or "#signup"'],
+    );
+  });
 });
 
 describe('time', () => {
@@ -170,6 +213,19 @@ describe('ingest helpers', () => {
       { browser: 'Edge', os: 'Windows', device: 'desktop' },
     );
     assert.equal(parseUserAgent('Googlebot/2.1').device, 'bot');
+    const android = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/131.0';
+    assert.equal(parseUserAgent(`${android} Mobile Safari/537.36`).device, 'mobile');
+    assert.equal(parseUserAgent(`${android} Safari/537.36`).device, 'tablet');
+  });
+
+  it('parses hostile user agents in linear time', () => {
+    const start = performance.now();
+    assert.equal(parseUserAgent('Android'.repeat(20_000)).device, 'tablet');
+    assert.equal(trimTrailingSlashes(`a${'/'.repeat(50_000)}b`), `a${'/'.repeat(50_000)}b`);
+    assert.ok(performance.now() - start < 500);
+    assert.equal(trimTrailingSlashes('https://x.dev///'), 'https://x.dev');
+    assert.equal(trimSlashes('//assets/js//'), 'assets/js');
+    assert.equal(trimSlashes('///'), '');
   });
 
   it('extracts UTM tags and normalises referrers', () => {

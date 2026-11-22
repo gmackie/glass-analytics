@@ -21,7 +21,21 @@ export const SYSTEM_EVENTS = {
   identify: '$identify',
   set: '$set',
   exposure: '$exposure',
+  groupIdentify: '$groupidentify',
 } as const;
+
+/** At most this many group types per project (company, workspace, …), as in PostHog. */
+export const MAX_GROUP_TYPES = 5;
+
+/** Request context a trusted sender (an import, a server SDK) may supply instead of the request's own. */
+export interface WireContext {
+  country?: string;
+  region?: string;
+  city?: string;
+  browser?: string;
+  os?: string;
+  device?: string;
+}
 
 export type SystemEventName = (typeof SYSTEM_EVENTS)[keyof typeof SYSTEM_EVENTS];
 
@@ -45,6 +59,11 @@ export interface WireEvent {
   props?: Record<string, unknown>;
   /** Feature flag variants active when the event fired. */
   flags?: Record<string, string>;
+  /**
+   * Imports and server SDKs only (requests made with the server or admin key): where the event
+   * happened, since the request itself comes from a server. Ignored on public `POST /e`.
+   */
+  context?: WireContext;
 }
 
 /** A batch of events, the body of `POST /e`. */

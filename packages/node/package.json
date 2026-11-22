@@ -1,0 +1,41 @@
+{
+  "name": "dataflare-node",
+  "version": "0.8.4",
+  "description": "Dataflare server SDK: events, identify, groups, feature flags with local evaluation, and error capture. Runs on Node 18+, Bun, Deno and Cloudflare Workers.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ISNIT0/glass-analytics.git",
+    "directory": "packages/node"
+  },
+  "keywords": [
+    "analytics",
+    "cloudflare",
+    "feature-flags",
+    "server-side",
+    "product-analytics"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@dataflare/core": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

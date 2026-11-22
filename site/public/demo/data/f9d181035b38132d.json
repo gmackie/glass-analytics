@@ -4,7 +4,25 @@
       "id": "demo",
       "name": "Inkwell",
       "allowedOrigins": [],
-      "createdAt": 1793874346969
+      "createdAt": 1795024408552,
+      "settings": {
+        "internalFilters": [
+          {
+            "property": "person.email",
+            "op": "contains",
+            "value": "@inkwell.test"
+          }
+        ],
+        "baseCurrency": "USD",
+        "revenueEvents": [
+          {
+            "event": "subscription_started",
+            "amountProperty": "amount",
+            "productProperty": "plan",
+            "subscriptionProperty": "subscription"
+          }
+        ]
+      }
     }
   ],
   "summary": "1 project: demo."

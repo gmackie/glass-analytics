@@ -1,8 +1,8 @@
 {
   "project": "demo",
   "event": "$exception",
-  "sampled": 61,
-  "lastSeen": "2026-11-05T10:26:06.839Z",
+  "sampled": 58,
+  "lastSeen": "2026-11-18T17:53:47.375Z",
   "description": "",
   "owner": "",
   "properties": [
@@ -26,10 +26,40 @@
       "coverage": 1,
       "examples": [
         "Cannot read properties of undefined (reading 'number')",
-        "Failed to fetch",
         "Cannot read properties of undefined (reading 'wordCount')",
-        "ResizeObserver loop limit exceeded",
-        "crypto.randomUUID is not a function"
+        "crypto.randomUUID is not a function",
+        "Failed to fetch",
+        "ResizeObserver loop limit exceeded"
+      ],
+      "description": ""
+    },
+    {
+      "name": "$issue_id",
+      "types": [
+        "string"
+      ],
+      "coverage": 1,
+      "examples": [
+        "d49f920f9d28519b",
+        "8cbf4a868c6d4cba",
+        "6fd5484511f90d13",
+        "c764395476c11c8e",
+        "662e7c2093cd5536"
+      ],
+      "description": ""
+    },
+    {
+      "name": "$exception_fingerprint",
+      "types": [
+        "string"
+      ],
+      "coverage": 1,
+      "examples": [
+        "d49f920f9d28519b901150d49b2277c0",
+        "8cbf4a868c6d4cba2f0bc4f45cfa9099",
+        "6fd5484511f90d13ad963e0e696bf0b7",
+        "c764395476c11c8e7f87e9ed387803b6",
+        "662e7c2093cd5536a67f5f2943198b2b"
       ],
       "description": ""
     },
@@ -38,9 +68,20 @@
       "types": [
         "string"
       ],
-      "coverage": 0.01639344262295082,
+      "coverage": 0.017241379310344827,
       "examples": [
         "TypeError: Cannot read properties of undefined (reading 'number')\n    at HTMLBut"
+      ],
+      "description": ""
+    },
+    {
+      "name": "handled",
+      "types": [
+        "boolean"
+      ],
+      "coverage": 0.017241379310344827,
+      "examples": [
+        "false"
       ],
       "description": ""
     },
@@ -49,7 +90,7 @@
       "types": [
         "string"
       ],
-      "coverage": 0.01639344262295082,
+      "coverage": 0.017241379310344827,
       "examples": [
         "http://inkwell.example/app"
       ],
@@ -60,7 +101,7 @@
       "types": [
         "number"
       ],
-      "coverage": 0.01639344262295082,
+      "coverage": 0.017241379310344827,
       "examples": [
         "24"
       ],
@@ -71,15 +112,15 @@
       "types": [
         "number"
       ],
-      "coverage": 0.01639344262295082,
+      "coverage": 0.017241379310344827,
       "examples": [
         "19"
       ],
       "description": ""
     }
   ],
-  "summary": "\"$exception\": 6 properties across the latest 61 events.",
+  "summary": "\"$exception\": 9 properties across the latest 58 events.",
   "sql": [
-    "SELECT props, ts_ms FROM events\nWHERE project = 'demo' AND event = '$exception' AND ts_ms >= 1791282556563\nORDER BY ts_ms DESC LIMIT 500"
+    "SELECT props, ts_ms FROM events\nWHERE project = 'demo' AND event = '$exception' AND ts_ms >= 1792432569018\nORDER BY ts_ms DESC LIMIT 500"
   ]
 }

@@ -2,19 +2,6 @@
   "kind": "trends",
   "interval": "day",
   "buckets": [
-    1791244800000,
-    1791331200000,
-    1791417600000,
-    1791504000000,
-    1791590400000,
-    1791676800000,
-    1791763200000,
-    1791849600000,
-    1791936000000,
-    1792022400000,
-    1792108800000,
-    1792195200000,
-    1792281600000,
     1792368000000,
     1792454400000,
     1792540800000,
@@ -32,7 +19,20 @@
     1793577600000,
     1793664000000,
     1793750400000,
-    1793836800000
+    1793836800000,
+    1793923200000,
+    1794009600000,
+    1794096000000,
+    1794182400000,
+    1794268800000,
+    1794355200000,
+    1794441600000,
+    1794528000000,
+    1794614400000,
+    1794700800000,
+    1794787200000,
+    1794873600000,
+    1794960000000
   ],
   "series": [
     {
@@ -71,18 +71,27 @@
         0,
         6
       ],
-      "total": 6
+      "total": 6,
+      "seriesIndex": 0,
+      "math": "total"
     }
   ],
   "sql": [
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1791282576911\n    AND e.ts_ms < 1793874576911\n    AND e.event IN ('upgrade_clicked')\n)\nSELECT bucket, bd, COUNT(*) AS agg\nFROM (SELECT ((ts_ms / 86400000) * 86400000) AS bucket, '' AS bd, pid, session_id, NULL AS val\n    FROM ev WHERE 1 = 1) t\nGROUP BY bucket, bd\nORDER BY bucket\nLIMIT 50000",
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1791282576911\n    AND e.ts_ms < 1793874576911\n    AND e.event IN ('upgrade_clicked')\n)\nSELECT bd, COUNT(*) AS agg\nFROM (SELECT ((ts_ms / 86400000) * 86400000) AS bucket, '' AS bd, pid, session_id, NULL AS val\n    FROM ev WHERE 1 = 1) t\nGROUP BY bd\nORDER BY agg DESC\nLIMIT 1000"
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1792432592804\n    AND e.ts_ms < 1795024592804\n    AND e.event IN ('upgrade_clicked')\n)\nSELECT bucket, bd, COUNT(*) AS agg\nFROM (SELECT ((ts_ms / 86400000) * 86400000) AS bucket, '' AS bd, actor, session_id, ts_ms, NULL AS val, '' AS grp\n    FROM ev WHERE event IN ('upgrade_clicked') AND 1 = 1) t\nGROUP BY bucket, bd\nORDER BY bucket\nLIMIT 50000",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1792432592804\n    AND e.ts_ms < 1795024592804\n    AND e.event IN ('upgrade_clicked')\n)\nSELECT bd, COUNT(*) AS agg\nFROM (SELECT '' AS bd, actor, session_id, ts_ms, NULL AS val, '' AS grp\n    FROM ev WHERE event IN ('upgrade_clicked') AND 1 = 1) t\nGROUP BY bd\nORDER BY agg DESC, bd ASC\nLIMIT 1000"
   ],
   "range": {
-    "from": "2026-10-06T10:29:36.911Z",
-    "to": "2026-11-05T10:29:36.911Z"
+    "from": "2026-10-19T17:56:32.804Z",
+    "to": "2026-11-18T17:56:32.804Z"
   },
-  "summary": "2026-10-06 to 2026-11-05 by day. upgrade_clicked: 6",
+  "summary": "2026-10-19 to 2026-11-18 by day. upgrade_clicked: 6",
+  "annotations": [
+    {
+      "id": "da5d1d69-c8c",
+      "at": "2026-11-06T17:53:28.559Z",
+      "text": "Launched templates"
+    }
+  ],
   "project": "demo",
-  "dashboard": "http://127.0.0.1:58904/app#/insights/trends?project=demo&spec=%7B%22from%22%3A%22-30d%22%2C%22series%22%3A%5B%7B%22event%22%3A%22upgrade_clicked%22%7D%5D%2C%22interval%22%3A%22day%22%7D"
+  "dashboard": "http://127.0.0.1:49397/app#/insights/trends?project=demo&spec=%7B%22from%22%3A%22-30d%22%2C%22series%22%3A%5B%7B%22event%22%3A%22upgrade_clicked%22%7D%5D%2C%22interval%22%3A%22day%22%7D"
 }

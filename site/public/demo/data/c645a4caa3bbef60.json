@@ -1,0 +1,1953 @@
+{
+  "meta": {
+    "project": "demo",
+    "session_id": "01a1efca-e087-7bd3-8e3b-e444ded37a4e",
+    "distinct_id": "01a1efca-e081-79d9-b107-d2683e2657ff",
+    "user_id": "user-maya",
+    "started_at": 1795024412824,
+    "ended_at": 1795024430411,
+    "chunks": 8,
+    "bytes": 6366,
+    "clicks": 9,
+    "errors": 1,
+    "start_url": "http://inkwell.example/",
+    "device": "desktop",
+    "browser": "Chrome",
+    "country": "GB",
+    "pages": 4,
+    "rage_clicks": 1,
+    "console_errors": 6,
+    "failed_requests": 6,
+    "dead_clicks": 0,
+    "active_ms": null,
+    "digest": "",
+    "summary_chunks": null
+  },
+  "events": [
+    {
+      "type": 4,
+      "data": {
+        "href": "http://inkwell.example/",
+        "width": 1280,
+        "height": 800
+      },
+      "timestamp": 1795024412824
+    },
+    {
+      "type": 2,
+      "data": {
+        "node": {
+          "type": 0,
+          "childNodes": [
+            {
+              "type": 1,
+              "name": "html",
+              "publicId": "",
+              "systemId": "",
+              "id": 2
+            },
+            {
+              "type": 2,
+              "tagName": "html",
+              "attributes": {
+                "lang": "en"
+              },
+              "childNodes": [
+                {
+                  "type": 2,
+                  "tagName": "head",
+                  "attributes": {},
+                  "childNodes": [
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 5
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "meta",
+                      "attributes": {
+                        "charset": "utf-8"
+                      },
+                      "childNodes": [],
+                      "id": 6
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 7
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "meta",
+                      "attributes": {
+                        "name": "viewport",
+                        "content": "width=device-width, initial-scale=1"
+                      },
+                      "childNodes": [],
+                      "id": 8
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 9
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "title",
+                      "attributes": {},
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "textContent": "Inkwell, notes for teams",
+                          "id": 11
+                        }
+                      ],
+                      "id": 10
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 12
+                    },
+                    {
+                      "type": 5,
+                      "textContent": " The only line Dataflare needs. data-replay-sample-rate=\"1\" records every session (for the demo). ",
+                      "id": 13
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 14
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "script",
+                      "attributes": {
+                        "defer": "",
+                        "src": "http://127.0.0.1:49397/s.js",
+                        "data-project": "demo",
+                        "data-replay-sample-rate": "1"
+                      },
+                      "childNodes": [],
+                      "id": 15
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 16
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "link",
+                      "attributes": {
+                        "_cssText": "body { font: 16px / 1.5 system-ui; max-width: 640px; margin: 40px auto; padding: 0px 20px; }a, button { font: inherit; }button { padding: 8px 14px; border-radius: 8px; border: 1px solid rgb(153, 153, 153); background: white; cursor: pointer; }nav a { margin-right: 12px; }"
+                      },
+                      "childNodes": [],
+                      "id": 17
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n",
+                      "id": 18
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "script",
+                      "attributes": {
+                        "src": "http://127.0.0.1:49397/replay.js",
+                        "async": ""
+                      },
+                      "childNodes": [],
+                      "id": 19
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "style",
+                      "attributes": {
+                        "_cssText": ":root { color-scheme: light; }body { font: 16px / 1.6 ui-sans-serif, system-ui, -apple-system, sans-serif; color: rgb(29, 42, 38); max-width: none; margin: 0px; padding: 0px; background: rgb(251, 250, 247); }nav { display: flex; gap: 22px; align-items: center; padding: 16px 40px; border-bottom: 1px solid rgb(231, 227, 218); background: rgb(255, 255, 255); }nav::before { content: \"Inkwell\"; font-weight: 700; margin-right: auto; letter-spacing: -0.01em; }nav a { color: rgb(74, 90, 84); text-decoration: none; margin: 0px; }h1 { font-size: 40px; letter-spacing: -0.02em; margin: 56px 40px 12px; }p, form, ol { margin-left: 40px; margin-right: 40px; max-width: 640px; }button, .cta a { background: rgb(29, 42, 38); color: rgb(255, 255, 255); border: 0px; border-radius: 10px; padding: 10px 18px; font: inherit; cursor: pointer; }input { border: 1px solid rgb(214, 209, 198); border-radius: 10px; padding: 10px 14px; font: inherit; min-width: 260px; }li { padding: 6px 0px; border-bottom: 1px solid rgb(239, 235, 227); }"
+                      },
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "textContent": "",
+                          "id": 21
+                        }
+                      ],
+                      "id": 20
+                    }
+                  ],
+                  "id": 4
+                },
+                {
+                  "type": 3,
+                  "textContent": "\n",
+                  "id": 22
+                },
+                {
+                  "type": 2,
+                  "tagName": "body",
+                  "attributes": {},
+                  "childNodes": [
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 24
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "nav",
+                      "attributes": {},
+                      "childNodes": [
+                        {
+                          "type": 2,
+                          "tagName": "a",
+                          "attributes": {
+                            "href": "http://inkwell.example/"
+                          },
+                          "childNodes": [
+                            {
+                              "type": 3,
+                              "textContent": "Home",
+                              "id": 27
+                            }
+                          ],
+                          "id": 26
+                        },
+                        {
+                          "type": 2,
+                          "tagName": "a",
+                          "attributes": {
+                            "href": "http://inkwell.example/pricing"
+                          },
+                          "childNodes": [
+                            {
+                              "type": 3,
+                              "textContent": "Pricing",
+                              "id": 29
+                            }
+                          ],
+                          "id": 28
+                        },
+                        {
+                          "type": 2,
+                          "tagName": "a",
+                          "attributes": {
+                            "href": "http://inkwell.example/signup"
+                          },
+                          "childNodes": [
+                            {
+                              "type": 3,
+                              "textContent": "Sign up",
+                              "id": 31
+                            }
+                          ],
+                          "id": 30
+                        }
+                      ],
+                      "id": 25
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 32
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "h1",
+                      "attributes": {},
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "textContent": "Inkwell",
+                          "id": 34
+                        }
+                      ],
+                      "id": 33
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 35
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "p",
+                      "attributes": {},
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "textContent": "A demo product instrumented with Dataflare. Click around, then open the Dataflare dashboard.",
+                          "id": 37
+                        }
+                      ],
+                      "id": 36
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 38
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "p",
+                      "attributes": {
+                        "id": "cta"
+                      },
+                      "childNodes": [
+                        {
+                          "type": 2,
+                          "tagName": "a",
+                          "attributes": {
+                            "href": "http://inkwell.example/pricing"
+                          },
+                          "childNodes": [
+                            {
+                              "type": 3,
+                              "textContent": "See pricing",
+                              "id": 41
+                            }
+                          ],
+                          "id": 40
+                        }
+                      ],
+                      "id": 39
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 42
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "script",
+                      "attributes": {},
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "textContent": "SCRIPT_PLACEHOLDER",
+                          "id": 44
+                        }
+                      ],
+                      "id": 43
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n\n\n",
+                      "id": 45
+                    }
+                  ],
+                  "id": 23
+                }
+              ],
+              "id": 3
+            }
+          ],
+          "id": 1
+        },
+        "initialOffset": {
+          "left": 0,
+          "top": 0
+        }
+      },
+      "timestamp": 1795024412835
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 1,
+        "positions": [
+          {
+            "x": 80,
+            "y": 273,
+            "id": 40,
+            "timeOffset": 0
+          }
+        ]
+      },
+      "timestamp": 1795024415891
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 1,
+        "id": 40,
+        "x": 80.66999816894531,
+        "y": 273.7799987792969
+      },
+      "timestamp": 1795024415893
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 5,
+        "id": 40
+      },
+      "timestamp": 1795024415893
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 0,
+        "id": 40,
+        "x": 80.66999816894531,
+        "y": 273.7799987792969
+      },
+      "timestamp": 1795024415894
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 2,
+        "id": 40,
+        "x": 80,
+        "y": 273,
+        "pointerType": 0
+      },
+      "timestamp": 1795024415894
+    },
+    {
+      "type": 4,
+      "data": {
+        "href": "http://inkwell.example/pricing",
+        "width": 1280,
+        "height": 800
+      },
+      "timestamp": 1795024415921
+    },
+    {
+      "type": 2,
+      "data": {
+        "node": {
+          "type": 0,
+          "childNodes": [
+            {
+              "type": 1,
+              "name": "html",
+              "publicId": "",
+              "systemId": "",
+              "id": 2
+            },
+            {
+              "type": 2,
+              "tagName": "html",
+              "attributes": {
+                "lang": "en"
+              },
+              "childNodes": [
+                {
+                  "type": 2,
+                  "tagName": "head",
+                  "attributes": {},
+                  "childNodes": [
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 5
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "meta",
+                      "attributes": {
+                        "charset": "utf-8"
+                      },
+                      "childNodes": [],
+                      "id": 6
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 7
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "meta",
+                      "attributes": {
+                        "name": "viewport",
+                        "content": "width=device-width, initial-scale=1"
+                      },
+                      "childNodes": [],
+                      "id": 8
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 9
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "title",
+                      "attributes": {},
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "textContent": "Pricing, Inkwell",
+                          "id": 11
+                        }
+                      ],
+                      "id": 10
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 12
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "script",
+                      "attributes": {
+                        "defer": "",
+                        "src": "http://127.0.0.1:49397/s.js",
+                        "data-project": "demo",
+                        "data-replay-sample-rate": "1"
+                      },
+                      "childNodes": [],
+                      "id": 13
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 14
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "link",
+                      "attributes": {
+                        "_cssText": "body { font: 16px / 1.5 system-ui; max-width: 640px; margin: 40px auto; padding: 0px 20px; }a, button { font: inherit; }button { padding: 8px 14px; border-radius: 8px; border: 1px solid rgb(153, 153, 153); background: white; cursor: pointer; }nav a { margin-right: 12px; }"
+                      },
+                      "childNodes": [],
+                      "id": 15
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n",
+                      "id": 16
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "script",
+                      "attributes": {
+                        "src": "http://127.0.0.1:49397/replay.js",
+                        "async": ""
+                      },
+                      "childNodes": [],
+                      "id": 17
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "style",
+                      "attributes": {
+                        "_cssText": ":root { color-scheme: light; }body { font: 16px / 1.6 ui-sans-serif, system-ui, -apple-system, sans-serif; color: rgb(29, 42, 38); max-width: none; margin: 0px; padding: 0px; background: rgb(251, 250, 247); }nav { display: flex; gap: 22px; align-items: center; padding: 16px 40px; border-bottom: 1px solid rgb(231, 227, 218); background: rgb(255, 255, 255); }nav::before { content: \"Inkwell\"; font-weight: 700; margin-right: auto; letter-spacing: -0.01em; }nav a { color: rgb(74, 90, 84); text-decoration: none; margin: 0px; }h1 { font-size: 40px; letter-spacing: -0.02em; margin: 56px 40px 12px; }p, form, ol { margin-left: 40px; margin-right: 40px; max-width: 640px; }button, .cta a { background: rgb(29, 42, 38); color: rgb(255, 255, 255); border: 0px; border-radius: 10px; padding: 10px 18px; font: inherit; cursor: pointer; }input { border: 1px solid rgb(214, 209, 198); border-radius: 10px; padding: 10px 14px; font: inherit; min-width: 260px; }li { padding: 6px 0px; border-bottom: 1px solid rgb(239, 235, 227); }"
+                      },
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "textContent": "",
+                          "id": 19
+                        }
+                      ],
+                      "id": 18
+                    }
+                  ],
+                  "id": 4
+                },
+                {
+                  "type": 3,
+                  "textContent": "\n",
+                  "id": 20
+                },
+                {
+                  "type": 2,
+                  "tagName": "body",
+                  "attributes": {},
+                  "childNodes": [
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 22
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "nav",
+                      "attributes": {},
+                      "childNodes": [
+                        {
+                          "type": 2,
+                          "tagName": "a",
+                          "attributes": {
+                            "href": "http://inkwell.example/"
+                          },
+                          "childNodes": [
+                            {
+                              "type": 3,
+                              "textContent": "Home",
+                              "id": 25
+                            }
+                          ],
+                          "id": 24
+                        },
+                        {
+                          "type": 2,
+                          "tagName": "a",
+                          "attributes": {
+                            "href": "http://inkwell.example/pricing"
+                          },
+                          "childNodes": [
+                            {
+                              "type": 3,
+                              "textContent": "Pricing",
+                              "id": 27
+                            }
+                          ],
+                          "id": 26
+                        },
+                        {
+                          "type": 2,
+                          "tagName": "a",
+                          "attributes": {
+                            "href": "http://inkwell.example/signup"
+                          },
+                          "childNodes": [
+                            {
+                              "type": 3,
+                              "textContent": "Sign up",
+                              "id": 29
+                            }
+                          ],
+                          "id": 28
+                        }
+                      ],
+                      "id": 23
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 30
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "h1",
+                      "attributes": {},
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "textContent": "Pricing",
+                          "id": 32
+                        }
+                      ],
+                      "id": 31
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 33
+                    },
+                    {
+                      "type": 5,
+                      "textContent": " Declarative tracking: no JavaScript needed. ",
+                      "id": 34
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 35
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "p",
+                      "attributes": {},
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "textContent": "Free: for one person.\n    ",
+                          "id": 37
+                        },
+                        {
+                          "type": 2,
+                          "tagName": "button",
+                          "attributes": {
+                            "type": "button",
+                            "data-glass-event": "plan_selected",
+                            "data-glass-prop-plan": "free",
+                            "onclick": "location.href='/signup?plan=free'"
+                          },
+                          "childNodes": [
+                            {
+                              "type": 3,
+                              "textContent": "Choose Free",
+                              "id": 39
+                            }
+                          ],
+                          "id": 38
+                        }
+                      ],
+                      "id": 36
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 40
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "p",
+                      "attributes": {},
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "textContent": "Team: $8 per person per month.\n    ",
+                          "id": 42
+                        },
+                        {
+                          "type": 2,
+                          "tagName": "button",
+                          "attributes": {
+                            "type": "button",
+                            "data-glass-event": "plan_selected",
+                            "data-glass-prop-plan": "team",
+                            "onclick": "location.href='/signup?plan=team'"
+                          },
+                          "childNodes": [
+                            {
+                              "type": 3,
+                              "textContent": "Choose Team",
+                              "id": 44
+                            }
+                          ],
+                          "id": 43
+                        }
+                      ],
+                      "id": 41
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n\n\n",
+                      "id": 45
+                    }
+                  ],
+                  "id": 21
+                }
+              ],
+              "id": 3
+            }
+          ],
+          "id": 1
+        },
+        "initialOffset": {
+          "left": 0,
+          "top": 0
+        }
+      },
+      "timestamp": 1795024415926
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 1,
+        "positions": [
+          {
+            "x": 344,
+            "y": 278,
+            "id": 43,
+            "timeOffset": 0
+          }
+        ]
+      },
+      "timestamp": 1795024419949
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 1,
+        "id": 43,
+        "x": 344.94000244140625,
+        "y": 278.9800109863281
+      },
+      "timestamp": 1795024419949
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 5,
+        "id": 43
+      },
+      "timestamp": 1795024419949
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 0,
+        "id": 43,
+        "x": 344.94000244140625,
+        "y": 278.9800109863281
+      },
+      "timestamp": 1795024419949
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 2,
+        "id": 43,
+        "x": 344,
+        "y": 278,
+        "pointerType": 0
+      },
+      "timestamp": 1795024419949
+    },
+    {
+      "type": 4,
+      "data": {
+        "href": "http://inkwell.example/signup?plan=team",
+        "width": 1280,
+        "height": 800
+      },
+      "timestamp": 1795024419969
+    },
+    {
+      "type": 2,
+      "data": {
+        "node": {
+          "type": 0,
+          "childNodes": [
+            {
+              "type": 1,
+              "name": "html",
+              "publicId": "",
+              "systemId": "",
+              "id": 2
+            },
+            {
+              "type": 2,
+              "tagName": "html",
+              "attributes": {
+                "lang": "en"
+              },
+              "childNodes": [
+                {
+                  "type": 2,
+                  "tagName": "head",
+                  "attributes": {},
+                  "childNodes": [
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 5
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "meta",
+                      "attributes": {
+                        "charset": "utf-8"
+                      },
+                      "childNodes": [],
+                      "id": 6
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 7
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "meta",
+                      "attributes": {
+                        "name": "viewport",
+                        "content": "width=device-width, initial-scale=1"
+                      },
+                      "childNodes": [],
+                      "id": 8
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 9
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "title",
+                      "attributes": {},
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "textContent": "Sign up, Inkwell",
+                          "id": 11
+                        }
+                      ],
+                      "id": 10
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 12
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "script",
+                      "attributes": {
+                        "defer": "",
+                        "src": "http://127.0.0.1:49397/s.js",
+                        "data-project": "demo",
+                        "data-replay-sample-rate": "1"
+                      },
+                      "childNodes": [],
+                      "id": 13
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 14
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "link",
+                      "attributes": {
+                        "_cssText": "body { font: 16px / 1.5 system-ui; max-width: 640px; margin: 40px auto; padding: 0px 20px; }a, button, input { font: inherit; }input { padding: 6px 10px; margin-right: 8px; }button { padding: 8px 14px; border-radius: 8px; border: 1px solid rgb(153, 153, 153); background: white; cursor: pointer; }nav a { margin-right: 12px; }"
+                      },
+                      "childNodes": [],
+                      "id": 15
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n",
+                      "id": 16
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "script",
+                      "attributes": {
+                        "src": "http://127.0.0.1:49397/replay.js",
+                        "async": ""
+                      },
+                      "childNodes": [],
+                      "id": 17
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "style",
+                      "attributes": {
+                        "_cssText": ":root { color-scheme: light; }body { font: 16px / 1.6 ui-sans-serif, system-ui, -apple-system, sans-serif; color: rgb(29, 42, 38); max-width: none; margin: 0px; padding: 0px; background: rgb(251, 250, 247); }nav { display: flex; gap: 22px; align-items: center; padding: 16px 40px; border-bottom: 1px solid rgb(231, 227, 218); background: rgb(255, 255, 255); }nav::before { content: \"Inkwell\"; font-weight: 700; margin-right: auto; letter-spacing: -0.01em; }nav a { color: rgb(74, 90, 84); text-decoration: none; margin: 0px; }h1 { font-size: 40px; letter-spacing: -0.02em; margin: 56px 40px 12px; }p, form, ol { margin-left: 40px; margin-right: 40px; max-width: 640px; }button, .cta a { background: rgb(29, 42, 38); color: rgb(255, 255, 255); border: 0px; border-radius: 10px; padding: 10px 18px; font: inherit; cursor: pointer; }input { border: 1px solid rgb(214, 209, 198); border-radius: 10px; padding: 10px 14px; font: inherit; min-width: 260px; }li { padding: 6px 0px; border-bottom: 1px solid rgb(239, 235, 227); }"
+                      },
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "textContent": "",
+                          "id": 19
+                        }
+                      ],
+                      "id": 18
+                    }
+                  ],
+                  "id": 4
+                },
+                {
+                  "type": 3,
+                  "textContent": "\n",
+                  "id": 20
+                },
+                {
+                  "type": 2,
+                  "tagName": "body",
+                  "attributes": {},
+                  "childNodes": [
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 22
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "nav",
+                      "attributes": {},
+                      "childNodes": [
+                        {
+                          "type": 2,
+                          "tagName": "a",
+                          "attributes": {
+                            "href": "http://inkwell.example/"
+                          },
+                          "childNodes": [
+                            {
+                              "type": 3,
+                              "textContent": "Home",
+                              "id": 25
+                            }
+                          ],
+                          "id": 24
+                        },
+                        {
+                          "type": 2,
+                          "tagName": "a",
+                          "attributes": {
+                            "href": "http://inkwell.example/pricing"
+                          },
+                          "childNodes": [
+                            {
+                              "type": 3,
+                              "textContent": "Pricing",
+                              "id": 27
+                            }
+                          ],
+                          "id": 26
+                        },
+                        {
+                          "type": 2,
+                          "tagName": "a",
+                          "attributes": {
+                            "href": "http://inkwell.example/signup"
+                          },
+                          "childNodes": [
+                            {
+                              "type": 3,
+                              "textContent": "Sign up",
+                              "id": 29
+                            }
+                          ],
+                          "id": 28
+                        }
+                      ],
+                      "id": 23
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 30
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "h1",
+                      "attributes": {},
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "textContent": "Create your account",
+                          "id": 32
+                        }
+                      ],
+                      "id": 31
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 33
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "form",
+                      "attributes": {
+                        "id": "signup"
+                      },
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "textContent": "\n    ",
+                          "id": 35
+                        },
+                        {
+                          "type": 2,
+                          "tagName": "input",
+                          "attributes": {
+                            "id": "email",
+                            "type": "email",
+                            "placeholder": "Email",
+                            "required": ""
+                          },
+                          "childNodes": [],
+                          "id": 36
+                        },
+                        {
+                          "type": 3,
+                          "textContent": "\n    ",
+                          "id": 37
+                        },
+                        {
+                          "type": 2,
+                          "tagName": "button",
+                          "attributes": {
+                            "type": "submit"
+                          },
+                          "childNodes": [
+                            {
+                              "type": 3,
+                              "textContent": "Create account",
+                              "id": 39
+                            }
+                          ],
+                          "id": 38
+                        },
+                        {
+                          "type": 3,
+                          "textContent": "\n  ",
+                          "id": 40
+                        }
+                      ],
+                      "id": 34
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 41
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "script",
+                      "attributes": {},
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "textContent": "SCRIPT_PLACEHOLDER",
+                          "id": 43
+                        }
+                      ],
+                      "id": 42
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n\n\n",
+                      "id": 44
+                    }
+                  ],
+                  "id": 21
+                }
+              ],
+              "id": 3
+            }
+          ],
+          "id": 1
+        },
+        "initialOffset": {
+          "left": 0,
+          "top": 0
+        }
+      },
+      "timestamp": 1795024419973
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 5,
+        "id": 36
+      },
+      "timestamp": 1795024421973
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 1,
+        "positions": [
+          {
+            "x": 415,
+            "y": 214,
+            "id": 38,
+            "timeOffset": 0
+          }
+        ]
+      },
+      "timestamp": 1795024424295
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 1,
+        "id": 38,
+        "x": 415.6400146484375,
+        "y": 214.38999938964844
+      },
+      "timestamp": 1795024424295
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 5,
+        "text": "****************",
+        "isChecked": false,
+        "id": 36
+      },
+      "timestamp": 1795024424295
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 6,
+        "id": 36
+      },
+      "timestamp": 1795024424295
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 5,
+        "id": 38
+      },
+      "timestamp": 1795024424295
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 0,
+        "id": 38,
+        "x": 415.6400146484375,
+        "y": 214.38999938964844
+      },
+      "timestamp": 1795024424295
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 2,
+        "id": 38,
+        "x": 415,
+        "y": 214,
+        "pointerType": 0
+      },
+      "timestamp": 1795024424296
+    },
+    {
+      "type": 4,
+      "data": {
+        "href": "http://inkwell.example/app",
+        "width": 1280,
+        "height": 800
+      },
+      "timestamp": 1795024424328
+    },
+    {
+      "type": 2,
+      "data": {
+        "node": {
+          "type": 0,
+          "childNodes": [
+            {
+              "type": 1,
+              "name": "html",
+              "publicId": "",
+              "systemId": "",
+              "id": 2
+            },
+            {
+              "type": 2,
+              "tagName": "html",
+              "attributes": {
+                "lang": "en"
+              },
+              "childNodes": [
+                {
+                  "type": 2,
+                  "tagName": "head",
+                  "attributes": {},
+                  "childNodes": [
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 5
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "meta",
+                      "attributes": {
+                        "charset": "utf-8"
+                      },
+                      "childNodes": [],
+                      "id": 6
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 7
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "meta",
+                      "attributes": {
+                        "name": "viewport",
+                        "content": "width=device-width, initial-scale=1"
+                      },
+                      "childNodes": [],
+                      "id": 8
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 9
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "title",
+                      "attributes": {},
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "textContent": "Your notes, Inkwell",
+                          "id": 11
+                        }
+                      ],
+                      "id": 10
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 12
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "script",
+                      "attributes": {
+                        "defer": "",
+                        "src": "http://127.0.0.1:49397/s.js",
+                        "data-project": "demo",
+                        "data-replay-sample-rate": "1"
+                      },
+                      "childNodes": [],
+                      "id": 13
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 14
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "link",
+                      "attributes": {
+                        "_cssText": "body { font: 16px / 1.5 system-ui; max-width: 640px; margin: 40px auto; padding: 0px 20px; }a, button { font: inherit; }button { padding: 8px 14px; border-radius: 8px; border: 1px solid rgb(153, 153, 153); background: white; cursor: pointer; }nav a { margin-right: 12px; }"
+                      },
+                      "childNodes": [],
+                      "id": 15
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n",
+                      "id": 16
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "script",
+                      "attributes": {
+                        "src": "http://127.0.0.1:49397/replay.js",
+                        "async": ""
+                      },
+                      "childNodes": [],
+                      "id": 17
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "style",
+                      "attributes": {
+                        "_cssText": ":root { color-scheme: light; }body { font: 16px / 1.6 ui-sans-serif, system-ui, -apple-system, sans-serif; color: rgb(29, 42, 38); max-width: none; margin: 0px; padding: 0px; background: rgb(251, 250, 247); }nav { display: flex; gap: 22px; align-items: center; padding: 16px 40px; border-bottom: 1px solid rgb(231, 227, 218); background: rgb(255, 255, 255); }nav::before { content: \"Inkwell\"; font-weight: 700; margin-right: auto; letter-spacing: -0.01em; }nav a { color: rgb(74, 90, 84); text-decoration: none; margin: 0px; }h1 { font-size: 40px; letter-spacing: -0.02em; margin: 56px 40px 12px; }p, form, ol { margin-left: 40px; margin-right: 40px; max-width: 640px; }button, .cta a { background: rgb(29, 42, 38); color: rgb(255, 255, 255); border: 0px; border-radius: 10px; padding: 10px 18px; font: inherit; cursor: pointer; }input { border: 1px solid rgb(214, 209, 198); border-radius: 10px; padding: 10px 14px; font: inherit; min-width: 260px; }li { padding: 6px 0px; border-bottom: 1px solid rgb(239, 235, 227); }"
+                      },
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "textContent": "",
+                          "id": 19
+                        }
+                      ],
+                      "id": 18
+                    }
+                  ],
+                  "id": 4
+                },
+                {
+                  "type": 3,
+                  "textContent": "\n",
+                  "id": 20
+                },
+                {
+                  "type": 2,
+                  "tagName": "body",
+                  "attributes": {},
+                  "childNodes": [
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 22
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "nav",
+                      "attributes": {},
+                      "childNodes": [
+                        {
+                          "type": 2,
+                          "tagName": "a",
+                          "attributes": {
+                            "href": "http://inkwell.example/"
+                          },
+                          "childNodes": [
+                            {
+                              "type": 3,
+                              "textContent": "Home",
+                              "id": 25
+                            }
+                          ],
+                          "id": 24
+                        },
+                        {
+                          "type": 2,
+                          "tagName": "a",
+                          "attributes": {
+                            "href": "http://inkwell.example/app"
+                          },
+                          "childNodes": [
+                            {
+                              "type": 3,
+                              "textContent": "Notes",
+                              "id": 27
+                            }
+                          ],
+                          "id": 26
+                        }
+                      ],
+                      "id": 23
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 28
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "h1",
+                      "attributes": {},
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "textContent": "Your notes",
+                          "id": 30
+                        }
+                      ],
+                      "id": 29
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 31
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "p",
+                      "attributes": {},
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "textContent": "Upgrade to export your notes as PDF.",
+                          "id": 33
+                        }
+                      ],
+                      "id": 32
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 34
+                    },
+                    {
+                      "type": 5,
+                      "textContent": " A deliberately broken button, to show errors, failed requests and console errors in replays. ",
+                      "id": 35
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 36
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "button",
+                      "attributes": {
+                        "type": "button",
+                        "id": "pay",
+                        "aria-label": "Upgrade now"
+                      },
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "textContent": "Upgrade now",
+                          "id": 38
+                        }
+                      ],
+                      "id": 37
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n  ",
+                      "id": 39
+                    },
+                    {
+                      "type": 2,
+                      "tagName": "script",
+                      "attributes": {},
+                      "childNodes": [
+                        {
+                          "type": 3,
+                          "textContent": "SCRIPT_PLACEHOLDER",
+                          "id": 41
+                        }
+                      ],
+                      "id": 40
+                    },
+                    {
+                      "type": 3,
+                      "textContent": "\n\n\n",
+                      "id": 42
+                    }
+                  ],
+                  "id": 21
+                }
+              ],
+              "id": 3
+            }
+          ],
+          "id": 1
+        },
+        "initialOffset": {
+          "left": 0,
+          "top": 0
+        }
+      },
+      "timestamp": 1795024424331
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 1,
+        "positions": [
+          {
+            "x": 66,
+            "y": 258,
+            "id": 37,
+            "timeOffset": 0
+          }
+        ]
+      },
+      "timestamp": 1795024427371
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 1,
+        "id": 37,
+        "x": 66.56999969482422,
+        "y": 258.9800109863281
+      },
+      "timestamp": 1795024427371
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 5,
+        "id": 37
+      },
+      "timestamp": 1795024427371
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 0,
+        "id": 37,
+        "x": 66.56999969482422,
+        "y": 258.9800109863281
+      },
+      "timestamp": 1795024427371
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 2,
+        "id": 37,
+        "x": 66,
+        "y": 258,
+        "pointerType": 0
+      },
+      "timestamp": 1795024427371
+    },
+    {
+      "type": 5,
+      "data": {
+        "tag": "glass:network",
+        "payload": {
+          "method": "POST",
+          "url": "http://inkwell.example/api/billing",
+          "status": 404,
+          "duration": 15
+        }
+      },
+      "timestamp": 1795024427386
+    },
+    {
+      "type": 5,
+      "data": {
+        "tag": "glass:console",
+        "payload": {
+          "level": "error",
+          "message": "Billing request failed: 404"
+        }
+      },
+      "timestamp": 1795024427386
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 1,
+        "positions": [
+          {
+            "x": 66,
+            "y": 258,
+            "id": 37,
+            "timeOffset": 0
+          }
+        ]
+      },
+      "timestamp": 1795024429409
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 1,
+        "id": 37,
+        "x": 66.56999969482422,
+        "y": 258.9800109863281
+      },
+      "timestamp": 1795024429409
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 0,
+        "id": 37,
+        "x": 66.56999969482422,
+        "y": 258.9800109863281
+      },
+      "timestamp": 1795024429409
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 2,
+        "id": 37,
+        "x": 66,
+        "y": 258,
+        "pointerType": 0
+      },
+      "timestamp": 1795024429409
+    },
+    {
+      "type": 5,
+      "data": {
+        "tag": "glass:network",
+        "payload": {
+          "method": "POST",
+          "url": "http://inkwell.example/api/billing",
+          "status": 404,
+          "duration": 10
+        }
+      },
+      "timestamp": 1795024429419
+    },
+    {
+      "type": 5,
+      "data": {
+        "tag": "glass:console",
+        "payload": {
+          "level": "error",
+          "message": "Billing request failed: 404"
+        }
+      },
+      "timestamp": 1795024429419
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 1,
+        "id": 37,
+        "x": 66.56999969482422,
+        "y": 258.9800109863281
+      },
+      "timestamp": 1795024429607
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 0,
+        "id": 37,
+        "x": 66.56999969482422,
+        "y": 258.9800109863281
+      },
+      "timestamp": 1795024429607
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 2,
+        "id": 37,
+        "x": 66,
+        "y": 258,
+        "pointerType": 0
+      },
+      "timestamp": 1795024429608
+    },
+    {
+      "type": 5,
+      "data": {
+        "tag": "glass:network",
+        "payload": {
+          "method": "POST",
+          "url": "http://inkwell.example/api/billing",
+          "status": 404,
+          "duration": 11
+        }
+      },
+      "timestamp": 1795024429618
+    },
+    {
+      "type": 5,
+      "data": {
+        "tag": "glass:console",
+        "payload": {
+          "level": "error",
+          "message": "Billing request failed: 404"
+        }
+      },
+      "timestamp": 1795024429618
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 1,
+        "id": 37,
+        "x": 66.56999969482422,
+        "y": 258.9800109863281
+      },
+      "timestamp": 1795024429787
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 0,
+        "id": 37,
+        "x": 66.56999969482422,
+        "y": 258.9800109863281
+      },
+      "timestamp": 1795024429787
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 2,
+        "id": 37,
+        "x": 66,
+        "y": 258,
+        "pointerType": 0
+      },
+      "timestamp": 1795024429787
+    },
+    {
+      "type": 5,
+      "data": {
+        "tag": "glass:network",
+        "payload": {
+          "method": "POST",
+          "url": "http://inkwell.example/api/billing",
+          "status": 404,
+          "duration": 15
+        }
+      },
+      "timestamp": 1795024429802
+    },
+    {
+      "type": 5,
+      "data": {
+        "tag": "glass:console",
+        "payload": {
+          "level": "error",
+          "message": "Billing request failed: 404"
+        }
+      },
+      "timestamp": 1795024429802
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 1,
+        "positions": [
+          {
+            "x": 66,
+            "y": 258,
+            "id": 37,
+            "timeOffset": -305
+          },
+          {
+            "x": 66,
+            "y": 258,
+            "id": 37,
+            "timeOffset": -124
+          }
+        ]
+      },
+      "timestamp": 1795024429911
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 1,
+        "id": 37,
+        "x": 66.56999969482422,
+        "y": 258.9800109863281
+      },
+      "timestamp": 1795024429972
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 0,
+        "id": 37,
+        "x": 66.56999969482422,
+        "y": 258.9800109863281
+      },
+      "timestamp": 1795024429972
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 2,
+        "id": 37,
+        "x": 66,
+        "y": 258,
+        "pointerType": 0
+      },
+      "timestamp": 1795024429972
+    },
+    {
+      "type": 5,
+      "data": {
+        "tag": "glass:network",
+        "payload": {
+          "method": "POST",
+          "url": "http://inkwell.example/api/billing",
+          "status": 404,
+          "duration": 14
+        }
+      },
+      "timestamp": 1795024429986
+    },
+    {
+      "type": 5,
+      "data": {
+        "tag": "glass:console",
+        "payload": {
+          "level": "error",
+          "message": "Billing request failed: 404"
+        }
+      },
+      "timestamp": 1795024429986
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 1,
+        "id": 37,
+        "x": 66.56999969482422,
+        "y": 258.9800109863281
+      },
+      "timestamp": 1795024430155
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 0,
+        "id": 37,
+        "x": 66.56999969482422,
+        "y": 258.9800109863281
+      },
+      "timestamp": 1795024430155
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 2,
+        "type": 2,
+        "id": 37,
+        "x": 66,
+        "y": 258,
+        "pointerType": 0
+      },
+      "timestamp": 1795024430155
+    },
+    {
+      "type": 5,
+      "data": {
+        "tag": "glass:network",
+        "payload": {
+          "method": "POST",
+          "url": "http://inkwell.example/api/billing",
+          "status": 404,
+          "duration": 13
+        }
+      },
+      "timestamp": 1795024430168
+    },
+    {
+      "type": 5,
+      "data": {
+        "tag": "glass:console",
+        "payload": {
+          "level": "error",
+          "message": "Billing request failed: 404"
+        }
+      },
+      "timestamp": 1795024430168
+    },
+    {
+      "type": 3,
+      "data": {
+        "source": 1,
+        "positions": [
+          {
+            "x": 66,
+            "y": 258,
+            "id": 37,
+            "timeOffset": -439
+          },
+          {
+            "x": 66,
+            "y": 258,
+            "id": 37,
+            "timeOffset": -256
+          }
+        ]
+      },
+      "timestamp": 1795024430411
+    }
+  ]
+}

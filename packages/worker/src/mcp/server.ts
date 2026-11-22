@@ -90,11 +90,11 @@ async function callTool(
     };
   }
   try {
-    if (service.actor) {
+    if (service.auditActor) {
       const args = params?.arguments;
       const sqlText = (args as { query?: unknown } | undefined)?.query;
       service.setActor({
-        ...service.actor,
+        ...service.auditActor,
         operation: `tool:${name}`,
         detail: typeof sqlText === 'string' ? sqlText : JSON.stringify(args ?? {}),
       });

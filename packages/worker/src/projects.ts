@@ -2,6 +2,7 @@
  * Projects: one Dataflare install can serve several sites or apps.
  */
 
+import { type ProjectSettings, parseSettings } from '@dataflare/core/settings';
 import type { D1Database } from './env.ts';
 import { HttpError } from './http.ts';
 
@@ -10,6 +11,7 @@ export interface Project {
   name: string;
   allowedOrigins: string[];
   createdAt: number;
+  settings: ProjectSettings;
 }
 
 interface ProjectRow {
@@ -17,6 +19,7 @@ interface ProjectRow {
   name: string;
   allowed_origins: string | null;
   created_at: number;
+  settings?: string | null;
 }
 
 const toProject = (r: ProjectRow): Project => ({
@@ -24,6 +27,7 @@ const toProject = (r: ProjectRow): Project => ({
   name: r.name,
   allowedOrigins: r.allowed_origins ? (JSON.parse(r.allowed_origins) as string[]) : [],
   createdAt: r.created_at,
+  settings: parseSettings(r.settings),
 });
 
 // Projects are read on every ingest request; cache them per isolate briefly.
@@ -72,6 +76,21 @@ export async function createProject(
     .run();
   cache.delete(input.id);
   return (await getProject(db, input.id))!;
+}
+
+/** Replace a project's settings (already validated). */
+export async function saveSettings(
+  db: D1Database,
+  id: string,
+  settings: ProjectSettings,
+): Promise<Project> {
+  const res = await db
+    .prepare('UPDATE projects SET settings = ? WHERE id = ?')
+    .bind(JSON.stringify(settings), id)
+    .run();
+  if (!res.meta.changes) throw new HttpError(404, `Unknown project "${id}"`);
+  cache.delete(id);
+  return (await getProject(db, id))!;
 }
 
 /**

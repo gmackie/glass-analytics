@@ -5,6 +5,7 @@
 import { api } from '../api.ts';
 import { COLUMN_OPTIONS } from '../catalog.ts';
 import { barList } from '../components/charts.ts';
+import { type CodeToken, codeField } from '../components/code-field.ts';
 import { rangeDays, rangeLabel } from '../components/date-range.ts';
 import { icon } from '../components/icons.ts';
 import {
@@ -346,27 +347,20 @@ const SQL_KEYWORDS = new Set(
   ),
 );
 
-const escapeHtml = (text: string) =>
-  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
 /** Minimal SQL highlighting: strings, comments, numbers and keywords. */
-function highlight(sql: string): string {
-  const out: string[] = [];
+function sqlTokens(sql: string): CodeToken[] {
+  const out: CodeToken[] = [];
   const token =
     /('(?:[^']|'')*'?)|(--[^\n]*)|(\b\d+(?:\.\d+)?\b)|([A-Za-z_][A-Za-z0-9_]*)|([\s\S])/g;
   for (const m of sql.matchAll(token)) {
-    if (m[1]) out.push(`<span class="t-str">${escapeHtml(m[1])}</span>`);
-    else if (m[2]) out.push(`<span class="t-com">${escapeHtml(m[2])}</span>`);
-    else if (m[3]) out.push(`<span class="t-num">${m[3]}</span>`);
+    if (m[1]) out.push({ text: m[1], cls: 't-str' });
+    else if (m[2]) out.push({ text: m[2], cls: 't-com' });
+    else if (m[3]) out.push({ text: m[3], cls: 't-num' });
     else if (m[4])
-      out.push(
-        SQL_KEYWORDS.has(m[4].toUpperCase())
-          ? `<span class="t-kw">${m[4]}</span>`
-          : escapeHtml(m[4]),
-      );
-    else out.push(escapeHtml(m[5]!));
+      out.push({ text: m[4], cls: SQL_KEYWORDS.has(m[4].toUpperCase()) ? 't-kw' : undefined });
+    else out.push({ text: m[5]! });
   }
-  return `${out.join('')}\n`;
+  return out;
 }
 
 const EVENT_COLUMNS: { name: string; type: string; description: string }[] = [
@@ -384,34 +378,21 @@ export function sqlPage(route: Route): Node[] {
   const initial =
     route.params.get('query') ??
     `SELECT event, COUNT(*) AS n\nFROM events\nWHERE project = '${project ?? 'default'}'\n  AND ts_ms >= ${Date.now() - 7 * 86_400_000}\nGROUP BY event\nORDER BY n DESC`;
-  const editor = h(
-    'textarea',
-    {
-      class: 'sql-editor',
-      rows: 12,
-      spellcheck: false,
-      'aria-label': 'SQL query',
-      autocapitalize: 'off',
-      autocomplete: 'off',
+  const sqlField = codeField({
+    value: initial,
+    label: 'SQL query',
+    tokenize: sqlTokens,
+    className: 'code-sql',
+    rows: 12,
+    onKeyDown: (e) => {
+      if (e.key !== 'Enter' || !(e.metaKey || e.ctrlKey)) return false;
+      e.preventDefault();
+      void run();
+      return true;
     },
-    initial,
-  );
-  const mirror = h('pre', { class: 'sql-highlight', 'aria-hidden': 'true' });
-  const paintMirror = () => {
-    mirror.innerHTML = highlight(editor.value);
-    mirror.scrollTop = editor.scrollTop;
-    mirror.scrollLeft = editor.scrollLeft;
-  };
-  editor.addEventListener('input', paintMirror);
-  editor.addEventListener('scroll', paintMirror);
-  paintMirror();
-  const insert = (text: string) => {
-    const { selectionStart: a, selectionEnd: b, value } = editor;
-    editor.value = value.slice(0, a) + text + value.slice(b);
-    editor.selectionStart = editor.selectionEnd = a + text.length;
-    editor.focus();
-    paintMirror();
-  };
+  });
+  const editor = sqlField.input;
+  const insert = (text: string) => sqlField.insert(text);
   const output = h('div', {});
   let view: 'table' | 'chart' = 'table';
   const run = async () => {
@@ -498,16 +479,6 @@ export function sqlPage(route: Route): Node[] {
       mount(output, errorState(err));
     }
   };
-  editor.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-      e.preventDefault();
-      void run();
-    }
-    if (e.key === 'Tab' && !e.shiftKey) {
-      e.preventDefault();
-      insert('  ');
-    }
-  });
   const schema = h(
     'aside',
     { class: 'schema' },
@@ -550,7 +521,7 @@ export function sqlPage(route: Route): Node[] {
         panel(
           'Query',
           [
-            h('div', { class: 'sql-editor-wrap' }, mirror, editor),
+            sqlField.el,
             h(
               'div',
               { class: 'form-actions' },

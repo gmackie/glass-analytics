@@ -13,6 +13,7 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
+import { trimTrailingSlashes } from '@dataflare/core/url';
 
 export interface GlassConfig {
   /** Worker name. */
@@ -53,6 +54,17 @@ export interface GlassConfig {
   } | null;
   /** Optional route on your own domain, e.g. "acme.com/_glass/*". */
   route: string | null;
+  /**
+   * Cloudflare Queues for destination deliveries, with a dead-letter queue. Absent or null: not
+   * set up (the token lacked Queues › Edit), and deliveries go through the five-minute outbox;
+   * `dataflare upgrade` tries again.
+   */
+  queues?: { deliveries: string; dlq: string } | null;
+  /**
+   * Cloudflare Email Sending for emailed reports and alerts (`dataflare email enable`): the
+   * sender address, bound as EMAIL with only that sender allowed. Workers Paid only.
+   */
+  email?: { from: string } | null;
   /** Delete events older than this many days (D1 store). Unset keeps them. */
   retentionDays?: number | null;
   eu: boolean;
@@ -87,6 +99,17 @@ export function projectRoot(start = process.cwd()): string {
 
 export function glassDir(root = projectRoot()): string {
   return join(root, GLASS_DIR);
+}
+
+/** A file's text, or undefined when it doesn't exist. Reading first (not `existsSync` then read)
+ * leaves no gap for the file to change between the check and the use. */
+export function readTextIfExists(path: string): string | undefined {
+  try {
+    return readFileSync(path, 'utf8');
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
+    throw err;
+  }
 }
 
 function readJson<T>(path: string): T | null {
@@ -148,7 +171,7 @@ export function connection(): { host: string; key: string; project: string | und
     );
   }
   return {
-    host: host.replace(/\/+$/, ''),
+    host: trimTrailingSlashes(host),
     key,
     project: process.env.GLASS_PROJECT ?? config?.project,
   };

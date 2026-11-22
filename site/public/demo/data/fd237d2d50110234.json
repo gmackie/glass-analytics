@@ -1,8 +1,8 @@
 {
   "project": "demo",
   "event": "document_shared",
-  "sampled": 300,
-  "lastSeen": "2026-11-05T08:52:39.086Z",
+  "sampled": 348,
+  "lastSeen": "2026-11-18T17:54:28.559Z",
   "description": "Fired when a writer shares a document by link, email or export.",
   "owner": "Growth",
   "properties": [
@@ -14,14 +14,14 @@
       "coverage": 1,
       "examples": [
         "export",
-        "email",
-        "link"
+        "link",
+        "email"
       ],
       "description": "link, email or export."
     }
   ],
-  "summary": "\"document_shared\": 1 properties across the latest 300 events.",
+  "summary": "\"document_shared\": 1 properties across the latest 348 events.",
   "sql": [
-    "SELECT props, ts_ms FROM events\nWHERE project = 'demo' AND event = 'document_shared' AND ts_ms >= 1791282555127\nORDER BY ts_ms DESC LIMIT 500"
+    "SELECT props, ts_ms FROM events\nWHERE project = 'demo' AND event = 'document_shared' AND ts_ms >= 1792432567592\nORDER BY ts_ms DESC LIMIT 500"
   ]
 }

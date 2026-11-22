@@ -2,6 +2,7 @@
  * Build every artifact with esbuild, in dependency order:
  *
  *   1. packages/web/dist        npm SDK (ESM + .d.ts), script-tag SDK, replay recorder
+ *   1b. packages/node/dist      server SDK (ESM + .d.ts)
  *   2. packages/dashboard/dist  app.js + app.css
  *   3. packages/worker/dist     worker.js with the SDK and dashboard embedded, + migrations
  *   4. packages/cli/dist        glass.js with the Worker bundle alongside it
@@ -97,6 +98,37 @@ for (const file of ['index.d.ts', 'client.d.ts', 'types.d.ts']) {
   writeFileSync(join(webDist, file), declaration);
 }
 rmSync(join(webDist, '.types'), { recursive: true, force: true });
+
+// 1b. Server SDK (dataflare-node) ──────────────────────────────────────────
+const nodeDist = pkg('node', 'dist');
+clean(nodeDist);
+await bundle({
+  entryPoints: [pkg('node', 'src', 'index.ts')],
+  outfile: join(nodeDist, 'index.js'),
+  format: 'esm',
+  // Fetch and WebCrypto only: the same file runs on Node 18+, Bun, Deno and Workers.
+  platform: 'neutral',
+  target: 'es2022',
+});
+execFileSync(
+  process.execPath,
+  [
+    join(root, 'node_modules', 'typescript', 'bin', 'tsc'),
+    '-p',
+    pkg('node', 'tsconfig.build.json'),
+  ],
+  { stdio: 'inherit' },
+);
+{
+  const declaration = readFileSync(join(nodeDist, '.types', 'node', 'src', 'index.d.ts'), 'utf8');
+  if (/^(import|export)\b[^\n]*'@dataflare\/core/m.test(declaration)) {
+    throw new Error(
+      "dataflare-node's index.d.ts imports @dataflare/core; keep its public types self-contained.",
+    );
+  }
+  writeFileSync(join(nodeDist, 'index.d.ts'), declaration);
+  rmSync(join(nodeDist, '.types'), { recursive: true, force: true });
+}
 
 // 2. Dashboard ─────────────────────────────────────────────────────────────
 const dashDist = pkg('dashboard', 'dist');

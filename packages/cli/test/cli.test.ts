@@ -36,6 +36,7 @@ import {
   type Wrangler,
   WranglerError,
 } from '../src/cloudflare/wrangler.ts';
+import { email } from '../src/commands/email.ts';
 import { init, normaliseRoute } from '../src/commands/init.ts';
 import { lakeMaintain, PYICEBERG } from '../src/commands/lake.ts';
 import { mcpBridge } from '../src/commands/mcp.ts';
@@ -45,6 +46,8 @@ import type { GlassConfig } from '../src/config.ts';
 const HOST = 'https://glass.test-account.workers.dev';
 
 interface FakeOptions {
+  /** false: the token can't create queues (destinations fall back to the outbox). */
+  queues?: boolean;
   r2Enabled?: boolean;
 }
 
@@ -88,6 +91,11 @@ function fakeWrangler(worker: ReturnType<typeof testApp>, options: FakeOptions =
         state.pipelines.push({ id: `p-${args[2]}`, name: args[2]! });
         return ok();
       }
+      if (cmd.startsWith('queues create')) {
+        return options.queues === false
+          ? { code: 1, stdout: '', stderr: 'Authentication error [code: 10000]' }
+          : ok('Created queue');
+      }
       if (cmd.startsWith('d1 migrations apply')) return ok('Migrations applied');
       if (args[0] === 'deploy')
         return ok(
@@ -123,7 +131,7 @@ function fetcherFor(
     if (url.startsWith('https://api.cloudflare.com/client/v4/accounts')) {
       return Response.json({ success: true, result: [{ id: 'acct-1', name: 'Test Account' }] });
     }
-    if (url.startsWith(HOST)) {
+    if (new URL(url).origin === HOST) {
       return worker.app.fetch(
         new Request(url.replace(HOST, 'https://glass.test'), init),
         worker.env,
@@ -182,12 +190,22 @@ describe('dataflare init', () => {
         'd1 create',
         'd1 list',
         'r2 bucket',
+        'queues create',
+        'queues create',
         'd1 migrations',
         'deploy --config',
         'secret bulk',
       ],
     );
     const config = JSON.parse(readFileSync(join(root, '.glass', 'config.json'), 'utf8'));
+    assert.deepEqual(config.queues, {
+      deliveries: 'glass-web-app-deliveries',
+      dlq: 'glass-web-app-deliveries-dlq',
+    });
+    const queuesConfig = readFileSync(join(root, '.glass', 'wrangler.jsonc'), 'utf8');
+    assert.match(queuesConfig, /"binding": "DELIVERIES"/);
+    assert.match(queuesConfig, /"dead_letter_queue": "glass-web-app-deliveries-dlq"/);
+    assert.match(queuesConfig, /"\*\/5 \* \* \* \*"/);
     assert.equal(config.host, HOST);
     assert.equal(config.project, 'web-app');
     // Named after the project, so another site in the same account gets its own Worker.
@@ -760,6 +778,50 @@ describe('onboarding details', () => {
     );
   });
 
+  it('binds Email Sending with only the configured sender, and the email command sets it', async () => {
+    const config: GlassConfig = {
+      name: 'glass-web-app',
+      accountId: 'acc',
+      host: HOST,
+      project: 'web-app',
+      store: 'd1',
+      d1: { name: 'glass-web-app', id: 'db' },
+      replay: null,
+      lake: null,
+      route: null,
+      eu: false,
+      version: GLASS_VERSION,
+    };
+    assert.doesNotMatch(renderWranglerConfig(config), /send_email/);
+    const jsonc = renderWranglerConfig({ ...config, email: { from: 'reports@acme.com' } });
+    const rendered = JSON.parse(jsonc.replace(/^\s*\/\/.*$/gm, ''));
+    assert.deepEqual(rendered.send_email, [
+      { name: 'EMAIL', allowed_sender_addresses: ['reports@acme.com'] },
+    ]);
+    assert.equal(rendered.vars.GLASS_EMAIL_FROM, 'reports@acme.com');
+
+    const dir = mkdtempSync(join(tmpdir(), 'glass-email-'));
+    mkdirSync(join(dir, '.glass'));
+    writeFileSync(join(dir, '.glass', 'config.json'), JSON.stringify(config));
+    const cwd = process.cwd();
+    process.chdir(dir);
+    try {
+      await assert.rejects(() => email('enable', { from: 'nope' }), /Which address/);
+      await email('enable', { from: 'reports@acme.com', json: true });
+      assert.deepEqual(JSON.parse(readFileSync(join(dir, '.glass', 'config.json'), 'utf8')).email, {
+        from: 'reports@acme.com',
+      });
+      await email('disable', { json: true });
+      assert.equal(
+        JSON.parse(readFileSync(join(dir, '.glass', 'config.json'), 'utf8')).email,
+        null,
+      );
+      await assert.rejects(() => email('send', {}), /email enable/);
+    } finally {
+      process.chdir(cwd);
+    }
+  });
+
   it("doesn't copy the Dataflare section into a CLAUDE.md that imports AGENTS.md", () => {
     const dir = mkdtempSync(join(tmpdir(), 'glass-md-'));
     const claude = join(dir, 'CLAUDE.md');
@@ -847,7 +909,20 @@ describe('lake maintenance', () => {
         const command = args[args.indexOf('--command') + 1]!;
         sql.push(command);
         const results = command.startsWith('SELECT')
-          ? [{ id: 7, project: 'acme', ids: JSON.stringify(['alice', 'dev-alice']) }]
+          ? [
+              {
+                id: 7,
+                project: 'acme',
+                ids: JSON.stringify(['alice', 'dev-alice']),
+                kind: 'person',
+              },
+              {
+                id: 8,
+                project: 'acme',
+                ids: JSON.stringify(['company', 'acme-inc']),
+                kind: 'group',
+              },
+            ]
           : [];
         return { code: 0, stdout: JSON.stringify([{ results, success: true }]), stderr: '' };
       },
@@ -867,10 +942,18 @@ describe('lake maintenance', () => {
       },
     );
     const left = JSON.parse(python([fixture, 'dump', warehouse])) as {
-      events: { project: string; distinct_id: string; ts_ms: number }[];
-      events_v2: { distinct_id: string }[];
+      events: { project: string; distinct_id: string; ts_ms: number; props: string }[];
+      events_v2: { distinct_id: string; props: string }[];
       identities: { distinct_id: string }[];
     };
+    // The deleted group is gone from its events, which stay (with their other properties).
+    assert.deepEqual(
+      left.events.filter((e) => e.distinct_id === 'dev-bob').map((e) => JSON.parse(e.props)),
+      [{ x: 1 }],
+    );
+    assert.deepEqual(JSON.parse(left.events_v2.find((e) => e.distinct_id === 'dev-carol')!.props), {
+      $groups: { team: 't1' },
+    });
     assert.deepEqual(
       left.events_v2.map((e) => e.distinct_id),
       ['dev-carol'],
@@ -889,7 +972,7 @@ describe('lake maintenance', () => {
     );
     assert.match(
       sql.at(-1)!,
-      /^UPDATE lake_deletions SET done_at = 1790000000000 WHERE id IN \(7\)$/,
+      /^UPDATE lake_deletions SET done_at = 1790000000000 WHERE id IN \(7, 8\)$/,
     );
   });
 

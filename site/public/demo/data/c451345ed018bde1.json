@@ -2,13 +2,15 @@
   "kind": "retention",
   "period": "week",
   "periods": 8,
+  "retentionType": "first_time",
+  "cumulative": false,
   "cohorts": [
     {
-      "start": 1792972800000,
-      "size": 385,
+      "start": 1794182400000,
+      "size": 563,
       "counts": [
-        385,
-        39,
+        563,
+        53,
         0,
         0,
         0,
@@ -19,7 +21,7 @@
       ],
       "rates": [
         1,
-        0.1012987012987013,
+        0.0941385435168739,
         0,
         0,
         0,
@@ -30,10 +32,10 @@
       ]
     },
     {
-      "start": 1793577600000,
-      "size": 433,
+      "start": 1794787200000,
+      "size": 368,
       "counts": [
-        433,
+        368,
         0,
         0,
         0,
@@ -58,7 +60,7 @@
   ],
   "average": [
     1,
-    0.1012987012987013,
+    0.0941385435168739,
     0,
     0,
     0,
@@ -68,13 +70,13 @@
     0
   ],
   "sql": [
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793269652168\n    AND e.ts_ms < 1793960852168\n    AND e.event IN ('$pageview')\n),\nfirst_seen AS (\n  SELECT pid, MIN(ts_ms) AS t0\n  FROM ev\n  WHERE event = '$pageview' AND ts_ms < 1793874452168 AND 1 = 1\n  GROUP BY pid\n),\nc AS (SELECT pid, (((t0 / 86400000) - (((t0 / 86400000) + 3) % 7)) * 86400000) AS cbucket FROM first_seen),\na AS (\n  SELECT DISTINCT pid, (((ts_ms / 86400000) - (((ts_ms / 86400000) + 3) % 7)) * 86400000) AS abucket\n  FROM ev\n  WHERE event = '$pageview' AND 1 = 1\n)\nSELECT c.cbucket AS cohort, (a.abucket - c.cbucket) / 604800000 AS k, COUNT(DISTINCT c.pid) AS n\nFROM c JOIN a ON a.pid = c.pid\nWHERE a.abucket > c.cbucket AND (a.abucket - c.cbucket) / 604800000 <= 8\nGROUP BY c.cbucket, (a.abucket - c.cbucket) / 604800000\nUNION ALL\nSELECT cbucket AS cohort, 0 AS k, COUNT(*) AS n FROM c GROUP BY cbucket"
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1794419684620\n    AND e.ts_ms < 1795110884620\n    AND e.event IN ('$pageview')\n),\nfirst_seen AS (\n  SELECT actor, MIN(ts_ms) AS t0 FROM ev WHERE event = '$pageview' AND 1 = 1 AND ts_ms < 1795024484620 GROUP BY actor\n),\nc AS (\n  SELECT fs.actor, (((fs.t0 / 86400000) - (((fs.t0 / 86400000) + 3) % 7)) * 86400000) AS cbucket, MIN('') AS bd\n  FROM first_seen fs JOIN ev e ON e.actor = fs.actor AND e.ts_ms = fs.t0 AND e.event = '$pageview' AND 1 = 1\n  GROUP BY fs.actor, (((fs.t0 / 86400000) - (((fs.t0 / 86400000) + 3) % 7)) * 86400000)\n),\na AS (\n  SELECT DISTINCT actor, (((ts_ms / 86400000) - (((ts_ms / 86400000) + 3) % 7)) * 86400000) AS abucket\n  FROM ev\n  WHERE event = '$pageview' AND 1 = 1\n)\nSELECT c.cbucket AS cohort, c.bd AS bd, (a.abucket - c.cbucket) / 604800000 AS k, COUNT(DISTINCT c.actor) AS n\nFROM c JOIN a ON a.actor = c.actor\nWHERE a.abucket > c.cbucket AND (a.abucket - c.cbucket) / 604800000 <= 8\nGROUP BY c.cbucket, c.bd, (a.abucket - c.cbucket) / 604800000\nUNION ALL\nSELECT cbucket AS cohort, bd, 0 AS k, COUNT(*) AS n FROM c GROUP BY cbucket, bd"
   ],
   "range": {
-    "from": "2026-10-29T10:27:32.168Z",
-    "to": "2026-11-05T10:27:32.168Z"
+    "from": "2026-11-11T17:54:44.620Z",
+    "to": "2026-11-18T17:54:44.620Z"
   },
-  "summary": "818 people in 2 weekly cohorts. Average retention: week 1 10.1%, week 4 0.0%.",
+  "summary": "931 people in 2 weekly cohorts. Average retention: week 1 9.4%, week 4 0.0%.",
   "project": "demo",
-  "dashboard": "http://127.0.0.1:58904/app#/insights/retention?project=demo&spec=%7B%22from%22%3A%22-7d%22%2C%22cohortEvent%22%3A%7B%22event%22%3A%22%24pageview%22%7D%2C%22returnEvent%22%3A%7B%22event%22%3A%22%24pageview%22%7D%2C%22period%22%3A%22week%22%2C%22periods%22%3A8%7D"
+  "dashboard": "http://127.0.0.1:49397/app#/insights/retention?project=demo&spec=%7B%22from%22%3A%22-7d%22%2C%22cohortEvent%22%3A%7B%22event%22%3A%22%24pageview%22%7D%2C%22returnEvent%22%3A%7B%22event%22%3A%22%24pageview%22%7D%2C%22period%22%3A%22week%22%2C%22periods%22%3A8%7D"
 }

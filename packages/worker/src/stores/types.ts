@@ -45,4 +45,9 @@ export interface EventStore {
    * a later job removes them (the lake: see `dataflare lake maintain`).
    */
   deletePersonEvents(project: string, ids: string[]): Promise<'deleted' | 'queued'>;
+  /**
+   * Remove a group from stored events (its key in `$groups` and its property snapshot in
+   * `$group_props`); the events themselves stay with their people.
+   */
+  deleteGroupData(project: string, type: string, key: string): Promise<'deleted' | 'queued'>;
 }

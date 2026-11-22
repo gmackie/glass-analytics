@@ -6,621 +6,16 @@
       "properties": {
         "plan": "team"
       },
-      "firstSeen": "2026-11-05T10:26:03.762Z",
-      "lastSeen": "2026-11-05T10:26:13.854Z"
+      "firstSeen": "2026-11-18T17:53:44.300Z",
+      "lastSeen": "2026-11-18T17:53:54.413Z"
     },
     {
       "id": "user-sam",
       "properties": {
         "plan": "free"
       },
-      "firstSeen": "2026-11-05T10:26:02.172Z",
-      "lastSeen": "2026-11-05T10:26:07.197Z"
-    },
-    {
-      "id": "user_1383",
-      "properties": {
-        "signup_source": "header",
-        "plan": "free",
-        "email": "user_1383@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-14T05:03:41.379Z",
-      "lastSeen": "2026-11-05T10:16:30.173Z"
-    },
-    {
-      "id": "user_1645",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1645@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-31T01:00:04.277Z",
-      "lastSeen": "2026-11-05T10:02:34.798Z"
-    },
-    {
-      "id": "user_1618",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1618@example.com",
-        "company_size": "2-10"
-      },
-      "firstSeen": "2026-10-30T05:23:17.342Z",
-      "lastSeen": "2026-11-05T09:19:41.223Z"
-    },
-    {
-      "id": "user_1369",
-      "properties": {
-        "signup_source": "header",
-        "plan": "free",
-        "email": "user_1369@example.com",
-        "company_size": "2-10"
-      },
-      "firstSeen": "2026-10-13T00:50:11.473Z",
-      "lastSeen": "2026-11-05T08:52:44.086Z"
-    },
-    {
-      "id": "user_1292",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "pro",
-        "email": "user_1292@example.com",
-        "company_size": "200+"
-      },
-      "firstSeen": "2026-10-06T07:15:05.748Z",
-      "lastSeen": "2026-11-05T08:46:56.270Z"
-    },
-    {
-      "id": "user_1571",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1571@example.com",
-        "company_size": "2-10"
-      },
-      "firstSeen": "2026-10-27T00:15:00.968Z",
-      "lastSeen": "2026-11-05T08:20:55.029Z"
-    },
-    {
-      "id": "user_1263",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1263@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-01T23:52:52.743Z",
-      "lastSeen": "2026-11-05T08:12:26.448Z"
-    },
-    {
-      "id": "user_1696",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "pro",
-        "email": "user_1696@example.com",
-        "company_size": "11-50"
-      },
-      "firstSeen": "2026-11-05T07:12:30.440Z",
-      "lastSeen": "2026-11-05T07:21:15.945Z"
-    },
-    {
-      "id": "user_1613",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1613@example.com",
-        "company_size": "2-10"
-      },
-      "firstSeen": "2026-10-30T08:07:13.146Z",
-      "lastSeen": "2026-11-05T07:20:23.555Z"
-    },
-    {
-      "id": "user_1698",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1698@example.com",
-        "company_size": "51-200"
-      },
-      "firstSeen": "2026-11-05T06:52:49.153Z",
-      "lastSeen": "2026-11-05T07:04:26.379Z"
-    },
-    {
-      "id": "user_1705",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1705@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-11-05T06:46:24.405Z",
-      "lastSeen": "2026-11-05T06:57:07.488Z"
-    },
-    {
-      "id": "user_1701",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1701@example.com",
-        "company_size": "2-10"
-      },
-      "firstSeen": "2026-11-05T06:41:52.845Z",
-      "lastSeen": "2026-11-05T06:48:47.904Z"
-    },
-    {
-      "id": "user_1704",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1704@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-11-05T06:38:37.600Z",
-      "lastSeen": "2026-11-05T06:43:10.204Z"
-    },
-    {
-      "id": "user_1689",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "pro",
-        "email": "user_1689@example.com",
-        "company_size": "11-50"
-      },
-      "firstSeen": "2026-11-05T05:45:00.411Z",
-      "lastSeen": "2026-11-05T05:46:35.410Z"
-    },
-    {
-      "id": "user_1686",
-      "properties": {
-        "signup_source": "header",
-        "plan": "free",
-        "email": "user_1686@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-11-04T00:15:05.349Z",
-      "lastSeen": "2026-11-05T05:34:52.647Z"
-    },
-    {
-      "id": "user_1479",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1479@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-20T05:08:04.983Z",
-      "lastSeen": "2026-11-05T05:17:18.692Z"
-    },
-    {
-      "id": "user_1685",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1685@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-11-04T03:52:41.389Z",
-      "lastSeen": "2026-11-05T04:35:52.686Z"
-    },
-    {
-      "id": "user_1700",
-      "properties": {
-        "signup_source": "header",
-        "plan": "free",
-        "email": "user_1700@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-11-05T04:16:44.943Z",
-      "lastSeen": "2026-11-05T04:23:55.942Z"
-    },
-    {
-      "id": "user_1706",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1706@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-11-05T02:58:42.300Z",
-      "lastSeen": "2026-11-05T02:58:48.300Z"
-    },
-    {
-      "id": "user_1702",
-      "properties": {
-        "signup_source": "header",
-        "plan": "free",
-        "email": "user_1702@example.com",
-        "company_size": "2-10"
-      },
-      "firstSeen": "2026-11-05T02:20:43.350Z",
-      "lastSeen": "2026-11-05T02:29:47.756Z"
-    },
-    {
-      "id": "user_1107",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1107@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-09-13T20:52:41.578Z",
-      "lastSeen": "2026-11-05T01:42:20.065Z"
-    },
-    {
-      "id": "user_1672",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1672@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-11-03T06:20:26.222Z",
-      "lastSeen": "2026-11-05T01:03:54.289Z"
-    },
-    {
-      "id": "user_1564",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1564@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-26T21:31:27.798Z",
-      "lastSeen": "2026-11-05T00:53:24.744Z"
-    },
-    {
-      "id": "user_1690",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1690@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-11-04T23:33:01.098Z",
-      "lastSeen": "2026-11-04T23:42:34.583Z"
-    },
-    {
-      "id": "user_1699",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1699@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-11-04T22:50:49.857Z",
-      "lastSeen": "2026-11-04T23:00:24.030Z"
-    },
-    {
-      "id": "user_1688",
-      "properties": {
-        "signup_source": "header",
-        "plan": "free",
-        "email": "user_1688@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-11-04T22:49:23.726Z",
-      "lastSeen": "2026-11-04T22:53:51.012Z"
-    },
-    {
-      "id": "user_1642",
-      "properties": {
-        "signup_source": "header",
-        "plan": "pro",
-        "email": "user_1642@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-31T06:30:21.107Z",
-      "lastSeen": "2026-11-04T22:39:17.395Z"
-    },
-    {
-      "id": "user_1342",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1342@example.com",
-        "company_size": "2-10"
-      },
-      "firstSeen": "2026-10-10T03:20:32.001Z",
-      "lastSeen": "2026-11-04T22:27:05.387Z"
-    },
-    {
-      "id": "user_1693",
-      "properties": {
-        "signup_source": "header",
-        "plan": "free",
-        "email": "user_1693@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-11-04T22:12:00.824Z",
-      "lastSeen": "2026-11-04T22:12:06.823Z"
-    },
-    {
-      "id": "user_1071",
-      "properties": {
-        "signup_source": "header",
-        "plan": "free",
-        "email": "user_1071@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-09-08T18:20:23.563Z",
-      "lastSeen": "2026-11-04T21:57:43.297Z"
-    },
-    {
-      "id": "user_1694",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "pro",
-        "email": "user_1694@example.com",
-        "company_size": "11-50"
-      },
-      "firstSeen": "2026-11-04T20:09:15.137Z",
-      "lastSeen": "2026-11-04T20:09:21.137Z"
-    },
-    {
-      "id": "user_1695",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1695@example.com",
-        "company_size": "11-50"
-      },
-      "firstSeen": "2026-11-04T19:58:41.373Z",
-      "lastSeen": "2026-11-04T20:02:27.198Z"
-    },
-    {
-      "id": "user_1595",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "pro",
-        "email": "user_1595@example.com",
-        "company_size": "11-50"
-      },
-      "firstSeen": "2026-10-27T18:00:03.077Z",
-      "lastSeen": "2026-11-04T19:44:12.569Z"
-    },
-    {
-      "id": "user_1691",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1691@example.com",
-        "company_size": "2-10"
-      },
-      "firstSeen": "2026-11-04T18:57:12.604Z",
-      "lastSeen": "2026-11-04T19:07:13.855Z"
-    },
-    {
-      "id": "user_1697",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "pro",
-        "email": "user_1697@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-11-04T19:03:08.736Z",
-      "lastSeen": "2026-11-04T19:04:43.735Z"
-    },
-    {
-      "id": "user_1703",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1703@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-11-04T18:29:17.565Z",
-      "lastSeen": "2026-11-04T18:29:23.564Z"
-    },
-    {
-      "id": "user_1692",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1692@example.com",
-        "company_size": "2-10"
-      },
-      "firstSeen": "2026-11-04T17:45:55.501Z",
-      "lastSeen": "2026-11-04T17:46:01.500Z"
-    },
-    {
-      "id": "user_1372",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1372@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-12T22:56:38.602Z",
-      "lastSeen": "2026-11-04T16:49:06.093Z"
-    },
-    {
-      "id": "user_1563",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1563@example.com",
-        "company_size": "2-10"
-      },
-      "firstSeen": "2026-10-26T20:17:40.169Z",
-      "lastSeen": "2026-11-04T16:45:27.999Z"
-    },
-    {
-      "id": "user_1442",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1442@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-15T17:43:04.270Z",
-      "lastSeen": "2026-11-04T15:45:00.770Z"
-    },
-    {
-      "id": "user_1649",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1649@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-11-01T03:02:26.402Z",
-      "lastSeen": "2026-11-04T14:35:07.895Z"
-    },
-    {
-      "id": "user_1657",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1657@example.com",
-        "company_size": "11-50"
-      },
-      "firstSeen": "2026-11-02T00:15:30.563Z",
-      "lastSeen": "2026-11-04T14:23:40.248Z"
-    },
-    {
-      "id": "user_1635",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "pro",
-        "email": "user_1635@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-31T03:52:48.176Z",
-      "lastSeen": "2026-11-04T14:18:02.296Z"
-    },
-    {
-      "id": "user_1427",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1427@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-16T07:03:05.453Z",
-      "lastSeen": "2026-11-04T12:55:24.032Z"
-    },
-    {
-      "id": "user_1510",
-      "properties": {
-        "signup_source": "header",
-        "plan": "free",
-        "email": "user_1510@example.com",
-        "company_size": "51-200"
-      },
-      "firstSeen": "2026-10-23T06:43:38.341Z",
-      "lastSeen": "2026-11-04T11:38:08.044Z"
-    },
-    {
-      "id": "user_1518",
-      "properties": {
-        "signup_source": "header",
-        "plan": "free",
-        "email": "user_1518@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-23T08:07:14.601Z",
-      "lastSeen": "2026-11-04T11:17:56.440Z"
-    },
-    {
-      "id": "user_1464",
-      "properties": {
-        "signup_source": "header",
-        "plan": "team",
-        "email": "user_1464@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-17T22:40:27.627Z",
-      "lastSeen": "2026-11-04T09:59:55.262Z"
-    },
-    {
-      "id": "user_1668",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1668@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-11-03T05:23:29.599Z",
-      "lastSeen": "2026-11-04T09:47:50.830Z"
-    },
-    {
-      "id": "user_1340",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1340@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-09T19:42:57.013Z",
-      "lastSeen": "2026-11-04T09:28:12.431Z"
-    },
-    {
-      "id": "user_1392",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1392@example.com",
-        "company_size": "11-50"
-      },
-      "firstSeen": "2026-10-15T02:36:17.883Z",
-      "lastSeen": "2026-11-04T08:53:38.256Z"
-    },
-    {
-      "id": "user_1481",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1481@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-19T23:32:14.324Z",
-      "lastSeen": "2026-11-04T08:08:02.678Z"
-    },
-    {
-      "id": "user_1435",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1435@example.com",
-        "company_size": "51-200"
-      },
-      "firstSeen": "2026-10-16T07:38:48.486Z",
-      "lastSeen": "2026-11-04T07:57:14.153Z"
-    },
-    {
-      "id": "user_1567",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "pro",
-        "email": "user_1567@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-26T23:00:40.809Z",
-      "lastSeen": "2026-11-04T07:45:42.667Z"
-    },
-    {
-      "id": "user_1621",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1621@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-30T05:02:06.120Z",
-      "lastSeen": "2026-11-04T07:24:00.617Z"
-    },
-    {
-      "id": "user_1679",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1679@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-11-04T07:11:35.438Z",
-      "lastSeen": "2026-11-04T07:20:51.521Z"
+      "firstSeen": "2026-11-18T17:53:42.706Z",
+      "lastSeen": "2026-11-18T17:53:47.731Z"
     },
     {
       "id": "user_1018",
@@ -630,63 +25,613 @@
         "email": "user_1018@example.com",
         "company_size": "200+"
       },
-      "firstSeen": "2026-08-30T00:55:30.990Z",
-      "lastSeen": "2026-11-04T07:10:32.136Z"
+      "firstSeen": "2026-09-12T08:23:12.571Z",
+      "lastSeen": "2026-11-18T17:53:28.559Z"
     },
     {
-      "id": "user_1360",
+      "id": "user_1572",
       "properties": {
-        "signup_source": "header",
-        "plan": "pro",
-        "email": "user_1360@example.com",
-        "company_size": "1"
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1572@example.com",
+        "company_size": "2-10"
       },
-      "firstSeen": "2026-10-11T08:02:15.453Z",
-      "lastSeen": "2026-11-04T07:04:42.969Z"
+      "firstSeen": "2026-11-09T00:55:00.851Z",
+      "lastSeen": "2026-11-18T17:36:15.911Z"
     },
     {
-      "id": "user_1673",
+      "id": "user_1610",
       "properties": {
         "signup_source": "header",
         "plan": "free",
-        "email": "user_1673@example.com",
+        "email": "user_1610@example.com",
         "company_size": "1"
       },
-      "firstSeen": "2026-11-02T23:36:14.651Z",
-      "lastSeen": "2026-11-04T04:56:10.519Z"
+      "firstSeen": "2026-11-12T10:14:20.213Z",
+      "lastSeen": "2026-11-18T17:20:00.423Z"
     },
     {
-      "id": "user_1276",
+      "id": "user_1640",
+      "properties": {
+        "signup_source": "header",
+        "plan": "pro",
+        "email": "user_1640@example.com",
+        "company_size": "2-10"
+      },
+      "firstSeen": "2026-11-13T00:26:49.376Z",
+      "lastSeen": "2026-11-18T17:05:07.444Z"
+    },
+    {
+      "id": "user_1561",
       "properties": {
         "signup_source": "pricing",
         "plan": "pro",
-        "email": "user_1276@example.com",
+        "email": "user_1561@example.com",
         "company_size": "1"
       },
-      "firstSeen": "2026-10-03T22:06:14.834Z",
-      "lastSeen": "2026-11-04T04:48:09.811Z"
+      "firstSeen": "2026-11-09T01:50:52.355Z",
+      "lastSeen": "2026-11-18T16:22:25.384Z"
     },
     {
-      "id": "user_1684",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "pro",
-        "email": "user_1684@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-11-04T04:06:52.685Z",
-      "lastSeen": "2026-11-04T04:18:56.777Z"
-    },
-    {
-      "id": "user_1139",
+      "id": "user_1703",
       "properties": {
         "signup_source": "header",
         "plan": "free",
-        "email": "user_1139@example.com",
-        "company_size": "200+"
+        "email": "user_1703@example.com",
+        "company_size": "2-10"
       },
-      "firstSeen": "2026-09-18T17:31:15.298Z",
-      "lastSeen": "2026-11-04T04:12:48.140Z"
+      "firstSeen": "2026-11-18T15:29:20.197Z",
+      "lastSeen": "2026-11-18T15:29:26.197Z"
+    },
+    {
+      "id": "user_1206",
+      "properties": {
+        "signup_source": "header",
+        "plan": "free",
+        "email": "user_1206@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-10-10T10:50:15.162Z",
+      "lastSeen": "2026-11-18T15:02:23.539Z"
+    },
+    {
+      "id": "user_1521",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "team",
+        "email": "user_1521@example.com",
+        "company_size": "11-50"
+      },
+      "firstSeen": "2026-11-05T08:23:13.390Z",
+      "lastSeen": "2026-11-18T14:33:39.871Z"
+    },
+    {
+      "id": "user_1637",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1637@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-13T02:31:35.959Z",
+      "lastSeen": "2026-11-18T14:33:39.263Z"
+    },
+    {
+      "id": "user_1701",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1701@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-18T14:10:53.439Z",
+      "lastSeen": "2026-11-18T14:21:54.193Z"
+    },
+    {
+      "id": "user_1449",
+      "properties": {
+        "signup_source": "header",
+        "plan": "free",
+        "email": "user_1449@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-10-30T08:59:10.030Z",
+      "lastSeen": "2026-11-18T14:01:57.449Z"
+    },
+    {
+      "id": "user_1544",
+      "properties": {
+        "signup_source": "header",
+        "plan": "free",
+        "email": "user_1544@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-07T00:27:06.694Z",
+      "lastSeen": "2026-11-18T11:22:42.425Z"
+    },
+    {
+      "id": "user_1175",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "team",
+        "email": "user_1175@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-10-06T13:40:16.243Z",
+      "lastSeen": "2026-11-18T11:13:16.347Z"
+    },
+    {
+      "id": "user_1436",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "team",
+        "email": "user_1436@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-10-29T03:51:56.936Z",
+      "lastSeen": "2026-11-18T10:44:24.743Z"
+    },
+    {
+      "id": "user_1382",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1382@example.com",
+        "company_size": "2-10"
+      },
+      "firstSeen": "2026-10-27T01:08:38.754Z",
+      "lastSeen": "2026-11-18T08:15:30.337Z"
+    },
+    {
+      "id": "user_1362",
+      "properties": {
+        "signup_source": "header",
+        "plan": "free",
+        "email": "user_1362@example.com",
+        "company_size": "2-10"
+      },
+      "firstSeen": "2026-10-25T04:46:00.469Z",
+      "lastSeen": "2026-11-18T07:54:39.096Z"
+    },
+    {
+      "id": "user_1559",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "pro",
+        "email": "user_1559@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-09T06:28:22.390Z",
+      "lastSeen": "2026-11-18T07:35:45.631Z"
+    },
+    {
+      "id": "user_1638",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1638@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-13T03:13:26.316Z",
+      "lastSeen": "2026-11-18T07:34:58.904Z"
+    },
+    {
+      "id": "user_1587",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "pro",
+        "email": "user_1587@example.com",
+        "company_size": "11-50"
+      },
+      "firstSeen": "2026-11-10T01:27:44.658Z",
+      "lastSeen": "2026-11-18T06:45:31.994Z"
+    },
+    {
+      "id": "user_1707",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "pro",
+        "email": "user_1707@example.com",
+        "company_size": "2-10"
+      },
+      "firstSeen": "2026-11-18T06:19:06.874Z",
+      "lastSeen": "2026-11-18T06:25:58.327Z"
+    },
+    {
+      "id": "user_1708",
+      "properties": {
+        "signup_source": "header",
+        "plan": "free",
+        "email": "user_1708@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-18T05:58:16.268Z",
+      "lastSeen": "2026-11-18T06:00:59.430Z"
+    },
+    {
+      "id": "user_1570",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1570@example.com",
+        "company_size": "2-10"
+      },
+      "firstSeen": "2026-11-09T02:07:51.295Z",
+      "lastSeen": "2026-11-18T05:51:41.463Z"
+    },
+    {
+      "id": "user_1445",
+      "properties": {
+        "signup_source": "header",
+        "plan": "pro",
+        "email": "user_1445@example.com",
+        "company_size": "11-50"
+      },
+      "firstSeen": "2026-10-29T07:53:25.082Z",
+      "lastSeen": "2026-11-18T05:50:54.332Z"
+    },
+    {
+      "id": "user_1706",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1706@example.com",
+        "company_size": "51-200"
+      },
+      "firstSeen": "2026-11-18T05:23:29.272Z",
+      "lastSeen": "2026-11-18T05:23:35.272Z"
+    },
+    {
+      "id": "user_1705",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1705@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-18T04:06:26.195Z",
+      "lastSeen": "2026-11-18T04:06:32.195Z"
+    },
+    {
+      "id": "user_1700",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1700@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-18T03:27:37.126Z",
+      "lastSeen": "2026-11-18T03:39:12.798Z"
+    },
+    {
+      "id": "user_1546",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1546@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-07T04:33:09.918Z",
+      "lastSeen": "2026-11-18T03:10:58.222Z"
+    },
+    {
+      "id": "user_1702",
+      "properties": {
+        "signup_source": "header",
+        "plan": "free",
+        "email": "user_1702@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-18T03:10:34.489Z",
+      "lastSeen": "2026-11-18T03:10:40.488Z"
+    },
+    {
+      "id": "user_1627",
+      "properties": {
+        "signup_source": "header",
+        "plan": "free",
+        "email": "user_1627@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-12T15:54:54.015Z",
+      "lastSeen": "2026-11-18T02:30:26.680Z"
+    },
+    {
+      "id": "user_1709",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1709@example.com",
+        "company_size": "2-10"
+      },
+      "firstSeen": "2026-11-18T02:19:54.289Z",
+      "lastSeen": "2026-11-18T02:20:00.288Z"
+    },
+    {
+      "id": "user_1633",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "team",
+        "email": "user_1633@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-13T08:13:25.373Z",
+      "lastSeen": "2026-11-18T02:06:59.065Z"
+    },
+    {
+      "id": "user_1075",
+      "properties": {
+        "signup_source": "header",
+        "plan": "pro",
+        "email": "user_1075@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-09-23T15:37:06.606Z",
+      "lastSeen": "2026-11-18T02:06:42.463Z"
+    },
+    {
+      "id": "user_1582",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "pro",
+        "email": "user_1582@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-10T06:50:03.874Z",
+      "lastSeen": "2026-11-18T02:06:09.700Z"
+    },
+    {
+      "id": "user_1630",
+      "properties": {
+        "signup_source": "header",
+        "plan": "free",
+        "email": "user_1630@example.com",
+        "company_size": "11-50"
+      },
+      "firstSeen": "2026-11-12T01:33:38.646Z",
+      "lastSeen": "2026-11-18T01:05:30.146Z"
+    },
+    {
+      "id": "user_1704",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1704@example.com",
+        "company_size": "2-10"
+      },
+      "firstSeen": "2026-11-18T00:46:36.866Z",
+      "lastSeen": "2026-11-18T00:56:18.341Z"
+    },
+    {
+      "id": "user_1455",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1455@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-10-30T04:42:17.307Z",
+      "lastSeen": "2026-11-18T00:37:17.061Z"
+    },
+    {
+      "id": "user_1569",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1569@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-09T06:50:24.190Z",
+      "lastSeen": "2026-11-17T23:51:42.105Z"
+    },
+    {
+      "id": "user_1664",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1664@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-15T14:20:41.680Z",
+      "lastSeen": "2026-11-17T23:26:41.526Z"
+    },
+    {
+      "id": "user_1679",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1679@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-16T00:31:04.430Z",
+      "lastSeen": "2026-11-17T23:22:16.659Z"
+    },
+    {
+      "id": "user_1563",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1563@example.com",
+        "company_size": "2-10"
+      },
+      "firstSeen": "2026-11-09T07:42:42.549Z",
+      "lastSeen": "2026-11-17T22:25:56.014Z"
+    },
+    {
+      "id": "user_1209",
+      "properties": {
+        "signup_source": "header",
+        "plan": "free",
+        "email": "user_1209@example.com",
+        "company_size": "11-50"
+      },
+      "firstSeen": "2026-10-10T12:08:08.267Z",
+      "lastSeen": "2026-11-17T21:58:16.687Z"
+    },
+    {
+      "id": "user_1651",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1651@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-14T01:28:25.870Z",
+      "lastSeen": "2026-11-17T21:28:21.329Z"
+    },
+    {
+      "id": "user_1612",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "pro",
+        "email": "user_1612@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-12T03:53:05.589Z",
+      "lastSeen": "2026-11-17T21:18:50.704Z"
+    },
+    {
+      "id": "user_1676",
+      "properties": {
+        "signup_source": "header",
+        "plan": "pro",
+        "email": "user_1676@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-16T04:29:15.799Z",
+      "lastSeen": "2026-11-17T21:06:20.690Z"
+    },
+    {
+      "id": "user_1434",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1434@example.com",
+        "company_size": "51-200"
+      },
+      "firstSeen": "2026-10-29T15:06:30.067Z",
+      "lastSeen": "2026-11-17T20:52:43.065Z"
+    },
+    {
+      "id": "user_1501",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1501@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-04T09:02:09.674Z",
+      "lastSeen": "2026-11-17T20:20:24.458Z"
+    },
+    {
+      "id": "user_1674",
+      "properties": {
+        "signup_source": "header",
+        "plan": "pro",
+        "email": "user_1674@example.com",
+        "company_size": "11-50"
+      },
+      "firstSeen": "2026-11-16T12:25:06.123Z",
+      "lastSeen": "2026-11-17T19:30:09.806Z"
+    },
+    {
+      "id": "user_1354",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1354@example.com",
+        "company_size": "51-200"
+      },
+      "firstSeen": "2026-10-24T04:53:58.133Z",
+      "lastSeen": "2026-11-17T18:55:36.531Z"
+    },
+    {
+      "id": "user_1218",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1218@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-10-11T08:05:37.167Z",
+      "lastSeen": "2026-11-17T18:35:47.692Z"
+    },
+    {
+      "id": "user_1463",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1463@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-10-30T12:54:19.349Z",
+      "lastSeen": "2026-11-17T18:11:19.378Z"
+    },
+    {
+      "id": "user_1503",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1503@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-04T09:39:58.340Z",
+      "lastSeen": "2026-11-17T17:41:00.970Z"
+    },
+    {
+      "id": "user_1314",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1314@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-10-22T04:46:19.926Z",
+      "lastSeen": "2026-11-17T17:10:03.968Z"
+    },
+    {
+      "id": "user_1567",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1567@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-09T03:29:34.241Z",
+      "lastSeen": "2026-11-17T16:49:11.407Z"
+    },
+    {
+      "id": "user_1547",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1547@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-07T05:28:55.186Z",
+      "lastSeen": "2026-11-17T16:49:00.493Z"
+    },
+    {
+      "id": "user_1690",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1690@example.com",
+        "company_size": "11-50"
+      },
+      "firstSeen": "2026-11-17T15:14:31.670Z",
+      "lastSeen": "2026-11-17T15:18:00.381Z"
+    },
+    {
+      "id": "user_1668",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1668@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-15T03:40:02.108Z",
+      "lastSeen": "2026-11-17T14:57:08.038Z"
     },
     {
       "id": "user_1681",
@@ -694,219 +639,263 @@
         "signup_source": "pricing",
         "plan": "free",
         "email": "user_1681@example.com",
-        "company_size": "11-50"
-      },
-      "firstSeen": "2026-11-04T03:55:22.423Z",
-      "lastSeen": "2026-11-04T03:58:09.615Z"
-    },
-    {
-      "id": "user_1597",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1597@example.com",
         "company_size": "1"
       },
-      "firstSeen": "2026-10-29T00:02:32.660Z",
-      "lastSeen": "2026-11-04T03:35:03.147Z"
+      "firstSeen": "2026-11-17T14:17:04.650Z",
+      "lastSeen": "2026-11-17T14:25:02.543Z"
     },
     {
-      "id": "user_1682",
+      "id": "user_1686",
       "properties": {
         "signup_source": "pricing",
         "plan": "free",
-        "email": "user_1682@example.com",
+        "email": "user_1686@example.com",
         "company_size": "2-10"
       },
-      "firstSeen": "2026-11-04T02:06:21.233Z",
-      "lastSeen": "2026-11-04T02:13:20.985Z"
+      "firstSeen": "2026-11-17T14:19:17.447Z",
+      "lastSeen": "2026-11-17T14:23:56.333Z"
     },
     {
-      "id": "user_1541",
+      "id": "user_1121",
       "properties": {
         "signup_source": "pricing",
-        "plan": "pro",
-        "email": "user_1541@example.com",
-        "company_size": "11-50"
-      },
-      "firstSeen": "2026-10-25T06:21:13.119Z",
-      "lastSeen": "2026-11-04T00:47:16.345Z"
-    },
-    {
-      "id": "user_1543",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "pro",
-        "email": "user_1543@example.com",
+        "plan": "free",
+        "email": "user_1121@example.com",
         "company_size": "1"
       },
-      "firstSeen": "2026-10-24T23:19:50.997Z",
-      "lastSeen": "2026-11-04T00:24:36.383Z"
+      "firstSeen": "2026-09-30T10:37:08.707Z",
+      "lastSeen": "2026-11-17T13:49:29.347Z"
     },
     {
-      "id": "user_1533",
+      "id": "user_1688",
+      "properties": {
+        "signup_source": "header",
+        "plan": "pro",
+        "email": "user_1688@example.com",
+        "company_size": "2-10"
+      },
+      "firstSeen": "2026-11-17T13:08:55.338Z",
+      "lastSeen": "2026-11-17T13:15:16.175Z"
+    },
+    {
+      "id": "user_1519",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1519@example.com",
+        "company_size": "2-10"
+      },
+      "firstSeen": "2026-11-05T04:59:16.462Z",
+      "lastSeen": "2026-11-17T13:11:19.024Z"
+    },
+    {
+      "id": "user_1401",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1401@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-10-28T04:20:31.010Z",
+      "lastSeen": "2026-11-17T12:31:59.363Z"
+    },
+    {
+      "id": "user_1110",
       "properties": {
         "signup_source": "header",
         "plan": "free",
-        "email": "user_1533@example.com",
+        "email": "user_1110@example.com",
         "company_size": "2-10"
       },
-      "firstSeen": "2026-10-24T03:20:38.148Z",
-      "lastSeen": "2026-11-03T23:52:34.810Z"
+      "firstSeen": "2026-09-28T11:10:42.195Z",
+      "lastSeen": "2026-11-17T12:11:06.024Z"
     },
     {
-      "id": "user_1678",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1678@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-11-03T23:33:35.305Z",
-      "lastSeen": "2026-11-03T23:39:15.856Z"
-    },
-    {
-      "id": "user_1447",
+      "id": "user_1693",
       "properties": {
         "signup_source": "header",
         "plan": "free",
-        "email": "user_1447@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-16T22:13:39.992Z",
-      "lastSeen": "2026-11-03T23:17:00.293Z"
-    },
-    {
-      "id": "user_1066",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1066@example.com",
-        "company_size": "11-50"
-      },
-      "firstSeen": "2026-09-08T01:56:33.343Z",
-      "lastSeen": "2026-11-03T23:14:39.133Z"
-    },
-    {
-      "id": "user_1202",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1202@example.com",
-        "company_size": "2-10"
-      },
-      "firstSeen": "2026-09-25T19:28:59.941Z",
-      "lastSeen": "2026-11-03T23:00:43.825Z"
-    },
-    {
-      "id": "user_1625",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "team",
-        "email": "user_1625@example.com",
-        "company_size": "11-50"
-      },
-      "firstSeen": "2026-10-31T04:06:29.693Z",
-      "lastSeen": "2026-11-03T22:52:39.428Z"
-    },
-    {
-      "id": "user_1412",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "pro",
-        "email": "user_1412@example.com",
-        "company_size": "2-10"
-      },
-      "firstSeen": "2026-10-14T18:45:29.705Z",
-      "lastSeen": "2026-11-03T22:45:36.870Z"
-    },
-    {
-      "id": "user_1683",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1683@example.com",
-        "company_size": "11-50"
-      },
-      "firstSeen": "2026-11-03T22:34:48.195Z",
-      "lastSeen": "2026-11-03T22:42:20.970Z"
-    },
-    {
-      "id": "user_1016",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1016@example.com",
-        "company_size": "11-50"
-      },
-      "firstSeen": "2026-08-29T23:43:56.751Z",
-      "lastSeen": "2026-11-03T22:41:20.817Z"
-    },
-    {
-      "id": "user_1508",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1508@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-23T07:56:01.740Z",
-      "lastSeen": "2026-11-03T22:13:14.924Z"
-    },
-    {
-      "id": "user_1659",
-      "properties": {
-        "signup_source": "header",
-        "plan": "free",
-        "email": "user_1659@example.com",
+        "email": "user_1693@example.com",
         "company_size": "51-200"
       },
-      "firstSeen": "2026-11-01T23:50:11.398Z",
-      "lastSeen": "2026-11-03T21:11:35.451Z"
+      "firstSeen": "2026-11-17T11:38:03.336Z",
+      "lastSeen": "2026-11-17T11:42:50.178Z"
     },
     {
-      "id": "user_1677",
+      "id": "user_1482",
       "properties": {
         "signup_source": "pricing",
         "plan": "free",
-        "email": "user_1677@example.com",
-        "company_size": "1"
+        "email": "user_1482@example.com",
+        "company_size": "11-50"
       },
-      "firstSeen": "2026-11-03T21:05:03.201Z",
-      "lastSeen": "2026-11-03T21:08:08.826Z"
+      "firstSeen": "2026-11-02T10:34:25.301Z",
+      "lastSeen": "2026-11-17T11:20:48.601Z"
     },
     {
-      "id": "user_1344",
-      "properties": {
-        "signup_source": "header",
-        "plan": "free",
-        "email": "user_1344@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-09T21:17:49.343Z",
-      "lastSeen": "2026-11-03T21:07:34.632Z"
-    },
-    {
-      "id": "user_1375",
+      "id": "user_1603",
       "properties": {
         "signup_source": "pricing",
         "plan": "free",
-        "email": "user_1375@example.com",
+        "email": "user_1603@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-11T12:48:25.709Z",
+      "lastSeen": "2026-11-17T11:20:26.387Z"
+    },
+    {
+      "id": "user_1691",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1691@example.com",
+        "company_size": "11-50"
+      },
+      "firstSeen": "2026-11-17T11:12:38.718Z",
+      "lastSeen": "2026-11-17T11:12:44.717Z"
+    },
+    {
+      "id": "user_1697",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1697@example.com",
         "company_size": "2-10"
       },
-      "firstSeen": "2026-10-13T06:39:12.077Z",
-      "lastSeen": "2026-11-03T20:53:42.856Z"
+      "firstSeen": "2026-11-17T10:48:47.679Z",
+      "lastSeen": "2026-11-17T10:52:14.285Z"
+    },
+    {
+      "id": "user_1698",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1698@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-17T10:26:23.881Z",
+      "lastSeen": "2026-11-17T10:37:40.190Z"
     },
     {
       "id": "user_1680",
       "properties": {
         "signup_source": "pricing",
-        "plan": "free",
+        "plan": "pro",
         "email": "user_1680@example.com",
+        "company_size": "11-50"
+      },
+      "firstSeen": "2026-11-17T10:11:59.448Z",
+      "lastSeen": "2026-11-17T10:13:34.448Z"
+    },
+    {
+      "id": "user_1687",
+      "properties": {
+        "signup_source": "header",
+        "plan": "free",
+        "email": "user_1687@example.com",
         "company_size": "1"
       },
-      "firstSeen": "2026-11-03T20:25:10.683Z",
-      "lastSeen": "2026-11-03T20:34:50.069Z"
+      "firstSeen": "2026-11-17T09:45:49.172Z",
+      "lastSeen": "2026-11-17T09:48:15.931Z"
+    },
+    {
+      "id": "user_1694",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "pro",
+        "email": "user_1694@example.com",
+        "company_size": "2-10"
+      },
+      "firstSeen": "2026-11-17T09:27:19.877Z",
+      "lastSeen": "2026-11-17T09:32:06.112Z"
+    },
+    {
+      "id": "user_1692",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1692@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-17T09:31:02.605Z",
+      "lastSeen": "2026-11-17T09:31:08.605Z"
+    },
+    {
+      "id": "user_1695",
+      "properties": {
+        "signup_source": "header",
+        "plan": "free",
+        "email": "user_1695@example.com",
+        "company_size": "2-10"
+      },
+      "firstSeen": "2026-11-17T09:24:39.438Z",
+      "lastSeen": "2026-11-17T09:27:48.670Z"
+    },
+    {
+      "id": "user_1685",
+      "properties": {
+        "signup_source": "header",
+        "plan": "free",
+        "email": "user_1685@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-17T09:05:34.221Z",
+      "lastSeen": "2026-11-17T09:15:45.159Z"
+    },
+    {
+      "id": "user_1689",
+      "properties": {
+        "signup_source": "header",
+        "plan": "free",
+        "email": "user_1689@example.com",
+        "company_size": "11-50"
+      },
+      "firstSeen": "2026-11-17T09:04:28.786Z",
+      "lastSeen": "2026-11-17T09:04:34.785Z"
+    },
+    {
+      "id": "user_1683",
+      "properties": {
+        "signup_source": "header",
+        "plan": "free",
+        "email": "user_1683@example.com",
+        "company_size": "2-10"
+      },
+      "firstSeen": "2026-11-17T09:01:37.917Z",
+      "lastSeen": "2026-11-17T09:01:43.917Z"
+    },
+    {
+      "id": "user_1618",
+      "properties": {
+        "signup_source": "header",
+        "plan": "pro",
+        "email": "user_1618@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-12T15:05:46.170Z",
+      "lastSeen": "2026-11-17T08:55:59.425Z"
+    },
+    {
+      "id": "user_1220",
+      "properties": {
+        "signup_source": "header",
+        "plan": "pro",
+        "email": "user_1220@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-10-11T13:47:36.670Z",
+      "lastSeen": "2026-11-17T08:47:19.015Z"
+    },
+    {
+      "id": "user_1397",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1397@example.com",
+        "company_size": "11-50"
+      },
+      "firstSeen": "2026-10-28T06:05:24.773Z",
+      "lastSeen": "2026-11-17T08:43:38.498Z"
     },
     {
       "id": "user_1453",
@@ -916,197 +905,208 @@
         "email": "user_1453@example.com",
         "company_size": "1"
       },
-      "firstSeen": "2026-10-16T18:15:22.903Z",
-      "lastSeen": "2026-11-03T19:11:27.521Z"
+      "firstSeen": "2026-10-30T06:47:32.813Z",
+      "lastSeen": "2026-11-17T08:36:46.453Z"
     },
     {
-      "id": "user_1676",
+      "id": "user_1565",
+      "properties": {
+        "signup_source": "header",
+        "plan": "free",
+        "email": "user_1565@example.com",
+        "company_size": "2-10"
+      },
+      "firstSeen": "2026-11-09T13:07:18.426Z",
+      "lastSeen": "2026-11-17T08:24:31.423Z"
+    },
+    {
+      "id": "user_1589",
       "properties": {
         "signup_source": "pricing",
         "plan": "pro",
-        "email": "user_1676@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-11-03T19:03:13.102Z",
-      "lastSeen": "2026-11-03T19:09:23.816Z"
-    },
-    {
-      "id": "user_1687",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1687@example.com",
+        "email": "user_1589@example.com",
         "company_size": "2-10"
       },
-      "firstSeen": "2026-11-03T18:25:03.214Z",
-      "lastSeen": "2026-11-03T18:27:26.224Z"
+      "firstSeen": "2026-11-11T00:42:29.129Z",
+      "lastSeen": "2026-11-17T07:56:40.761Z"
     },
     {
-      "id": "user_1117",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1117@example.com",
-        "company_size": "2-10"
-      },
-      "firstSeen": "2026-09-16T07:12:31.796Z",
-      "lastSeen": "2026-11-03T17:35:49.265Z"
-    },
-    {
-      "id": "user_1569",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "pro",
-        "email": "user_1569@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-26T18:23:10.774Z",
-      "lastSeen": "2026-11-03T17:01:21.094Z"
-    },
-    {
-      "id": "user_1628",
+      "id": "user_1594",
       "properties": {
         "signup_source": "header",
         "plan": "free",
-        "email": "user_1628@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-31T03:21:58.482Z",
-      "lastSeen": "2026-11-03T14:25:54.808Z"
-    },
-    {
-      "id": "user_1290",
-      "properties": {
-        "signup_source": "header",
-        "plan": "free",
-        "email": "user_1290@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-05T16:58:07.809Z",
-      "lastSeen": "2026-11-03T12:53:54.124Z"
-    },
-    {
-      "id": "user_1495",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "team",
-        "email": "user_1495@example.com",
-        "company_size": "1"
-      },
-      "firstSeen": "2026-10-22T07:56:49.605Z",
-      "lastSeen": "2026-11-03T12:25:38.712Z"
-    },
-    {
-      "id": "user_1460",
-      "properties": {
-        "signup_source": "header",
-        "plan": "free",
-        "email": "user_1460@example.com",
+        "email": "user_1594@example.com",
         "company_size": "11-50"
       },
-      "firstSeen": "2026-10-17T22:09:35.665Z",
-      "lastSeen": "2026-11-03T11:51:56.546Z"
+      "firstSeen": "2026-11-11T07:12:51.099Z",
+      "lastSeen": "2026-11-17T07:34:50.099Z"
     },
     {
-      "id": "user_1516",
+      "id": "user_1400",
       "properties": {
         "signup_source": "pricing",
         "plan": "free",
-        "email": "user_1516@example.com",
-        "company_size": "2-10"
+        "email": "user_1400@example.com",
+        "company_size": "1"
       },
-      "firstSeen": "2026-10-23T08:27:34.584Z",
-      "lastSeen": "2026-11-03T11:30:18.157Z"
+      "firstSeen": "2026-10-28T11:46:53.973Z",
+      "lastSeen": "2026-11-17T06:31:14.062Z"
     },
     {
-      "id": "user_1041",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "free",
-        "email": "user_1041@example.com",
-        "company_size": "2-10"
-      },
-      "firstSeen": "2026-09-04T03:04:54.034Z",
-      "lastSeen": "2026-11-03T11:24:26.654Z"
-    },
-    {
-      "id": "user_1103",
-      "properties": {
-        "signup_source": "pricing",
-        "plan": "pro",
-        "email": "user_1103@example.com",
-        "company_size": "2-10"
-      },
-      "firstSeen": "2026-09-13T06:21:57.205Z",
-      "lastSeen": "2026-11-03T10:39:16.831Z"
-    },
-    {
-      "id": "user_1470",
+      "id": "user_1616",
       "properties": {
         "signup_source": "header",
         "plan": "free",
-        "email": "user_1470@example.com",
-        "company_size": "1"
+        "email": "user_1616@example.com",
+        "company_size": "2-10"
       },
-      "firstSeen": "2026-10-18T17:23:43.362Z",
-      "lastSeen": "2026-11-03T09:29:40.198Z"
+      "firstSeen": "2026-11-12T02:19:22.351Z",
+      "lastSeen": "2026-11-17T06:30:20.170Z"
     },
     {
-      "id": "user_1154",
+      "id": "user_1696",
       "properties": {
         "signup_source": "pricing",
-        "plan": "team",
-        "email": "user_1154@example.com",
+        "plan": "free",
+        "email": "user_1696@example.com",
         "company_size": "1"
       },
-      "firstSeen": "2026-09-21T20:26:03.780Z",
-      "lastSeen": "2026-11-03T08:58:58.841Z"
+      "firstSeen": "2026-11-17T06:10:11.129Z",
+      "lastSeen": "2026-11-17T06:15:09.499Z"
     },
     {
-      "id": "user_1478",
+      "id": "user_1699",
       "properties": {
         "signup_source": "pricing",
-        "plan": "pro",
-        "email": "user_1478@example.com",
+        "plan": "free",
+        "email": "user_1699@example.com",
         "company_size": "1"
       },
-      "firstSeen": "2026-10-19T18:46:33.663Z",
-      "lastSeen": "2026-11-03T07:52:19.960Z"
+      "firstSeen": "2026-11-17T05:58:19.079Z",
+      "lastSeen": "2026-11-17T05:58:25.078Z"
     },
     {
-      "id": "user_1561",
+      "id": "user_1560",
       "properties": {
         "signup_source": "header",
         "plan": "free",
-        "email": "user_1561@example.com",
-        "company_size": "2-10"
+        "email": "user_1560@example.com",
+        "company_size": "1"
       },
-      "firstSeen": "2026-10-26T19:03:30.935Z",
-      "lastSeen": "2026-11-03T07:40:22.290Z"
+      "firstSeen": "2026-11-09T13:11:51.192Z",
+      "lastSeen": "2026-11-17T04:45:25.035Z"
     },
     {
-      "id": "user_1641",
+      "id": "user_1511",
       "properties": {
         "signup_source": "pricing",
         "plan": "free",
-        "email": "user_1641@example.com",
+        "email": "user_1511@example.com",
+        "company_size": "2-10"
+      },
+      "firstSeen": "2026-11-04T04:48:13.786Z",
+      "lastSeen": "2026-11-17T04:43:53.761Z"
+    },
+    {
+      "id": "user_1272",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1272@example.com",
         "company_size": "1"
       },
-      "firstSeen": "2026-10-30T17:46:38.660Z",
-      "lastSeen": "2026-11-03T07:04:06.187Z"
+      "firstSeen": "2026-10-17T12:50:50.641Z",
+      "lastSeen": "2026-11-17T04:21:09.586Z"
+    },
+    {
+      "id": "user_1127",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1127@example.com",
+        "company_size": "2-10"
+      },
+      "firstSeen": "2026-10-01T04:28:18.770Z",
+      "lastSeen": "2026-11-17T03:51:41.600Z"
+    },
+    {
+      "id": "user_1506",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1506@example.com",
+        "company_size": "2-10"
+      },
+      "firstSeen": "2026-11-04T05:32:18.871Z",
+      "lastSeen": "2026-11-17T03:46:53.033Z"
+    },
+    {
+      "id": "user_1527",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1527@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-05T01:43:29.654Z",
+      "lastSeen": "2026-11-17T03:09:27.874Z"
+    },
+    {
+      "id": "user_1406",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1406@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-10-28T01:07:02.285Z",
+      "lastSeen": "2026-11-17T02:57:29.108Z"
+    },
+    {
+      "id": "user_1671",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "pro",
+        "email": "user_1671@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-15T02:30:54.683Z",
+      "lastSeen": "2026-11-17T02:26:22.066Z"
+    },
+    {
+      "id": "user_1682",
+      "properties": {
+        "signup_source": "header",
+        "plan": "pro",
+        "email": "user_1682@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-17T01:12:17.878Z",
+      "lastSeen": "2026-11-17T01:16:58.236Z"
+    },
+    {
+      "id": "user_1523",
+      "properties": {
+        "signup_source": "pricing",
+        "plan": "free",
+        "email": "user_1523@example.com",
+        "company_size": "1"
+      },
+      "firstSeen": "2026-11-05T04:17:58.623Z",
+      "lastSeen": "2026-11-17T00:32:11.781Z"
     }
   ],
   "stats": {
-    "identified": 708,
-    "anonymousDevices": 2485,
+    "identified": 711,
+    "anonymousDevices": 2600,
     "days": 30,
     "sql": [
-      "SELECT COUNT(DISTINCT e.distinct_id) AS n\nFROM events e\nWHERE e.project = 'demo' AND e.ts_ms >= 1791282495830\n  AND e.distinct_id NOT IN (SELECT distinct_id FROM identities WHERE project = 'demo')\n  AND e.distinct_id NOT IN (SELECT person_id FROM persons WHERE project = 'demo')"
+      "SELECT COUNT(DISTINCT e.distinct_id) AS n\nFROM events e\nWHERE e.project = 'demo' AND e.ts_ms >= 1792432515374\n  AND e.distinct_id NOT IN (SELECT distinct_id FROM identities WHERE project = 'demo')\n  AND e.distinct_id NOT IN (SELECT person_id FROM persons WHERE project = 'demo')"
     ]
   },
-  "summary": "708 identified people, 2485 anonymous devices active in the last 30 days; showing the 100 most recently active.",
+  "summary": "711 identified people, 2600 anonymous devices active in the last 30 days; showing the 100 most recently active.",
   "sql": [
-    "SELECT COUNT(DISTINCT e.distinct_id) AS n\nFROM events e\nWHERE e.project = 'demo' AND e.ts_ms >= 1791282495830\n  AND e.distinct_id NOT IN (SELECT distinct_id FROM identities WHERE project = 'demo')\n  AND e.distinct_id NOT IN (SELECT person_id FROM persons WHERE project = 'demo')"
+    "SELECT COUNT(DISTINCT e.distinct_id) AS n\nFROM events e\nWHERE e.project = 'demo' AND e.ts_ms >= 1792432515374\n  AND e.distinct_id NOT IN (SELECT distinct_id FROM identities WHERE project = 'demo')\n  AND e.distinct_id NOT IN (SELECT person_id FROM persons WHERE project = 'demo')"
   ],
-  "dashboard": "http://127.0.0.1:58904/app#/users?project=demo"
+  "dashboard": "http://127.0.0.1:49397/app#/users?project=demo"
 }

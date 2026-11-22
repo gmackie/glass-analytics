@@ -21,8 +21,8 @@
         "interval": "day",
         "from": "-30d"
       },
-      "updatedAt": "2026-11-05T10:25:51.478Z",
-      "dashboard": "http://127.0.0.1:58904/app#/insights/documents-written?project=demo"
+      "updatedAt": "2026-11-18T17:53:32.374Z",
+      "dashboard": "http://127.0.0.1:49397/app#/insights/documents-written?project=demo"
     },
     {
       "key": "revenue-by-plan",
@@ -42,8 +42,8 @@
         "breakdown": "plan",
         "from": "-56d"
       },
-      "updatedAt": "2026-11-05T10:25:51.477Z",
-      "dashboard": "http://127.0.0.1:58904/app#/insights/revenue-by-plan?project=demo"
+      "updatedAt": "2026-11-18T17:53:32.373Z",
+      "dashboard": "http://127.0.0.1:49397/app#/insights/revenue-by-plan?project=demo"
     },
     {
       "key": "signup-by-source",
@@ -63,8 +63,8 @@
         "breakdown": "utm_source",
         "from": "-30d"
       },
-      "updatedAt": "2026-11-05T10:25:51.478Z",
-      "dashboard": "http://127.0.0.1:58904/app#/insights/signup-by-source?project=demo"
+      "updatedAt": "2026-11-18T17:53:32.374Z",
+      "dashboard": "http://127.0.0.1:49397/app#/insights/signup-by-source?project=demo"
     },
     {
       "key": "signups-by-plan",
@@ -83,8 +83,8 @@
         "breakdown": "plan",
         "from": "-30d"
       },
-      "updatedAt": "2026-11-05T10:25:51.476Z",
-      "dashboard": "http://127.0.0.1:58904/app#/insights/signups-by-plan?project=demo"
+      "updatedAt": "2026-11-18T17:53:32.372Z",
+      "dashboard": "http://127.0.0.1:49397/app#/insights/signups-by-plan?project=demo"
     },
     {
       "key": "visit-to-paid",
@@ -113,8 +113,8 @@
         "window": "7d",
         "from": "-30d"
       },
-      "updatedAt": "2026-11-05T10:25:51.476Z",
-      "dashboard": "http://127.0.0.1:58904/app#/insights/visit-to-paid?project=demo"
+      "updatedAt": "2026-11-18T17:53:32.372Z",
+      "dashboard": "http://127.0.0.1:49397/app#/insights/visit-to-paid?project=demo"
     },
     {
       "key": "writer-retention",
@@ -132,10 +132,10 @@
         "periods": 7,
         "from": "-56d"
       },
-      "updatedAt": "2026-11-05T10:25:51.477Z",
-      "dashboard": "http://127.0.0.1:58904/app#/insights/writer-retention?project=demo"
+      "updatedAt": "2026-11-18T17:53:32.373Z",
+      "dashboard": "http://127.0.0.1:49397/app#/insights/writer-retention?project=demo"
     }
   ],
   "summary": "6 saved analysises.",
-  "dashboard": "http://127.0.0.1:58904/app#/insights?project=demo"
+  "dashboard": "http://127.0.0.1:49397/app#/insights?project=demo"
 }

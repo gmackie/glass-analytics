@@ -1,8 +1,8 @@
 {
   "project": "demo",
   "event": "$identify",
-  "sampled": 416,
-  "lastSeen": "2026-11-05T10:26:03.762Z",
+  "sampled": 424,
+  "lastSeen": "2026-11-18T17:53:44.300Z",
   "description": "",
   "owner": "",
   "properties": [
@@ -20,13 +20,13 @@
       "types": [
         "object"
       ],
-      "coverage": 0.9951923076923077,
+      "coverage": 0.9952830188679245,
       "examples": [],
       "description": ""
     }
   ],
-  "summary": "\"$identify\": 2 properties across the latest 416 events.",
+  "summary": "\"$identify\": 2 properties across the latest 424 events.",
   "sql": [
-    "SELECT props, ts_ms FROM events\nWHERE project = 'demo' AND event = '$identify' AND ts_ms >= 1791282553695\nORDER BY ts_ms DESC LIMIT 500"
+    "SELECT props, ts_ms FROM events\nWHERE project = 'demo' AND event = '$identify' AND ts_ms >= 1792432566154\nORDER BY ts_ms DESC LIMIT 500"
   ]
 }

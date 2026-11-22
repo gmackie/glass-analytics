@@ -9,6 +9,7 @@
 import { existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { deriveServerKey } from '@dataflare/core/hash';
 import { LAKE_VERSION, type LakeSchemaChange } from '@dataflare/core/lake';
 import { GLASS_VERSION, isNewerThan, UPGRADE_COMMAND } from '@dataflare/core/version';
 import {
@@ -24,6 +25,7 @@ import {
   deploy,
   ensureBucket,
   ensureLake,
+  ensureQueues,
   installWorkerFiles,
   migrate,
   pipelinesLister,
@@ -97,6 +99,13 @@ async function liveVersion(host: string, fetcher: typeof fetch): Promise<string 
   } catch {
     return null;
   }
+}
+
+async function existingOrNewQueues(
+  queues: Awaited<ReturnType<typeof ensureQueues>> | undefined,
+  ...args: Parameters<typeof ensureQueues>
+): Promise<Awaited<ReturnType<typeof ensureQueues>>> {
+  return queues ?? ensureQueues(...args);
 }
 
 export async function upgrade(options: UpgradeOptions, deps: UpgradeDeps = {}): Promise<void> {
@@ -207,6 +216,8 @@ export async function upgrade(options: UpgradeOptions, deps: UpgradeDeps = {}): 
   ) {
     config.replay = replayBucketConfig(`${config.name}-replays`, config.eu, null);
   }
+  // Destinations' delivery queue: created when the token allows it (otherwise the outbox delivers).
+  config.queues = await existingOrNewQueues(config.queues, wrangler, config.name, report);
   // Lake schema change: a new version gets its own streams, sinks and tables (a stream's schema is
   // fixed and a sink can't write to an existing table). The Worker switches to writing the new
   // version; queries read every version together. Old tables keep their rows.
@@ -385,10 +396,19 @@ export async function status(options: { json?: boolean }): Promise<void> {
   }
 }
 
-export function key(options: { read?: boolean; json?: boolean }): void {
+export async function key(options: {
+  read?: boolean;
+  server?: boolean;
+  json?: boolean;
+}): Promise<void> {
   const conn = connection();
   const credentials = loadCredentials();
-  const value = options.read ? credentials?.readKey : conn.key;
+  const admin = credentials?.adminKey ?? conn.key;
+  const value = options.server
+    ? (process.env.GLASS_SERVER_KEY ?? (admin ? await deriveServerKey(admin) : undefined))
+    : options.read
+      ? credentials?.readKey
+      : conn.key;
   if (options.json) {
     printJson({
       host: conn.host,
@@ -399,12 +419,14 @@ export function key(options: { read?: boolean; json?: boolean }): void {
     return;
   }
   line(`Dashboard: ${conn.host}/app`);
-  line(`${options.read ? 'Read-only key' : 'Admin key'}: ${value}`);
+  line(`${options.server ? 'Server key' : options.read ? 'Read-only key' : 'Admin key'}: ${value}`);
   line(
     color.dim(
-      options.read
-        ? 'Safe to share for viewing.'
-        : 'Full access. Use `dataflare key --read` for a key that can only view.',
+      options.server
+        ? 'For your backends: import history, flag definitions for local evaluation, source maps. It cannot read analytics.'
+        : options.read
+          ? 'Safe to share for viewing.'
+          : 'Full access. Use `dataflare key --read` for a key that can only view, `--server` for backends.',
     ),
   );
 }

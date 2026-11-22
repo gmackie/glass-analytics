@@ -4,6 +4,8 @@
 
 import { api } from '../api.ts';
 import { icon } from '../components/icons.ts';
+import { notificationChannelsPanel } from '../components/notification-channels.ts';
+import { projectSettingsPanels } from '../components/project-settings.ts';
 import {
   copyButton,
   errorState,
@@ -27,7 +29,7 @@ export function settingsPage(): Node[] {
   const project = scope().project ?? 'your-project';
   const host = workerUrl();
   return [
-    pageHeader('Settings', 'Install Dataflare on a site, connect an agent, manage projects.'),
+    pageHeader('Settings', undefined),
     h(
       'div',
       { class: 'grid-2' },
@@ -64,6 +66,8 @@ export function settingsPage(): Node[] {
         { icon: 'bot' },
       ),
     ),
+    projectSettingsPanels(),
+    notificationChannelsPanel(),
     later(async () => {
       const [health, projects] = await Promise.all([
         api.get<{
