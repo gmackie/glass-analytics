@@ -8,6 +8,8 @@ CLOUDFLARE_API_TOKEN=… npx dataflare-cli init
 
 `dataflare init` creates a D1 database, an R2 bucket and a Worker in your account, then prints the snippet for your framework and writes `AGENTS.md`, a Claude Code skill and `.mcp.json` so your coding agent can use Dataflare straight away.
 
+For apps using an existing deployment, run `dataflare client-init --host <url> --project <app>`. Add `--service <analytics-worker>` for same-origin Worker/DO integration, or `--dry-run --json` to preview. Set `GLASS_API_KEY` for registration; the key is never saved in generated files.
+
 ```sh
 npx dataflare-cli status                       # check the deployment end to end
 npx dataflare-cli query web --from -7d         # ask questions from the terminal

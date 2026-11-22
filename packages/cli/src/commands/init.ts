@@ -7,7 +7,7 @@
  * later upgrade is a commit: `dataflare upgrade` stages, CI deploys (see ci.ts).
  */
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { randomToken } from '@dataflare/core/ids';
 import { detectFramework, FRAMEWORKS } from '@dataflare/core/instrument';
@@ -155,8 +155,18 @@ async function settle<T>(fn: () => Promise<T>, pollMs: number, attempts = 8): Pr
   }
 }
 
+/** Keep deployment and client repos apart: client-init owns `.glass/client.json`. */
+function refuseClientRepo(root: string): void {
+  if (!existsSync(join(root, '.glass', 'client.json'))) return;
+  throw new UsageError(
+    'This repo is a Dataflare client.',
+    'Provision Dataflare in a separate deployment repo; use client-init here.',
+  );
+}
+
 export async function init(options: InitOptions, deps: InitDeps = {}): Promise<void> {
   const root = deps.root ?? projectRoot();
+  refuseClientRepo(root);
   const dir = glassDir(root);
   const fetcher = deps.fetcher ?? fetch;
   const existing = loadConfig(root);

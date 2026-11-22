@@ -148,6 +148,12 @@ await bundle({
   // without installing workspace packages. Wrangler stays a real dependency.
   external: ['wrangler'],
   banner: { js: '#!/usr/bin/env node' },
+  // `client-init --frontend-only` installs the canonical journey loader (DATFLR-18).
+  define: {
+    __JOURNEY_LOADER__: JSON.stringify(
+      readFileSync(join(root, 'deployments', 'observe', 'journey-loader', 'dataflare.js'), 'utf8'),
+    ),
+  },
 });
 cpSync(workerDist, join(cliDist, 'worker'), { recursive: true });
 // The lake maintenance job (PyIceberg), run by `dataflare lake maintain`.
