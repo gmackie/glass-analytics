@@ -2,9 +2,9 @@
   "project": "demo",
   "flag": {
     "key": "ai-suggestions",
-    "description": "Writing suggestions in the sidebar, for paying plans.",
     "enabled": true,
     "rollout": 0,
+    "description": "Writing suggestions in the sidebar, for paying plans.",
     "rules": [
       {
         "conditions": [

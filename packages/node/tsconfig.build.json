@@ -1,0 +1,20 @@
+{
+  // Emits the npm package's type declarations (scripts/build.ts moves them into dist/).
+  "compilerOptions": {
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rewriteRelativeImportExtensions": true,
+    "allowImportingTsExtensions": true,
+    "outDir": "dist/.types",
+    "rootDir": "..",
+    "target": "ES2022",
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "lib": ["ES2023", "DOM"],
+    "types": [],
+    "strict": true,
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": true
+  },
+  "files": ["src/index.ts"]
+}

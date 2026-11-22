@@ -7,9 +7,10 @@
  * - .mcp.json (and .cursor/mcp.json if .cursor/ exists): the MCP server
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { EVENT_DOCUMENTATION_GUIDE, EVENT_NAMING_GUIDE } from '@dataflare/core/instrument';
+import { readTextIfExists } from './config.ts';
 
 const START = '<!-- glass:start -->';
 const END = '<!-- glass:end -->';
@@ -42,7 +43,10 @@ Tracking (project \`${o.project}\`):
 - After adding an event and deploying, confirm it arrives: \`npx dataflare-cli events <name>\` (or MCP \`describe_event\`).
 - ${EVENT_DOCUMENTATION_GUIDE}
 - Prefer MCP \`define_event\` so you can set both the event description and each property's meaning in one call.
-- Feature flags: \`glass.flag('key')\` returns "on", a variant key, or null. Create with \`npx dataflare-cli flags set <key> --rollout 10\`.
+- Feature flags: \`glass.flag('key')\` returns "on", a variant key, or null; \`glass.flagPayload('key')\` its JSON payload. Create with \`npx dataflare-cli flags set <key> --rollout 10\`.
+- Caught errors: \`glass.captureException(err)\`. Set \`data-release\` (or \`release\`) and upload source maps in the build: \`npx dataflare-cli sourcemaps upload ./dist --release <version>\`.
+- B2B: \`glass.group('company', org.id, { name, plan })\` after login, so insights can count companies (\`aggregateBy: "company"\`).
+- Backend events and flags: \`dataflare-node\` with the server key (\`npx dataflare-cli key --server\`), not the admin key.
 
 Upgrades (the Worker version is pinned in \`.glass/config.json\`):
 - \`.github/workflows/glass.yml\` deploys whatever \`.glass/\` holds when it changes on the default branch. If that file is missing, run \`npx dataflare-cli ci\` and add the \`CLOUDFLARE_API_TOKEN\` repository secret.
@@ -54,16 +58,15 @@ ${END}`;
 
 /** True when CLAUDE.md pulls in AGENTS.md (`@AGENTS.md`), so it needs no copy of the section. */
 export function importsAgentsMd(path: string): boolean {
-  if (!existsSync(path)) return false;
-  const text = readFileSync(path, 'utf8');
-  return /^@AGENTS\.md\s*$/m.test(text) && !text.includes(START);
+  const text = readTextIfExists(path);
+  return text !== undefined && /^@AGENTS\.md\s*$/m.test(text) && !text.includes(START);
 }
 
 /** Insert or replace the Dataflare section in a markdown file. */
 export function upsertSection(path: string, section: string, createIfMissing: boolean): boolean {
-  const exists = existsSync(path);
-  if (!exists && !createIfMissing) return false;
-  const current = exists ? readFileSync(path, 'utf8') : '';
+  const existing = readTextIfExists(path);
+  if (existing === undefined && !createIfMissing) return false;
+  const current = existing ?? '';
   const pattern = new RegExp(`${START}[\\s\\S]*?${END}`);
   const next = pattern.test(current)
     ? current.replace(pattern, section)
@@ -86,7 +89,7 @@ Dataflare is deployed at ${o.host} (project \`${o.project}\`). Prefer the \`glas
 
 1. \`overview\` for the period (visitors, top pages, errors, events that moved). If it (or MCP init) says an upgrade is available, tell the user; with their go-ahead, follow "Upgrade Dataflare" below.
 2. \`list_events\` to get exact event names — never guess them.
-3. The right query: \`query_trends\` (counts over time), \`query_funnel\` (conversion through steps), \`query_retention\` (who comes back), \`sql\` when nothing else fits.
+3. The right query: \`query_trends\` (counts over time), \`query_funnel\` (conversion through steps), \`query_retention\` (who comes back), \`query_paths\` (where people go, step by step), \`sql\` when nothing else fits.
 4. Report numbers with the dashboard link and SQL from the result.
 
 ## Add tracking
@@ -125,14 +128,38 @@ For "what's frustrating users?", start with \`analyse_replays\` for the period.
 1. \`create_experiment\` with a goal event (creates a control/test flag).
 2. In code: \`if (glass.flag('<key>') === 'test') { … }\` — reading the flag records the exposure.
 3. \`update_experiment\` with \`action: "start"\`; later \`experiment_results\`; ship the winner with \`action: "ship"\`.
+4. Judge it on more than one number: \`metrics\` (the first decides) and \`secondary\` guardrails such as errors or refunds (\`goal: "decrease"\`). \`plan_experiment\` says how long it needs.
+
+## Triage errors
+
+1. \`list_issues\` (status "active", order by events) for the period.
+2. \`get_issue\` for the top one: mapped stack trace, releases, browsers, pages, people affected, and replays that open just before the error.
+3. \`summarise_replay\` on one of them to see what the person did; fix the code at the mapped frame.
+4. \`update_issue\` to resolve it once the fix is deployed (it reopens as a regression if it comes back), or \`merge_issues\` for duplicates.
+
+## Revenue questions
+
+1. \`get_settings\`: revenue needs \`revenueEvents\` (or Stripe: \`stripe_status\`). Without them, help set them up first.
+2. \`query_revenue\` with \`breakdown\` ("product", "channel", "utm_campaign", "person.plan") for MRR, churn and where revenue comes from; \`aggregateBy: "company"\` for accounts.
+3. For one customer: \`get_person\` (lifetime revenue) or \`get_group\`.
+
+## Send events to another tool (alpha)
+
+Destinations, transformations, exports and imports are alpha: their settings may change between releases, so try them on a test project or a webhook first.
+
+
+1. \`list_destination_templates\`, then \`save_destination\` with the events and the template's settings (credentials are encrypted).
+2. \`test_destination\` sends a sample; \`get_destination\` shows deliveries and failures, \`retry_destination\` resends failures.
+3. To clean data before it is stored (drop test events, hash or redact properties), \`save_transformation\` and try it with \`test_transformation\`.
 `;
 }
 
 export function upsertMcpConfig(path: string): boolean {
   let config: { mcpServers?: Record<string, unknown> } = {};
-  if (existsSync(path)) {
+  const existing = readTextIfExists(path);
+  if (existing !== undefined) {
     try {
-      config = JSON.parse(readFileSync(path, 'utf8')) as typeof config;
+      config = JSON.parse(existing) as typeof config;
     } catch {
       return false; // don't overwrite a file we can't parse
     }

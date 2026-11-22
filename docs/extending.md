@@ -4,37 +4,37 @@ Dataflare is built from small registries so the common extensions are one file e
 
 ## Add a query type
 
-1. Create `packages/core/src/insights/paths.ts`:
+1. Create `packages/core/src/insights/stickiness.ts`:
 
    ```ts
    import { z } from 'zod/v4';
-   import { eventsCte, num, text } from '../sql/source.ts';
+   import { eventsCte, num } from '../sql/source.ts';
    import { iso, resolveRange } from '../time.ts';
    import type { QueryContext, ResultBase } from './types.ts';
 
-   export const pathsSpec = z.object({
+   export const stickinessSpec = z.object({
      project: z.string().optional(),
      from: z.union([z.string(), z.number()]).optional(),
      to: z.union([z.string(), z.number()]).optional(),
-     start: z.string().describe('Page path the paths start from.'),
+     event: z.string().describe('The event to measure.'),
    });
 
-   export async function runPaths(spec: z.infer<typeof pathsSpec>, ctx: QueryContext): Promise<ResultBase & { next: { path: string; people: number }[] }> {
+   export async function runStickiness(spec: z.infer<typeof stickinessSpec>, ctx: QueryContext): Promise<ResultBase & { days: { days: number; people: number }[] }> {
      const range = resolveRange(spec.from, spec.to, ctx.now);
      const d = ctx.dialect;
-     const sql = `WITH ${eventsCte(d, { project: ctx.project, ...range, events: ['$pageview'] })} …`;
+     const sql = `WITH ${eventsCte(d, { project: ctx.project, ...range, events: [spec.event] })} …`;
      const rows = await ctx.execute(sql);
-     return { kind: 'paths', sql: [sql], range: { from: iso(range.from), to: iso(range.to) }, summary: '…', next: rows.map((r) => ({ path: text(r.path), people: num(r.n) })) };
+     return { kind: 'stickiness', sql: [sql], range: { from: iso(range.from), to: iso(range.to) }, summary: '…', days: rows.map((r) => ({ days: num(r.days), people: num(r.n) })) };
    }
    ```
 
 2. Register it in `packages/core/src/insights/index.ts`:
 
    ```ts
-   paths: define({ description: 'Where people go next after a page.', schema: pathsSpec, run: runPaths }),
+   stickiness: define({ description: 'How many days people did an event.', schema: stickinessSpec, run: runStickiness }),
    ```
 
-You now have `POST /api/query {"kind":"paths"}`, an MCP tool `query_paths` and `dataflare query paths --spec '…'`. Write tests in `packages/core/test/` that insert events with `insert()` and execute your SQL on SQLite (see `insights.test.ts`).
+You now have `POST /api/query {"kind":"stickiness"}`, an MCP tool `query_stickiness` and `dataflare query stickiness --spec '…'`. For a dashboard editor, add a rail and a view for the kind in `pages/insights.ts` (see `paths-rail.ts` and `paths-view.ts`). Write tests in `packages/core/test/` that insert events with `insert()` and execute your SQL on SQLite (see `insights.test.ts`).
 
 Rules for portable SQL: start from `eventsCte()` (it scopes to the project and range, and resolves people as `pid`); use `ts_ms` integer arithmetic or `bucketExpr()` for time; filters via `filtersSql()`; anything engine-specific goes in `Dialect`.
 

@@ -116,6 +116,57 @@ const NEXT: [string, number][] = [
   ['/about', 4],
   ['/', 12],
 ];
+/** Where people go next from each page, so paths have the shape real journeys do. */
+const FLOW: Record<string, [string, number][]> = {
+  '/': [
+    ['/pricing', 30],
+    ['/templates', 16],
+    ['/features/focus-mode', 14],
+    ['/blog/writing-every-day', 6],
+    ['/docs', 6],
+    ['/about', 4],
+  ],
+  '/pricing': [
+    ['/docs', 14],
+    ['/features/focus-mode', 10],
+    ['/', 8],
+    ['/templates', 8],
+    ['/changelog', 4],
+    ['/about', 3],
+  ],
+  '/templates': [
+    ['/pricing', 18],
+    ['/features/focus-mode', 8],
+    ['/', 6],
+    ['/docs', 4],
+  ],
+  '/features/focus-mode': [
+    ['/pricing', 22],
+    ['/templates', 6],
+    ['/', 4],
+  ],
+  '/blog/writing-every-day': [
+    ['/blog/markdown-for-writers', 10],
+    ['/', 8],
+    ['/templates', 8],
+    ['/pricing', 6],
+  ],
+  '/blog/markdown-for-writers': [
+    ['/templates', 10],
+    ['/', 6],
+    ['/pricing', 4],
+  ],
+  '/docs': [
+    ['/changelog', 8],
+    ['/pricing', 8],
+    ['/', 4],
+  ],
+  '/changelog': [
+    ['/docs', 6],
+    ['/pricing', 6],
+    ['/', 4],
+  ],
+};
 const TITLES: Record<string, string> = {
   '/': 'Inkwell: a calm place to write',
   '/pricing': 'Pricing, Inkwell',
@@ -217,6 +268,23 @@ export async function seedDemo(server: DevServer, now = Date.now()): Promise<See
 
   await db.prepare("UPDATE projects SET name = 'Inkwell' WHERE id = 'demo'").run();
 
+  // Revenue settings before any payment arrives, so payments are converted at ingest.
+  await api('PATCH', '/api/settings', {
+    project: 'demo',
+    settings: {
+      baseCurrency: 'USD',
+      revenueEvents: [
+        {
+          event: 'subscription_started',
+          amountProperty: 'amount',
+          productProperty: 'plan',
+          subscriptionProperty: 'subscription',
+        },
+      ],
+      internalFilters: [{ property: 'person.email', op: 'contains', value: '@inkwell.test' }],
+    },
+  });
+
   // Flags and experiments first, so exposures line up with real definitions.
   await api('PUT', '/api/flags/new-editor', {
     project: 'demo',
@@ -243,6 +311,7 @@ export async function seedDemo(server: DevServer, now = Date.now()): Promise<See
     project: 'demo',
     key: 'pricing-page-v2',
     goal: { event: 'signup_completed' },
+    secondary: [{ kind: 'conversion', event: '$exception', goal: 'decrease', name: 'Errors' }],
     hypothesis: 'A shorter pricing page with one highlighted plan lifts signups.',
   });
   await api('POST', '/api/experiments/pricing-page-v2/start', { project: 'demo' });
@@ -337,7 +406,7 @@ export async function seedDemo(server: DevServer, now = Date.now()): Promise<See
       const depth = Math.floor(rnd() ** 1.6 * 5);
       let sawPricing = path === '/pricing';
       for (let p = 0; p < depth; p++) {
-        path = pick(NEXT);
+        path = pick(FLOW[path] ?? NEXT);
         sawPricing ||= path === '/pricing';
         view(path, false);
       }
@@ -443,8 +512,33 @@ export async function seedDemo(server: DevServer, now = Date.now()): Promise<See
                 plan,
                 interval: yearly ? 'year' : 'month',
                 amount: yearly ? monthly * 10 : monthly,
+                // Monthly plans are subscriptions with MRR; yearly ones count as sales.
+                ...(yearly ? {} : { subscription: `sub_${id}` }),
+                ...(plan === 'team' ? { $groups: { company: `ws-${id}` } } : {}),
               },
             });
+            if (plan === 'team')
+              events.push({
+                ...base,
+                id: hexId(),
+                event: '$groupidentify',
+                ts: t + 95_000,
+                user_id: id,
+                props: {
+                  $group_type: 'company',
+                  $group_key: `ws-${id}`,
+                  $group_set: {
+                    name: pick<string>([
+                      ['Northwind Press', 1],
+                      ['Blue Heron Media', 1],
+                      ['Fable & Co', 1],
+                      ['Quillstone', 1],
+                      ['Paperlight Studio', 1],
+                    ]),
+                    seats: 3 + Math.floor(rnd() * 20),
+                  },
+                },
+              });
           }
         }
       }
@@ -626,6 +720,30 @@ export async function seedDemo(server: DevServer, now = Date.now()): Promise<See
     name: 'Active writers',
     didEvent: 'document_created',
     from: '-14d',
+  });
+  await api('POST', '/api/cohorts', {
+    project: 'demo',
+    name: 'Power writers',
+    description: 'Created three or more documents in the last two weeks',
+    definition: {
+      groups: [
+        {
+          conditions: [
+            {
+              type: 'performed',
+              event: 'document_created',
+              count: { op: 'gte', value: 3 },
+              within: '14d',
+            },
+          ],
+        },
+      ],
+    },
+  });
+  await api('POST', '/api/annotations', {
+    project: 'demo',
+    at: new Date(now - 12 * DAY).toISOString(),
+    text: 'Launched templates',
   });
   await api('POST', '/api/cohorts', {
     project: 'demo',

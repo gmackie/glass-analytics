@@ -6,7 +6,7 @@
 
 import { DAY_MS, resolveRange } from '@dataflare/core/time';
 import { h } from '../dom.ts';
-import { go, prefs, type Route } from '../state.ts';
+import { currentRoute, go, prefs, type Route } from '../state.ts';
 import { icon } from './icons.ts';
 import { popover, toggle } from './menu.ts';
 
@@ -83,6 +83,12 @@ export function rangeDays(from: string, to?: string | null): number {
   }
 }
 
+/**
+ * Every parameter of the page as it is now (an open analysis keeps its spec in the URL), so
+ * changing the dates keeps the page's own state instead of resetting it.
+ */
+const pageParams = () => Object.fromEntries(currentRoute().params);
+
 export function dateRangeControl(route: Route, onCompareChange: () => void): HTMLElement {
   const from = route.params.get('from') ?? '-30d';
   const to = route.params.get('to');
@@ -125,7 +131,6 @@ export function dateRangeControl(route: Route, onCompareChange: () => void): HTM
       const custom = h(
         'form',
         { class: 'date-custom' },
-        h('div', { class: 'date-custom-title' }, 'Custom range'),
         h('label', { class: 'field' }, h('span', {}, 'From'), fromInput),
         h('label', { class: 'field' }, h('span', {}, 'To (inclusive)'), toInput),
         apply,
@@ -136,7 +141,7 @@ export function dateRangeControl(route: Route, onCompareChange: () => void): HTM
         const endDay = toInput.value || isoDay(Date.now());
         const exclusive = isoDay(Date.parse(endDay) + DAY_MS);
         close();
-        go(target, { from: fromInput.value, to: exclusive });
+        go(target, { ...pageParams(), from: fromInput.value, to: exclusive });
       });
       return h(
         'div',
@@ -155,7 +160,7 @@ export function dateRangeControl(route: Route, onCompareChange: () => void): HTM
                 'aria-selected': String(selected),
                 onclick: () => {
                   close();
-                  go(target, { from: p.from, to: p.to ?? null });
+                  go(target, { ...pageParams(), from: p.from, to: p.to ?? null });
                 },
               },
               h('span', { class: 'menu-label' }, p.label),

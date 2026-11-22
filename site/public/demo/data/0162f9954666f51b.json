@@ -4,62 +4,150 @@
     {
       "key": "active-writers",
       "name": "Active writers",
-      "filters": [],
-      "didEvent": "document_created",
-      "from": "-14d",
-      "count": 349,
-      "updatedAt": "2026-11-05T10:25:51.458Z",
+      "description": "",
+      "kind": "dynamic",
+      "definition": {
+        "match": "all",
+        "groups": [
+          {
+            "match": "all",
+            "conditions": [
+              {
+                "type": "performed",
+                "event": "document_created",
+                "within": 1209600
+              }
+            ]
+          }
+        ],
+        "from": "-14d"
+      },
+      "summary": "did document_created in the last 1209600 seconds",
+      "count": 370,
+      "usedByFlags": false,
+      "refreshedAt": null,
+      "updatedAt": "2026-11-18T17:53:32.315Z",
       "sql": [
-        "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1792664896561\n    AND e.ts_ms < 1793874496561\n    AND e.event IN ('document_created')\n)\nSELECT COUNT(DISTINCT pid) AS n FROM ev"
+        "SELECT u.pid FROM (SELECT DISTINCT ue.pid FROM (SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793814916104\n    AND e.ts_ms < 1795024576104) ue) u WHERE (u.pid IN (SELECT pe.pid FROM (SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793814916104\n    AND e.ts_ms < 1795024576104\n    AND e.event IN ('document_created')) pe GROUP BY pe.pid HAVING COUNT(*) >= 1))"
       ],
-      "retention": "http://127.0.0.1:58904/app#/insights/retention?project=demo&spec=%7B%22cohortEvent%22%3A%7B%22event%22%3A%22document_created%22%2C%22filters%22%3A%5B%5D%7D%2C%22returnEvent%22%3A%7B%22event%22%3A%22%24pageview%22%7D%2C%22period%22%3A%22week%22%2C%22periods%22%3A8%2C%22filters%22%3A%5B%5D%7D"
+      "retention": "http://127.0.0.1:49397/app#/insights/retention?project=demo&spec=%7B%22cohortEvent%22%3A%7B%22event%22%3A%22document_created%22%7D%2C%22returnEvent%22%3A%7B%22event%22%3A%22%24pageview%22%7D%2C%22period%22%3A%22week%22%2C%22periods%22%3A8%2C%22filters%22%3A%5B%7B%22property%22%3A%22cohort%22%2C%22value%22%3A%22active-writers%22%7D%5D%7D"
     },
     {
       "key": "paying-customers",
       "name": "Paying customers",
-      "filters": [
-        {
-          "property": "person.plan",
-          "op": "in",
-          "value": [
-            "pro",
-            "team"
-          ]
-        }
-      ],
-      "didEvent": null,
-      "from": "-90d",
-      "count": 199,
-      "updatedAt": "2026-11-05T10:25:51.442Z",
+      "description": "",
+      "kind": "dynamic",
+      "definition": {
+        "match": "all",
+        "groups": [
+          {
+            "match": "all",
+            "conditions": [
+              {
+                "type": "performed",
+                "event": "*",
+                "filters": [
+                  {
+                    "property": "person.plan",
+                    "op": "in",
+                    "value": [
+                      "pro",
+                      "team"
+                    ]
+                  }
+                ],
+                "within": 7776000
+              }
+            ]
+          }
+        ],
+        "from": "-90d"
+      },
+      "summary": "did * in the last 7776000 seconds",
+      "count": 197,
+      "usedByFlags": false,
+      "refreshedAt": null,
+      "updatedAt": "2026-11-18T17:53:32.285Z",
       "sql": [
-        "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1786098496564\n    AND e.ts_ms < 1793874496564\n    AND ((CASE json_type(e.person_props, '$.\"plan\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(e.person_props, '$.\"plan\"') AS TEXT) END) IN ('pro', 'team'))\n)\nSELECT COUNT(DISTINCT pid) AS n FROM ev"
+        "SELECT u.pid FROM (SELECT DISTINCT ue.pid FROM (SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248516104\n    AND e.ts_ms < 1795024576104) ue) u WHERE (u.pid IN (SELECT pe.pid FROM (SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248516104\n    AND e.ts_ms < 1795024576104\n    AND ((CASE json_type(e.person_props, '$.\"plan\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(e.person_props, '$.\"plan\"') AS TEXT) END) IN ('pro', 'team'))) pe GROUP BY pe.pid HAVING COUNT(*) >= 1))"
       ],
-      "retention": "http://127.0.0.1:58904/app#/insights/retention?project=demo&spec=%7B%22cohortEvent%22%3A%7B%22event%22%3A%22%24pageview%22%2C%22filters%22%3A%5B%7B%22property%22%3A%22person.plan%22%2C%22op%22%3A%22in%22%2C%22value%22%3A%5B%22pro%22%2C%22team%22%5D%7D%5D%7D%2C%22returnEvent%22%3A%7B%22event%22%3A%22%24pageview%22%7D%2C%22period%22%3A%22week%22%2C%22periods%22%3A8%2C%22filters%22%3A%5B%7B%22property%22%3A%22person.plan%22%2C%22op%22%3A%22in%22%2C%22value%22%3A%5B%22pro%22%2C%22team%22%5D%7D%5D%7D"
+      "retention": "http://127.0.0.1:49397/app#/insights/retention?project=demo&spec=%7B%22cohortEvent%22%3A%7B%22event%22%3A%22%24pageview%22%7D%2C%22returnEvent%22%3A%7B%22event%22%3A%22%24pageview%22%7D%2C%22period%22%3A%22week%22%2C%22periods%22%3A8%2C%22filters%22%3A%5B%7B%22property%22%3A%22cohort%22%2C%22value%22%3A%22paying-customers%22%7D%5D%7D"
+    },
+    {
+      "key": "power-writers",
+      "name": "Power writers",
+      "description": "Created three or more documents in the last two weeks",
+      "kind": "dynamic",
+      "definition": {
+        "groups": [
+          {
+            "conditions": [
+              {
+                "type": "performed",
+                "event": "document_created",
+                "count": {
+                  "op": "gte",
+                  "value": 3
+                },
+                "within": "14d"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "did document_created at least 3 times in the last 14 days",
+      "count": 209,
+      "usedByFlags": false,
+      "refreshedAt": null,
+      "updatedAt": "2026-11-18T17:53:32.325Z",
+      "sql": [
+        "SELECT u.pid FROM (SELECT DISTINCT ue.pid FROM (SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248516104\n    AND e.ts_ms < 1795024576104) ue) u WHERE (u.pid IN (SELECT pe.pid FROM (SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793814916104\n    AND e.ts_ms < 1795024576104\n    AND e.event IN ('document_created')) pe GROUP BY pe.pid HAVING COUNT(*) >= 3))"
+      ],
+      "retention": "http://127.0.0.1:49397/app#/insights/retention?project=demo&spec=%7B%22cohortEvent%22%3A%7B%22event%22%3A%22document_created%22%7D%2C%22returnEvent%22%3A%7B%22event%22%3A%22%24pageview%22%7D%2C%22period%22%3A%22week%22%2C%22periods%22%3A8%2C%22filters%22%3A%5B%7B%22property%22%3A%22cohort%22%2C%22value%22%3A%22power-writers%22%7D%5D%7D"
     },
     {
       "key": "teams-of-11",
       "name": "Teams of 11+",
-      "filters": [
-        {
-          "property": "person.company_size",
-          "op": "in",
-          "value": [
-            "11-50",
-            "51-200",
-            "200+"
-          ]
-        }
-      ],
-      "didEvent": null,
-      "from": "-90d",
-      "count": 133,
-      "updatedAt": "2026-11-05T10:25:51.461Z",
+      "description": "",
+      "kind": "dynamic",
+      "definition": {
+        "match": "all",
+        "groups": [
+          {
+            "match": "all",
+            "conditions": [
+              {
+                "type": "performed",
+                "event": "*",
+                "filters": [
+                  {
+                    "property": "person.company_size",
+                    "op": "in",
+                    "value": [
+                      "11-50",
+                      "51-200",
+                      "200+"
+                    ]
+                  }
+                ],
+                "within": 7776000
+              }
+            ]
+          }
+        ],
+        "from": "-90d"
+      },
+      "summary": "did * in the last 7776000 seconds",
+      "count": 123,
+      "usedByFlags": false,
+      "refreshedAt": null,
+      "updatedAt": "2026-11-18T17:53:32.345Z",
       "sql": [
-        "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1786098496578\n    AND e.ts_ms < 1793874496578\n    AND ((CASE json_type(e.person_props, '$.\"company_size\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(e.person_props, '$.\"company_size\"') AS TEXT) END) IN ('11-50', '51-200', '200+'))\n)\nSELECT COUNT(DISTINCT pid) AS n FROM ev"
+        "SELECT u.pid FROM (SELECT DISTINCT ue.pid FROM (SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248516104\n    AND e.ts_ms < 1795024576104) ue) u WHERE (u.pid IN (SELECT pe.pid FROM (SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248516104\n    AND e.ts_ms < 1795024576104\n    AND ((CASE json_type(e.person_props, '$.\"company_size\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(e.person_props, '$.\"company_size\"') AS TEXT) END) IN ('11-50', '51-200', '200+'))) pe GROUP BY pe.pid HAVING COUNT(*) >= 1))"
       ],
-      "retention": "http://127.0.0.1:58904/app#/insights/retention?project=demo&spec=%7B%22cohortEvent%22%3A%7B%22event%22%3A%22%24pageview%22%2C%22filters%22%3A%5B%7B%22property%22%3A%22person.company_size%22%2C%22op%22%3A%22in%22%2C%22value%22%3A%5B%2211-50%22%2C%2251-200%22%2C%22200%2B%22%5D%7D%5D%7D%2C%22returnEvent%22%3A%7B%22event%22%3A%22%24pageview%22%7D%2C%22period%22%3A%22week%22%2C%22periods%22%3A8%2C%22filters%22%3A%5B%7B%22property%22%3A%22person.company_size%22%2C%22op%22%3A%22in%22%2C%22value%22%3A%5B%2211-50%22%2C%2251-200%22%2C%22200%2B%22%5D%7D%5D%7D"
+      "retention": "http://127.0.0.1:49397/app#/insights/retention?project=demo&spec=%7B%22cohortEvent%22%3A%7B%22event%22%3A%22%24pageview%22%7D%2C%22returnEvent%22%3A%7B%22event%22%3A%22%24pageview%22%7D%2C%22period%22%3A%22week%22%2C%22periods%22%3A8%2C%22filters%22%3A%5B%7B%22property%22%3A%22cohort%22%2C%22value%22%3A%22teams-of-11%22%7D%5D%7D"
     }
   ],
-  "summary": "3 cohorts: Active writers (349), Paying customers (199), Teams of 11+ (133).",
-  "dashboard": "http://127.0.0.1:58904/app#/users?project=demo"
+  "summary": "4 cohorts: Active writers (370), Paying customers (197), Power writers (209), Teams of 11+ (123).",
+  "dashboard": "http://127.0.0.1:49397/app#/users?project=demo"
 }

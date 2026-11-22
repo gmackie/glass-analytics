@@ -1,0 +1,317 @@
+{
+  "project": "demo",
+  "id": "user_1206",
+  "identified": true,
+  "properties": {
+    "signup_source": "header",
+    "plan": "free",
+    "email": "user_1206@example.com",
+    "company_size": "1"
+  },
+  "groups": [],
+  "firstSeen": "2026-10-10T10:50:15.162Z",
+  "lastSeen": "2026-11-18T15:02:23.539Z",
+  "devices": [
+    "139c863e-086f-4894-a9ca-9c4af64dc8f1"
+  ],
+  "revenue": {
+    "net": 0,
+    "gross": 0,
+    "orders": 0,
+    "firstAt": null,
+    "lastAt": null,
+    "currency": "USD"
+  },
+  "recentEvents": [
+    {
+      "event": "document_created",
+      "time": "2026-11-18T15:02:18.540Z",
+      "path": "/app",
+      "session": "f5f447d2-4f6a-476f-acfb-799abfda6239",
+      "properties": {
+        "template": "blank",
+        "words": 1879
+      }
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-18T14:57:18.540Z",
+      "path": "/app",
+      "session": "f5f447d2-4f6a-476f-acfb-799abfda6239",
+      "properties": {
+        "template": "blog-post",
+        "words": 1399
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-18T14:52:18.540Z",
+      "path": "/app",
+      "session": "f5f447d2-4f6a-476f-acfb-799abfda6239",
+      "properties": {}
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-17T02:25:29.153Z",
+      "path": "/app",
+      "session": "de5d7427-d2be-45d7-a6b0-00afc59c57a3",
+      "properties": {
+        "template": "blank",
+        "words": 1044
+      }
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-17T02:20:29.153Z",
+      "path": "/app",
+      "session": "de5d7427-d2be-45d7-a6b0-00afc59c57a3",
+      "properties": {
+        "template": "daily-journal",
+        "words": 2130
+      }
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-17T02:15:29.153Z",
+      "path": "/app",
+      "session": "de5d7427-d2be-45d7-a6b0-00afc59c57a3",
+      "properties": {
+        "template": "blank",
+        "words": 2567
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-17T02:10:29.153Z",
+      "path": "/app",
+      "session": "de5d7427-d2be-45d7-a6b0-00afc59c57a3",
+      "properties": {}
+    },
+    {
+      "event": "document_shared",
+      "time": "2026-11-11T15:02:23.539Z",
+      "path": "/app",
+      "session": "e980fddb-34c4-4279-a8a3-20e2bd9adc46",
+      "properties": {
+        "via": "email"
+      }
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-11T15:02:23.539Z",
+      "path": "/app",
+      "session": "e980fddb-34c4-4279-a8a3-20e2bd9adc46",
+      "properties": {
+        "template": "daily-journal",
+        "words": 571
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-11T15:02:23.539Z",
+      "path": "/app",
+      "session": "e980fddb-34c4-4279-a8a3-20e2bd9adc46",
+      "properties": {}
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-11T15:02:23.539Z",
+      "path": "/app",
+      "session": "1867a974-5cee-4ade-a8df-e6befc2a41d2",
+      "properties": {
+        "template": "blog-post",
+        "words": 1313
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-11T15:02:23.539Z",
+      "path": "/app",
+      "session": "1867a974-5cee-4ade-a8df-e6befc2a41d2",
+      "properties": {}
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-11T15:02:23.539Z",
+      "path": "/app",
+      "session": "00eb540b-3b70-421e-a51d-40e819df7ed1",
+      "properties": {
+        "template": "newsletter",
+        "words": 516
+      }
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-11T15:02:23.539Z",
+      "path": "/app",
+      "session": "00eb540b-3b70-421e-a51d-40e819df7ed1",
+      "properties": {
+        "template": "daily-journal",
+        "words": 962
+      }
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-11T15:02:23.539Z",
+      "path": "/app",
+      "session": "00eb540b-3b70-421e-a51d-40e819df7ed1",
+      "properties": {
+        "template": "blank",
+        "words": 2500
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-11T15:02:23.539Z",
+      "path": "/app",
+      "session": "00eb540b-3b70-421e-a51d-40e819df7ed1",
+      "properties": {}
+    },
+    {
+      "event": "document_shared",
+      "time": "2026-11-11T15:02:23.539Z",
+      "path": "/app",
+      "session": "5663a390-79cc-46a3-a4eb-7540e6543a51",
+      "properties": {
+        "via": "link"
+      }
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-11T15:02:23.539Z",
+      "path": "/app",
+      "session": "5663a390-79cc-46a3-a4eb-7540e6543a51",
+      "properties": {
+        "template": "blog-post",
+        "words": 2415
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-11T15:02:23.539Z",
+      "path": "/app",
+      "session": "5663a390-79cc-46a3-a4eb-7540e6543a51",
+      "properties": {}
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-11T15:02:23.539Z",
+      "path": "/app",
+      "session": "1f486dfa-c03d-48c4-a3cf-5e4f92509520",
+      "properties": {
+        "template": "blank",
+        "words": 1074
+      }
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-11T15:02:23.539Z",
+      "path": "/app",
+      "session": "1f486dfa-c03d-48c4-a3cf-5e4f92509520",
+      "properties": {
+        "template": "blank",
+        "words": 2398
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-11T15:02:23.539Z",
+      "path": "/app",
+      "session": "1f486dfa-c03d-48c4-a3cf-5e4f92509520",
+      "properties": {}
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-11T15:02:23.539Z",
+      "path": "/app",
+      "session": "cs_a83b2b3a964db26853df_996894",
+      "properties": {
+        "template": "blog-post",
+        "words": 199
+      }
+    },
+    {
+      "event": "signup_completed",
+      "time": "2026-10-10T10:50:15.362Z",
+      "path": "/welcome",
+      "session": "72b66a32-3bd4-44a8-ae40-0e481baa3a39",
+      "properties": {
+        "plan": "free",
+        "method": "google"
+      }
+    },
+    {
+      "event": "$identify",
+      "time": "2026-10-10T10:50:15.162Z",
+      "path": "",
+      "session": "72b66a32-3bd4-44a8-ae40-0e481baa3a39",
+      "properties": {
+        "$set": {
+          "plan": "free",
+          "email": "user_1206@example.com",
+          "company_size": "1"
+        },
+        "$set_once": {
+          "signup_source": "header"
+        }
+      }
+    },
+    {
+      "event": "signup_started",
+      "time": "2026-10-10T10:49:03.347Z",
+      "path": "/signup",
+      "session": "72b66a32-3bd4-44a8-ae40-0e481baa3a39",
+      "properties": {
+        "source": "header"
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-10-10T10:48:35.960Z",
+      "path": "/templates",
+      "session": "72b66a32-3bd4-44a8-ae40-0e481baa3a39",
+      "properties": {}
+    },
+    {
+      "event": "$web_vitals",
+      "time": "2026-10-10T10:46:47.005Z",
+      "path": "/templates",
+      "session": "72b66a32-3bd4-44a8-ae40-0e481baa3a39",
+      "properties": {
+        "metric": "FCP",
+        "value": 1435.207
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-10-10T10:46:44.505Z",
+      "path": "/templates",
+      "session": "72b66a32-3bd4-44a8-ae40-0e481baa3a39",
+      "properties": {}
+    },
+    {
+      "event": "$web_vitals",
+      "time": "2026-10-10T10:45:29.885Z",
+      "path": "/",
+      "session": "72b66a32-3bd4-44a8-ae40-0e481baa3a39",
+      "properties": {
+        "metric": "CLS",
+        "value": 0.057
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-10-10T10:45:27.385Z",
+      "path": "/",
+      "session": "72b66a32-3bd4-44a8-ae40-0e481baa3a39",
+      "properties": {}
+    }
+  ],
+  "replays": [],
+  "summary": "Identified person \"user_1206\": 31 events in 90 days.",
+  "sql": [
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248538257\n    AND e.ts_ms < 1795024598257\n)\nSELECT event, ts_ms, path, session_id, props FROM ev WHERE pid = 'user_1206' OR distinct_id = 'user_1206'\nORDER BY ts_ms DESC LIMIT 100",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248538257\n    AND e.ts_ms < 1795024598257\n)\nSELECT 'company' AS type, (CASE json_type(props, '$.\"$groups\".\"company\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$groups\".\"company\"') AS TEXT) END) AS group_key, MAX(ts_ms) AS last_ts FROM ev WHERE (pid = 'user_1206' OR distinct_id = 'user_1206') AND (CASE json_type(props, '$.\"$groups\".\"company\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$groups\".\"company\"') AS TEXT) END) IS NOT NULL GROUP BY (CASE json_type(props, '$.\"$groups\".\"company\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$groups\".\"company\"') AS TEXT) END)"
+  ],
+  "dashboard": "http://127.0.0.1:49397/app#/users/user_1206?project=demo"
+}

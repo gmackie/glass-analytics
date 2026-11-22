@@ -3,9 +3,42 @@
  */
 
 import { COHORT_PROPERTY, type CohortMembers, type Filter, SESSION_PREFIX } from '../filters.ts';
-import { DAY_MS, HOUR_MS, type Interval, WEEK_MS } from '../time.ts';
-import type { Dialect } from './dialect.ts';
+import {
+  DAY_MS,
+  fixedZone,
+  HOUR_MS,
+  type Interval,
+  localThreshold,
+  MINUTE_MS,
+  WEEK_MS,
+  type Zone,
+} from '../time.ts';
+import { assertSafeKey, type Dialect } from './dialect.ts';
 import { filtersSql } from './filters.ts';
+
+/**
+ * What a query counts: people (the default), sessions, or groups of a type
+ * (`{ group: "company" }`, from `glass.group("company", id)`). Compilers count
+ * the `actor` column that `eventsCte` adds, so every insight can aggregate by any
+ * of them.
+ */
+export type Aggregation = 'person' | 'session' | { group: string };
+
+/** Parse a spec's `aggregateBy` ("person", "session" or a group type). */
+export function parseAggregation(value: string | null | undefined): Aggregation {
+  if (!value || value === 'person' || value === 'persons' || value === 'users') return 'person';
+  if (value === 'session' || value === 'sessions') return 'session';
+  const type = value.startsWith('group.') ? value.slice(6) : value;
+  assertSafeKey(type);
+  return { group: type };
+}
+
+/** Human noun for summaries: "people", "sessions", "companies". */
+export function actorNoun(a: Aggregation, n = 2): string {
+  if (a === 'person') return n === 1 ? 'person' : 'people';
+  if (a === 'session') return n === 1 ? 'session' : 'sessions';
+  return n === 1 ? a.group : `${a.group} groups`;
+}
 
 export interface SourceOptions {
   project: string;
@@ -16,6 +49,10 @@ export interface SourceOptions {
   /** Restrict to these event names (pushes the filter down for cheaper scans). */
   events?: readonly string[];
   filters?: readonly Filter[];
+  /** What the `actor` column holds. Defaults to the person. */
+  aggregation?: Aggregation;
+  /** CTE name. Default "ev". */
+  name?: string;
 }
 
 /**
@@ -39,14 +76,25 @@ export function eventsCte(d: Dialect, o: SourceOptions): string {
     ...o,
     filters: (o.filters ?? []).filter((f) => f.property !== COHORT_PROPERTY),
   });
-  if (cohort.length === 0) return `ev AS (\n  ${rows}\n)`;
-  return `ev AS (\n  SELECT * FROM (\n  ${rows}\n  ) ev_all\n  WHERE ${filtersSql(cohort, d)}\n)`;
+  const name = o.name ?? 'ev';
+  if (cohort.length === 0) return `${name} AS (\n  ${rows}\n)`;
+  return `${name} AS (\n  SELECT * FROM (\n  ${rows}\n  ) ev_all\n  WHERE ${filtersSql(cohort, d)}\n)`;
 }
 
 /** Distinct person ids in a cohort, as a subquery for `pid IN (…)`. */
 export function cohortMembersSql(d: Dialect, c: CohortMembers): string {
+  if (c.sql) return c.sql;
   const filters = c.filters.filter((f) => f.property !== COHORT_PROPERTY);
   return `SELECT DISTINCT cm.pid FROM (${resolvedEvents(d, { project: c.project, from: c.from, to: c.to, events: c.events, filters })}) cm`;
+}
+
+/** Events in range with their resolved person (`pid`) and `actor`, as a plain SELECT (no CTE). */
+export function resolvedEventsSql(d: Dialect, o: SourceOptions): string {
+  const filters = (o.filters ?? []).filter((f) => f.property !== COHORT_PROPERTY);
+  const cohort = (o.filters ?? []).filter((f) => f.property === COHORT_PROPERTY);
+  const rows = resolvedEvents(d, { ...o, filters });
+  if (cohort.length === 0) return rows;
+  return `SELECT * FROM (${rows}) ev_all WHERE ${filtersSql(cohort, d)}`;
 }
 
 function resolvedEvents(d: Dialect, o: SourceOptions): string {
@@ -77,8 +125,19 @@ function resolvedEvents(d: Dialect, o: SourceOptions): string {
         AND ${filtersSql(inner, d, 'sf')}
     )`);
   }
+  const pid = `CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END`;
+  const aggregation = o.aggregation ?? 'person';
+  const actor =
+    aggregation === 'person'
+      ? pid
+      : aggregation === 'session'
+        ? 'e.session_id'
+        : d.jsonText('e.props', ['$groups', aggregation.group]);
+  // Events outside any session or group don't count when aggregating by them.
+  if (aggregation !== 'person') where.push(`${actor} IS NOT NULL AND ${actor} <> ''`);
   return `SELECT e.*,
-    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid
+    ${pid} AS pid,
+    ${actor} AS actor
   FROM ${d.table('events')} e
   LEFT JOIN (
     SELECT distinct_id, MIN(person_id) AS person_id
@@ -89,38 +148,85 @@ function resolvedEvents(d: Dialect, o: SourceOptions): string {
   WHERE ${where.join('\n    AND ')}`;
 }
 
+/** The UTC offset (ms) in force at `tsMs`, as SQL: a literal, or a CASE over the zone's changes. */
+export function offsetSql(d: Dialect, tsMs: string, zone: Zone): string {
+  const s = zone.segments;
+  if (s.length === 1) return d.num(s[0]!.offsetMs);
+  const branches = s
+    .slice(1)
+    .map((seg, i) => `WHEN ${tsMs} < ${d.num(seg.start)} THEN ${d.num(s[i]!.offsetMs)}`);
+  return `(CASE ${branches.join(' ')} ELSE ${d.num(s.at(-1)!.offsetMs)} END)`;
+}
+
+/** The offset to subtract from a local wall-clock time to get UTC (see `localToUtc` in time.ts). */
+function localOffsetSql(d: Dialect, localMs: string, zone: Zone): string {
+  const s = zone.segments;
+  if (s.length === 1) return d.num(s[0]!.offsetMs);
+  const branches = s
+    .slice(1)
+    .map(
+      (seg, i) =>
+        `WHEN ${localMs} < ${d.num(localThreshold(s[i]!.offsetMs, seg))} THEN ${d.num(s[i]!.offsetMs)}`,
+    );
+  return `(CASE ${branches.join(' ')} ELSE ${d.num(s.at(-1)!.offsetMs)} END)`;
+}
+
+/** `tsMs` as local wall-clock milliseconds in the zone. */
+export function localTimeSql(d: Dialect, tsMs: string, zone: Zone): string {
+  const s = zone.segments;
+  if (s.length === 1 && s[0]!.offsetMs === 0) return tsMs;
+  return `(${tsMs} + ${offsetSql(d, tsMs, zone)})`;
+}
+
 /**
  * Start of the bucket containing `tsMs`, as epoch ms, computed in SQL.
- * Hours, days and weeks are integer arithmetic (identical in every engine);
- * months need calendar logic, delegated to the dialect.
+ * Minutes, hours, days and weeks are integer arithmetic (identical in every
+ * engine); months need calendar logic, delegated to the dialect. In a zone with
+ * daylight saving, days start at local midnight on both sides of a change,
+ * matching `bucketStart()` in time.ts exactly.
  */
 export function bucketExpr(
   d: Dialect,
   tsMs: string,
   interval: Interval,
-  utcOffsetMinutes = 0,
+  zone: Zone | number = 0,
 ): string {
-  const off = utcOffsetMinutes * 60_000;
-  const local = off === 0 ? tsMs : `(${tsMs} + ${off})`;
-  const back = off === 0 ? '' : ` - ${off}`;
+  const z = typeof zone === 'number' ? fixedZone(zone) : zone;
+  const utc = z.segments.length === 1 && z.segments[0]!.offsetMs === 0;
+  const local = localTimeSql(d, tsMs, z);
+  if (interval === 'minute' || interval === 'hour') {
+    const unit = interval === 'minute' ? MINUTE_MS : HOUR_MS;
+    if (utc) return `((${tsMs} / ${unit}) * ${unit})`;
+    return `(((${local}) / ${unit}) * ${unit} - ${offsetSql(d, tsMs, z)})`;
+  }
+  let start: string;
   switch (interval) {
-    case 'hour':
-      return `((${local} / ${HOUR_MS}) * ${HOUR_MS}${back})`;
     case 'day':
-      return `((${local} / ${DAY_MS}) * ${DAY_MS}${back})`;
+      start = `((${local} / ${DAY_MS}) * ${DAY_MS})`;
+      break;
     case 'week': {
       // Weeks start on Monday. Day 0 (1970-01-01) was a Thursday, so (day + 3) % 7 is 0 on Mondays.
       const day = `(${local} / ${DAY_MS})`;
-      return `((${day} - ((${day} + 3) % 7)) * ${DAY_MS}${back})`;
+      start = `((${day} - ((${day} + 3) % 7)) * ${DAY_MS})`;
+      break;
     }
     case 'month':
-      return `(${d.monthStartMs(local)}${back})`;
+      start = d.monthStartMs(local);
+      break;
   }
+  if (utc) return start;
+  return `(${start} - ${localOffsetSql(d, start, z)})`;
 }
 
 /** Length of a fixed interval in ms (weeks and below). */
 export function fixedIntervalMs(interval: Exclude<Interval, 'month'>): number {
-  return interval === 'hour' ? HOUR_MS : interval === 'day' ? DAY_MS : WEEK_MS;
+  return interval === 'minute'
+    ? MINUTE_MS
+    : interval === 'hour'
+      ? HOUR_MS
+      : interval === 'day'
+        ? DAY_MS
+        : WEEK_MS;
 }
 
 /** Normalise numeric cells: engines may return integers as strings or bigints. */

@@ -10,7 +10,8 @@
       "!**/coverage",
       "!**/.stryker-tmp",
       "!.github/workflows/glass.yml",
-      "!site/public/demo"
+      "!site/public/demo",
+      "!packages/dashboard/src/components/world-paths.ts"
     ]
   },
   "formatter": {

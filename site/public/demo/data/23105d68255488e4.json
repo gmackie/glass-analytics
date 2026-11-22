@@ -5,24 +5,33 @@
   "properties": {
     "plan": "team"
   },
-  "firstSeen": "2026-11-05T10:26:03.762Z",
-  "lastSeen": "2026-11-05T10:26:13.854Z",
+  "groups": [],
+  "firstSeen": "2026-11-18T17:53:44.300Z",
+  "lastSeen": "2026-11-18T17:53:54.413Z",
   "devices": [
-    "01a1ab3e-58a5-7fa4-9764-06dfbee1fb27"
+    "01a1efca-e081-79d9-b107-d2683e2657ff"
   ],
+  "revenue": {
+    "net": 0,
+    "gross": 0,
+    "orders": 0,
+    "firstAt": null,
+    "lastAt": null,
+    "currency": "USD"
+  },
   "recentEvents": [
     {
       "event": "upgrade_clicked",
-      "time": "2026-11-05T10:26:09.586Z",
+      "time": "2026-11-18T17:53:50.157Z",
       "path": "/app",
-      "session": "01a1ab3e-58ac-747d-a96c-1c76b5a96246",
+      "session": "01a1efca-e087-7bd3-8e3b-e444ded37a4e",
       "properties": {}
     },
     {
       "event": "$click",
-      "time": "2026-11-05T10:26:09.586Z",
+      "time": "2026-11-18T17:53:50.157Z",
       "path": "/app",
-      "session": "01a1ab3e-58ac-747d-a96c-1c76b5a96246",
+      "session": "01a1efca-e087-7bd3-8e3b-e444ded37a4e",
       "properties": {
         "tag": "button",
         "text": "Upgrade now",
@@ -31,16 +40,16 @@
     },
     {
       "event": "upgrade_clicked",
-      "time": "2026-11-05T10:26:09.404Z",
+      "time": "2026-11-18T17:53:49.974Z",
       "path": "/app",
-      "session": "01a1ab3e-58ac-747d-a96c-1c76b5a96246",
+      "session": "01a1efca-e087-7bd3-8e3b-e444ded37a4e",
       "properties": {}
     },
     {
       "event": "$click",
-      "time": "2026-11-05T10:26:09.404Z",
+      "time": "2026-11-18T17:53:49.974Z",
       "path": "/app",
-      "session": "01a1ab3e-58ac-747d-a96c-1c76b5a96246",
+      "session": "01a1efca-e087-7bd3-8e3b-e444ded37a4e",
       "properties": {
         "tag": "button",
         "text": "Upgrade now",
@@ -49,16 +58,16 @@
     },
     {
       "event": "upgrade_clicked",
-      "time": "2026-11-05T10:26:09.222Z",
+      "time": "2026-11-18T17:53:49.789Z",
       "path": "/app",
-      "session": "01a1ab3e-58ac-747d-a96c-1c76b5a96246",
+      "session": "01a1efca-e087-7bd3-8e3b-e444ded37a4e",
       "properties": {}
     },
     {
       "event": "$click",
-      "time": "2026-11-05T10:26:09.222Z",
+      "time": "2026-11-18T17:53:49.789Z",
       "path": "/app",
-      "session": "01a1ab3e-58ac-747d-a96c-1c76b5a96246",
+      "session": "01a1efca-e087-7bd3-8e3b-e444ded37a4e",
       "properties": {
         "tag": "button",
         "text": "Upgrade now",
@@ -67,16 +76,16 @@
     },
     {
       "event": "upgrade_clicked",
-      "time": "2026-11-05T10:26:09.038Z",
+      "time": "2026-11-18T17:53:49.610Z",
       "path": "/app",
-      "session": "01a1ab3e-58ac-747d-a96c-1c76b5a96246",
+      "session": "01a1efca-e087-7bd3-8e3b-e444ded37a4e",
       "properties": {}
     },
     {
       "event": "$click",
-      "time": "2026-11-05T10:26:09.038Z",
+      "time": "2026-11-18T17:53:49.610Z",
       "path": "/app",
-      "session": "01a1ab3e-58ac-747d-a96c-1c76b5a96246",
+      "session": "01a1efca-e087-7bd3-8e3b-e444ded37a4e",
       "properties": {
         "tag": "button",
         "text": "Upgrade now",
@@ -85,16 +94,16 @@
     },
     {
       "event": "upgrade_clicked",
-      "time": "2026-11-05T10:26:08.852Z",
+      "time": "2026-11-18T17:53:49.411Z",
       "path": "/app",
-      "session": "01a1ab3e-58ac-747d-a96c-1c76b5a96246",
+      "session": "01a1efca-e087-7bd3-8e3b-e444ded37a4e",
       "properties": {}
     },
     {
       "event": "$click",
-      "time": "2026-11-05T10:26:08.852Z",
+      "time": "2026-11-18T17:53:49.411Z",
       "path": "/app",
-      "session": "01a1ab3e-58ac-747d-a96c-1c76b5a96246",
+      "session": "01a1efca-e087-7bd3-8e3b-e444ded37a4e",
       "properties": {
         "tag": "button",
         "text": "Upgrade now",
@@ -103,30 +112,33 @@
     },
     {
       "event": "$exception",
-      "time": "2026-11-05T10:26:06.839Z",
+      "time": "2026-11-18T17:53:47.375Z",
       "path": "/app",
-      "session": "01a1ab3e-58ac-747d-a96c-1c76b5a96246",
+      "session": "01a1efca-e087-7bd3-8e3b-e444ded37a4e",
       "properties": {
         "type": "TypeError",
         "message": "Cannot read properties of undefined (reading 'number')",
         "stack": "TypeError: Cannot read properties of undefined (reading 'number')\n    at HTMLButtonElement.<anonymous> (http://inkwell.example/app:24:19)",
+        "handled": false,
         "source": "http://inkwell.example/app",
         "line": 24,
-        "column": 19
+        "column": 19,
+        "$issue_id": "d49f920f9d28519b",
+        "$exception_fingerprint": "d49f920f9d28519b901150d49b2277c0"
       }
     },
     {
       "event": "upgrade_clicked",
-      "time": "2026-11-05T10:26:06.838Z",
+      "time": "2026-11-18T17:53:47.373Z",
       "path": "/app",
-      "session": "01a1ab3e-58ac-747d-a96c-1c76b5a96246",
+      "session": "01a1efca-e087-7bd3-8e3b-e444ded37a4e",
       "properties": {}
     },
     {
       "event": "$click",
-      "time": "2026-11-05T10:26:06.838Z",
+      "time": "2026-11-18T17:53:47.373Z",
       "path": "/app",
-      "session": "01a1ab3e-58ac-747d-a96c-1c76b5a96246",
+      "session": "01a1efca-e087-7bd3-8e3b-e444ded37a4e",
       "properties": {
         "tag": "button",
         "text": "Upgrade now",
@@ -135,25 +147,25 @@
     },
     {
       "event": "$pageview",
-      "time": "2026-11-05T10:26:03.787Z",
+      "time": "2026-11-18T17:53:44.323Z",
       "path": "/app",
-      "session": "01a1ab3e-58ac-747d-a96c-1c76b5a96246",
+      "session": "01a1efca-e087-7bd3-8e3b-e444ded37a4e",
       "properties": {}
     },
     {
       "event": "signup_completed",
-      "time": "2026-11-05T10:26:03.762Z",
+      "time": "2026-11-18T17:53:44.300Z",
       "path": "/signup",
-      "session": "01a1ab3e-58ac-747d-a96c-1c76b5a96246",
+      "session": "01a1efca-e087-7bd3-8e3b-e444ded37a4e",
       "properties": {
         "plan": "team"
       }
     },
     {
       "event": "$identify",
-      "time": "2026-11-05T10:26:03.762Z",
+      "time": "2026-11-18T17:53:44.300Z",
       "path": "/signup",
-      "session": "01a1ab3e-58ac-747d-a96c-1c76b5a96246",
+      "session": "01a1efca-e087-7bd3-8e3b-e444ded37a4e",
       "properties": {
         "$set": {
           "plan": "team"
@@ -162,9 +174,9 @@
     },
     {
       "event": "$click",
-      "time": "2026-11-05T10:26:03.761Z",
+      "time": "2026-11-18T17:53:44.300Z",
       "path": "/signup",
-      "session": "01a1ab3e-58ac-747d-a96c-1c76b5a96246",
+      "session": "01a1efca-e087-7bd3-8e3b-e444ded37a4e",
       "properties": {
         "tag": "button",
         "text": "Create account"
@@ -172,23 +184,24 @@
     },
     {
       "event": "$pageview",
-      "time": "2026-11-05T10:25:59.463Z",
+      "time": "2026-11-18T17:53:39.967Z",
       "path": "/signup",
-      "session": "01a1ab3e-58ac-747d-a96c-1c76b5a96246",
+      "session": "01a1efca-e087-7bd3-8e3b-e444ded37a4e",
       "properties": {}
     }
   ],
   "replays": [
     {
-      "session": "01a1ab3e-58ac-747d-a96c-1c76b5a96246",
-      "started": "2026-11-05T10:25:52.319Z",
+      "session": "01a1efca-e087-7bd3-8e3b-e444ded37a4e",
+      "started": "2026-11-18T17:53:32.824Z",
       "errors": 1,
       "url": "http://inkwell.example/"
     }
   ],
   "summary": "Identified person \"user-maya\": 18 events in 90 days, 1 recorded sessions.",
   "sql": [
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1786098520448\n    AND e.ts_ms < 1793874580448\n)\nSELECT event, ts_ms, path, session_id, props FROM ev WHERE pid = 'user-maya' OR distinct_id = 'user-maya'\nORDER BY ts_ms DESC LIMIT 100"
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248532225\n    AND e.ts_ms < 1795024592225\n)\nSELECT event, ts_ms, path, session_id, props FROM ev WHERE pid = 'user-maya' OR distinct_id = 'user-maya'\nORDER BY ts_ms DESC LIMIT 100",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248532225\n    AND e.ts_ms < 1795024592225\n)\nSELECT 'company' AS type, (CASE json_type(props, '$.\"$groups\".\"company\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$groups\".\"company\"') AS TEXT) END) AS group_key, MAX(ts_ms) AS last_ts FROM ev WHERE (pid = 'user-maya' OR distinct_id = 'user-maya') AND (CASE json_type(props, '$.\"$groups\".\"company\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$groups\".\"company\"') AS TEXT) END) IS NOT NULL GROUP BY (CASE json_type(props, '$.\"$groups\".\"company\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$groups\".\"company\"') AS TEXT) END)"
   ],
-  "dashboard": "http://127.0.0.1:58904/app#/users/user-maya?project=demo"
+  "dashboard": "http://127.0.0.1:49397/app#/users/user-maya?project=demo"
 }

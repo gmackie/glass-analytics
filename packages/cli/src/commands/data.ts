@@ -5,6 +5,7 @@
  */
 
 import type { FunnelResult } from '@dataflare/core/insights/funnel';
+import type { PathsResult } from '@dataflare/core/insights/paths';
 import type { RetentionResult } from '@dataflare/core/insights/retention';
 import type { TrendsResult } from '@dataflare/core/insights/trends';
 import type { WebResult } from '@dataflare/core/insights/web';
@@ -22,95 +23,104 @@ function showSql(sql: string[] | undefined, flags: Flags): void {
   for (const q of sql) line(color.dim(q));
 }
 
+type Spec = Record<string, unknown>;
+type Common = { from?: string; to?: string; breakdown?: string; filters?: Spec[] };
+
+function whereFilters(flags: Flags): Spec[] | undefined {
+  if (typeof flags.where !== 'string') return undefined;
+  return flags.where.split(',').map((w) => {
+    const [property, value] = w.split('=');
+    if (!property || value === undefined)
+      throw new UsageError(`--where expects property=value pairs, got "${w}".`);
+    return { property: property.trim(), value: value.trim() };
+  });
+}
+
+/** A page ("/pricing", "/blog/*") or an event name, for paths. */
+const point = (v: string | undefined) =>
+  v ? { type: v.startsWith('/') ? 'page' : 'event', value: v } : undefined;
+
+/** How each kind's spec comes from flags. */
+const SPECS: Record<string, (flags: Flags, c: Common) => Spec> = {
+  web: (_flags, c) => ({ from: c.from, to: c.to, filters: c.filters }),
+  trends: (flags, c) => {
+    const events = str(flags.event)?.split(',') ?? [];
+    if (!events.length)
+      throw new UsageError('`dataflare query trends` needs --event <name>[,<name>…]');
+    return {
+      ...c,
+      interval: str(flags.interval),
+      series: events.map((event) => ({
+        event,
+        math: str(flags.math),
+        property: str(flags.property),
+      })),
+    };
+  },
+  funnel: (flags, c) => {
+    const steps = str(flags.steps)?.split(',') ?? [];
+    if (steps.length < 2) throw new UsageError('`dataflare query funnel` needs --steps a,b[,c…]');
+    return {
+      ...c,
+      window: str(flags.window),
+      steps: steps.map((event) => ({ event: event.trim() })),
+    };
+  },
+  retention: (flags, c) => {
+    const cohort = str(flags.cohort);
+    if (!cohort)
+      throw new UsageError(
+        '`dataflare query retention` needs --cohort <event> (and optionally --return <event>)',
+      );
+    return {
+      from: c.from,
+      to: c.to,
+      filters: c.filters,
+      cohortEvent: { event: cohort },
+      returnEvent: { event: str(flags.return) ?? cohort },
+      period: str(flags.period),
+      periods: flags.periods ? Number(flags.periods) : undefined,
+    };
+  },
+  paths: (flags, c) => ({
+    from: c.from,
+    to: c.to,
+    filters: c.filters,
+    start: point(str(flags.start)),
+    end: point(str(flags.end)),
+    steps: flags.steps ? Number(flags.steps) : undefined,
+    include: flags.events ? { events: true } : undefined,
+    aggregateBy: str(flags.by),
+  }),
+};
+
 /** Build a spec from flags, or take `--spec '{...}'` verbatim. */
-function specFromFlags(kind: string, flags: Flags): Record<string, unknown> {
+function specFromFlags(kind: string, flags: Flags): Spec {
   if (typeof flags.spec === 'string') {
     try {
-      return JSON.parse(flags.spec) as Record<string, unknown>;
+      return JSON.parse(flags.spec) as Spec;
     } catch {
       throw new UsageError('--spec is not valid JSON.');
     }
   }
-  const common = { from: str(flags.from), to: str(flags.to), breakdown: str(flags.breakdown) };
-  const filters =
-    typeof flags.where === 'string'
-      ? flags.where.split(',').map((w) => {
-          const [property, value] = w.split('=');
-          if (!property || value === undefined)
-            throw new UsageError(`--where expects property=value pairs, got "${w}".`);
-          return { property: property.trim(), value: value.trim() };
-        })
-      : undefined;
-  switch (kind) {
-    case 'web':
-      return { from: common.from, to: common.to, filters };
-    case 'trends': {
-      const events = str(flags.event)?.split(',') ?? [];
-      if (!events.length)
-        throw new UsageError('`dataflare query trends` needs --event <name>[,<name>…]');
-      return {
-        ...common,
-        filters,
-        interval: str(flags.interval),
-        series: events.map((event) => ({
-          event,
-          math: str(flags.math),
-          property: str(flags.property),
-        })),
-      };
-    }
-    case 'funnel': {
-      const steps = str(flags.steps)?.split(',') ?? [];
-      if (steps.length < 2) throw new UsageError('`dataflare query funnel` needs --steps a,b[,c…]');
-      return {
-        ...common,
-        filters,
-        window: str(flags.window),
-        steps: steps.map((event) => ({ event: event.trim() })),
-      };
-    }
-    case 'retention': {
-      const cohort = str(flags.cohort);
-      if (!cohort)
-        throw new UsageError(
-          '`dataflare query retention` needs --cohort <event> (and optionally --return <event>)',
-        );
-      return {
-        from: common.from,
-        to: common.to,
-        filters,
-        cohortEvent: { event: cohort },
-        returnEvent: { event: str(flags.return) ?? cohort },
-        period: str(flags.period),
-        periods: flags.periods ? Number(flags.periods) : undefined,
-      };
-    }
-    default:
-      throw new UsageError(
-        `Unknown query "${kind}".`,
-        'Use web, trends, funnel or retention (or `dataflare sql`).',
-      );
-  }
+  const build = SPECS[kind];
+  if (!build)
+    throw new UsageError(
+      `Unknown query "${kind}".`,
+      'Use web, trends, funnel, retention or paths (or `dataflare sql`).',
+    );
+  return build(flags, {
+    from: str(flags.from),
+    to: str(flags.to),
+    breakdown: str(flags.breakdown),
+    filters: whereFilters(flags),
+  });
 }
 
-export async function query(kind: string | undefined, flags: Flags): Promise<void> {
-  if (!kind)
-    throw new UsageError(
-      'Which query?',
-      'dataflare query web|trends|funnel|retention [options]; see `dataflare help query`.',
-    );
-  const result = await call<
-    Record<string, unknown> & { summary: string; sql: string[]; dashboard: string }
-  >(
-    'POST',
-    '/api/query',
-    withProject({ kind, ...specFromFlags(kind, flags), project: str(flags.project) }),
-  );
-  if (flags.json) return printJson(result);
-  line(color.bold(result.summary));
-  line();
-  if (kind === 'web') {
-    const r = result as unknown as WebResult;
+/** How each kind's result prints as tables. */
+const PRINTERS: Record<string, (result: unknown) => void> = {
+  web: (result) => {
+    const r = result as WebResult;
     table(
       ['Metric', 'Value', 'Previous'],
       [
@@ -130,14 +140,16 @@ export async function query(kind: string | undefined, flags: Flags): Promise<voi
       ['Referrer', 'Visitors'],
       r.breakdowns.referrers.slice(0, 8).map((p) => [p.value, p.visitors]),
     );
-  } else if (kind === 'trends') {
-    const r = result as unknown as TrendsResult;
+  },
+  trends: (result) => {
+    const r = result as TrendsResult;
     table(
       ['Series', 'Total'],
       r.series.map((s) => [s.label, s.total]),
     );
-  } else if (kind === 'funnel') {
-    const r = result as unknown as FunnelResult;
+  },
+  funnel: (result) => {
+    const r = result as FunnelResult;
     table(
       ['Step', 'People', 'From start', 'From previous'],
       r.steps.map((s) => [
@@ -147,8 +159,9 @@ export async function query(kind: string | undefined, flags: Flags): Promise<voi
         pct(s.conversionFromPrevious),
       ]),
     );
-  } else if (kind === 'retention') {
-    const r = result as unknown as RetentionResult;
+  },
+  retention: (result) => {
+    const r = result as RetentionResult;
     table(
       ['Cohort', 'People', ...r.average.map((_, k) => `${r.period[0]}${k}`)],
       r.cohorts.map((c) => [
@@ -157,7 +170,31 @@ export async function query(kind: string | undefined, flags: Flags): Promise<voi
         ...c.rates.map((x) => `${Math.round(x * 100)}%`),
       ]),
     );
-  }
+  },
+  paths: (result) => {
+    const r = result as PathsResult;
+    table(
+      ['Path', 'Count'],
+      r.topPaths.slice(0, 15).map((p) => [p.items.join(' → '), p.count]),
+    );
+  },
+};
+
+export async function query(kind: string | undefined, flags: Flags): Promise<void> {
+  if (!kind)
+    throw new UsageError(
+      'Which query?',
+      'dataflare query web|trends|funnel|retention|paths [options]; see `dataflare help query`.',
+    );
+  const result = await call<Spec & { summary: string; sql: string[]; dashboard: string }>(
+    'POST',
+    '/api/query',
+    withProject({ kind, ...specFromFlags(kind, flags), project: str(flags.project) }),
+  );
+  if (flags.json) return printJson(result);
+  line(color.bold(result.summary));
+  line();
+  PRINTERS[kind]?.(result);
   line();
   line(color.dim(`Open in dashboard: ${result.dashboard}`));
   showSql(result.sql, flags);
@@ -268,6 +305,74 @@ export async function person(id: string | undefined, flags: Flags): Promise<void
       .slice(0, 25)
       .map((e) => [e.time.slice(0, 19).replace('T', ' '), e.event, e.path]),
   );
+}
+
+/** `dataflare groups [type] [--search x]`: group types, or the groups of one type. */
+export async function groups(type: string | undefined, flags: Flags): Promise<void> {
+  const params = new URLSearchParams();
+  if (str(flags.project)) params.set('project', str(flags.project)!);
+  if (!type) {
+    const r = await call<{ summary: string; types: { type: string; groups: number }[] }>(
+      'GET',
+      `/api/groups/types${params.size ? `?${params}` : ''}`,
+    );
+    if (flags.json) return printJson(r);
+    line(r.summary);
+    if (r.types.length)
+      table(
+        ['Type', 'Groups'],
+        r.types.map((t) => [t.type, String(t.groups)]),
+      );
+    return;
+  }
+  params.set('type', type);
+  if (str(flags.search)) params.set('search', str(flags.search)!);
+  const r = await call<{
+    summary: string;
+    groups: { key: string; lastSeen: string; properties: Record<string, unknown> }[];
+  }>('GET', `/api/groups?${params}`);
+  if (flags.json) return printJson(r);
+  line(r.summary);
+  if (r.groups.length) {
+    table(
+      ['Key', 'Last seen', 'Properties'],
+      r.groups.map((g) => [
+        g.key,
+        g.lastSeen.slice(0, 16).replace('T', ' '),
+        JSON.stringify(g.properties).slice(0, 60),
+      ]),
+    );
+  }
+}
+
+/** `dataflare group <type> <key> [--delete]`: one group, or erase it. */
+export async function group(
+  type: string | undefined,
+  key: string | undefined,
+  flags: Flags,
+): Promise<void> {
+  if (!type || !key) throw new UsageError('Usage: dataflare group <type> <key> [--delete]');
+  const q = str(flags.project) ? `?project=${encodeURIComponent(str(flags.project)!)}` : '';
+  const path = `/api/groups/${encodeURIComponent(type)}/${encodeURIComponent(key)}${q}`;
+  if (flags.delete) {
+    const r = await call<{ summary: string }>('DELETE', path);
+    return flags.json ? printJson(r) : line(r.summary);
+  }
+  const r = await call<{
+    summary: string;
+    properties: Record<string, unknown>;
+    members: { person: string; events: number; lastSeen: string }[];
+  }>('GET', path);
+  if (flags.json) return printJson(r);
+  line(color.bold(r.summary));
+  for (const [k, v] of Object.entries(r.properties)) line(`  ${k}: ${JSON.stringify(v)}`);
+  if (r.members.length) {
+    line();
+    table(
+      ['Member', 'Events', 'Last seen'],
+      r.members.map((m) => [m.person, String(m.events), m.lastSeen.slice(0, 16).replace('T', ' ')]),
+    );
+  }
 }
 
 export async function replays(

@@ -1,8 +1,8 @@
 {
   "project": "demo",
   "event": "invite_sent",
-  "sampled": 37,
-  "lastSeen": "2026-11-04T07:10:27.136Z",
+  "sampled": 24,
+  "lastSeen": "2026-11-18T14:33:34.872Z",
   "description": "Fired when a team admin invites someone to their workspace.",
   "owner": "Growth",
   "properties": [
@@ -19,8 +19,8 @@
       "description": "Role given to the invitee: editor or viewer."
     }
   ],
-  "summary": "\"invite_sent\": 1 properties across the latest 37 events.",
+  "summary": "\"invite_sent\": 1 properties across the latest 24 events.",
   "sql": [
-    "SELECT props, ts_ms FROM events\nWHERE project = 'demo' AND event = 'invite_sent' AND ts_ms >= 1791282557278\nORDER BY ts_ms DESC LIMIT 500"
+    "SELECT props, ts_ms FROM events\nWHERE project = 'demo' AND event = 'invite_sent' AND ts_ms >= 1792432569741\nORDER BY ts_ms DESC LIMIT 500"
   ]
 }

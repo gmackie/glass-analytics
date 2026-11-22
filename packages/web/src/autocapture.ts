@@ -109,7 +109,8 @@ export function trackErrors(hooks: AutocaptureHooks, onError: () => void): () =>
     hooks.capture('$exception', {
       type,
       message: message.slice(0, 500),
-      stack: stack?.slice(0, 2000),
+      stack: stack?.slice(0, 4000),
+      handled: false,
       ...extra,
     });
     onError();

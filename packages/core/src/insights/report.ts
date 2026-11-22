@@ -18,7 +18,7 @@ import type { Filter } from '../filters.ts';
 import type { Dialect } from '../sql/dialect.ts';
 import { bucketExpr, eventsCte, num, text } from '../sql/source.ts';
 import { bucketsBetween, DAY_MS, type Interval, resolveRange, type TimeRange } from '../time.ts';
-import type { QueryContext } from './types.ts';
+import { type QueryContext, zoneOf } from './types.ts';
 import { percentile } from './web.ts';
 
 const PV = SYSTEM_EVENTS.pageview;
@@ -38,6 +38,7 @@ export interface ReportRange {
   filters?: Filter[];
   interval?: Interval;
   utcOffsetMinutes?: number;
+  timezone?: string;
 }
 
 function intervalFor(range: TimeRange): Interval {
@@ -179,7 +180,7 @@ export async function runConversions(
   const range = resolveRange(spec.from ?? '-30d', spec.to, ctx.now);
   const previous = { from: range.from - (range.to - range.from), to: range.from };
   const interval = spec.interval ?? intervalFor(range);
-  const buckets = bucketsBetween(range, interval, spec.utcOffsetMinutes);
+  const buckets = bucketsBetween(range, interval, zoneOf(spec, ctx, range));
   const events = spec.goals.map((g) => g.event);
   const conversions = spec.goals.filter((g) => g.role === 'conversion').map((g) => g.event);
   if (events.length === 0) {
@@ -197,8 +198,8 @@ export async function runConversions(
     now: totalsSql(d, ctx.project, range, spec.filters, events),
     before: totalsSql(d, ctx.project, previous, spec.filters, events),
     series: `WITH ${eventsCte(d, { project: ctx.project, ...range, events, filters: spec.filters })}
-SELECT event AS ev_name, ${bucketExpr(d, 'ts_ms', interval, spec.utcOffsetMinutes)} AS bucket, COUNT(DISTINCT distinct_id) AS visitors
-FROM ev GROUP BY event, ${bucketExpr(d, 'ts_ms', interval, spec.utcOffsetMinutes)} ORDER BY bucket LIMIT 20000`,
+SELECT event AS ev_name, ${bucketExpr(d, 'ts_ms', interval, zoneOf(spec, ctx, range))} AS bucket, COUNT(DISTINCT distinct_id) AS visitors
+FROM ev GROUP BY event, ${bucketExpr(d, 'ts_ms', interval, zoneOf(spec, ctx, range))} ORDER BY bucket LIMIT 20000`,
     converted: conversions.length
       ? convertedSql(d, ctx.project, range, spec.filters, conversions)
       : null,
@@ -288,9 +289,13 @@ export interface SourceRow {
   converted: number;
   rate: number;
   bounceRate: number;
+  /** With revenue: net revenue from people first touched by this value, and per visitor. */
+  revenue?: number;
+  payers?: number;
+  revenuePerVisitor?: number;
 }
 
-function dimensionExpr(dimension: SourceDimension, alias: string): string {
+export function dimensionExpr(dimension: SourceDimension, alias: string): string {
   const col = (name: string) => `COALESCE(NULLIF(${alias}.${name}, ''), '(none)')`;
   switch (dimension) {
     case 'channel':
@@ -309,7 +314,12 @@ function dimensionExpr(dimension: SourceDimension, alias: string): string {
  * bounced. `conversions` are the events that count as converting.
  */
 export async function runSources(
-  spec: ReportRange & { dimension: SourceDimension; conversions: string[]; limit?: number },
+  spec: ReportRange & {
+    dimension: SourceDimension;
+    conversions: string[];
+    limit?: number;
+    revenue?: boolean;
+  },
   ctx: QueryContext,
 ): Promise<{ dimension: SourceDimension; rows: SourceRow[]; sql: string[] }> {
   const d = ctx.dialect;
@@ -331,18 +341,55 @@ FROM touch
 JOIN visits ON visits.distinct_id = touch.distinct_id
 LEFT JOIN conv ON conv.distinct_id = touch.distinct_id
 GROUP BY touch.val ORDER BY visitors DESC, touch.val ASC LIMIT ${Math.min(spec.limit ?? 20, 100)}`;
-  const rows = (await ctx.execute(sql)).map((r) => {
-    const visitors = num(r.visitors);
-    return {
-      value: text(r.val),
-      visitors,
-      sessions: num(r.sessions),
-      converted: num(r.converted),
-      rate: visitors ? num(r.converted) / visitors : 0,
-      bounceRate: visitors ? num(r.bounced) / visitors : 0,
-    };
-  });
-  return { dimension: spec.dimension, rows, sql: [sql] };
+  // Revenue by the paying person's first touch (people, not devices: payments often happen server-side).
+  const revenueSql = spec.revenue
+    ? `WITH ${eventsCte(d, { project: ctx.project, ...range, events: [PV], filters: spec.filters })},
+${eventsCte(d, { project: ctx.project, ...range, filters: [...(spec.filters ?? []), { property: 'props.$revenue_base', op: 'is_set' }], name: 'mv' })},
+pfirst AS (SELECT pid, MIN(ts_ms) AS t FROM ev GROUP BY pid),
+ptouch AS (
+  SELECT ev.pid AS pid, MIN(${dimensionExpr(spec.dimension, 'ev')}) AS val
+  FROM ev JOIN pfirst ON pfirst.pid = ev.pid AND ev.ts_ms = pfirst.t GROUP BY ev.pid
+)
+SELECT ptouch.val AS val, SUM(${d.jsonNumber('mv.props', ['$revenue_base'])}) AS revenue, COUNT(DISTINCT mv.pid) AS payers
+FROM mv JOIN ptouch ON ptouch.pid = mv.pid GROUP BY ptouch.val`
+    : null;
+  const [main, money] = await Promise.all([
+    ctx.execute(sql),
+    revenueSql ? ctx.execute(revenueSql) : Promise.resolve([]),
+  ]);
+  const revenueBy = new Map(
+    money.map((r) => [text(r.val), { revenue: num(r.revenue), payers: num(r.payers) }]),
+  );
+  const rows = main.map((r) =>
+    sourceRow(r, spec.revenue ? (revenueBy.get(text(r.val)) ?? { revenue: 0, payers: 0 }) : null),
+  );
+  return { dimension: spec.dimension, rows, sql: revenueSql ? [sql, revenueSql] : [sql] };
+}
+
+const cents = (n: number) => Math.round(n * 100) / 100;
+
+/** One source's numbers, with revenue when it was asked for. */
+function sourceRow(
+  r: Record<string, unknown>,
+  money: { revenue: number; payers: number } | null,
+): SourceRow {
+  const visitors = num(r.visitors);
+  const share = (n: number) => (visitors ? n / visitors : 0);
+  return {
+    value: text(r.val),
+    visitors,
+    sessions: num(r.sessions),
+    converted: num(r.converted),
+    rate: share(num(r.converted)),
+    bounceRate: share(num(r.bounced)),
+    ...(money
+      ? {
+          revenue: cents(money.revenue),
+          payers: money.payers,
+          revenuePerVisitor: cents(share(money.revenue)),
+        }
+      : {}),
+  };
 }
 
 // ── Health ────────────────────────────────────────────────────────────────
@@ -361,6 +408,8 @@ export interface HealthResult {
   };
   /** Pages where errors happen most. */
   errorPages: { path: string; errors: number; visitors: number }[];
+  /** The issues (error tracking) with the most errors in the range. */
+  topIssues: { issue: string; errors: number; visitors: number }[];
   /** Pages whose title or path looks like a "not found" page, with how people got there. */
   notFound: { path: string; title: string; views: number; visitors: number; referrer: string }[];
   /** p75 Largest Contentful Paint per page (pages with 5+ samples). */
@@ -374,8 +423,8 @@ export async function runHealth(spec: ReportRange, ctx: QueryContext): Promise<H
   const range = resolveRange(spec.from ?? '-30d', spec.to, ctx.now);
   const previous = { from: range.from - (range.to - range.from), to: range.from };
   const interval = spec.interval ?? intervalFor(range);
-  const buckets = bucketsBetween(range, interval, spec.utcOffsetMinutes);
-  const bucket = bucketExpr(d, 'ts_ms', interval, spec.utcOffsetMinutes);
+  const buckets = bucketsBetween(range, interval, zoneOf(spec, ctx, range));
+  const bucket = bucketExpr(d, 'ts_ms', interval, zoneOf(spec, ctx, range));
   const cte = (r: TimeRange, events: string[]) =>
     eventsCte(d, { project: ctx.project, ...r, events, filters: spec.filters });
   const title = lower('title');
@@ -393,6 +442,10 @@ SELECT ${bucket} AS bucket, COUNT(*) AS n FROM ev GROUP BY ${bucket} ORDER BY bu
     pages: `WITH ${cte(range, [ERR])}
 SELECT COALESCE(NULLIF(path, ''), '(none)') AS path, COUNT(*) AS n, COUNT(DISTINCT distinct_id) AS visitors
 FROM ev GROUP BY COALESCE(NULLIF(path, ''), '(none)') ORDER BY n DESC, path ASC LIMIT 10`,
+    issues: `WITH ${cte(range, [ERR])}
+SELECT ${d.jsonText('props', ['$issue_id'])} AS issue, COUNT(*) AS n, COUNT(DISTINCT distinct_id) AS visitors
+FROM ev WHERE ${d.jsonText('props', ['$issue_id'])} IS NOT NULL
+GROUP BY ${d.jsonText('props', ['$issue_id'])} ORDER BY n DESC, issue ASC LIMIT 10`,
     notFound: `WITH ${cte(range, [PV])}
 SELECT path, MIN(title) AS title, COUNT(*) AS views, COUNT(DISTINCT distinct_id) AS visitors,
   MIN(COALESCE(NULLIF(referrer_host, ''), 'Direct / None')) AS referrer
@@ -404,11 +457,12 @@ SELECT COALESCE(NULLIF(path, ''), '(none)') AS path, ${d.jsonNumber('props', ['v
 FROM ev WHERE ${d.jsonText('props', ['metric'])} = 'LCP'
 ORDER BY ts_ms DESC LIMIT 5000`,
   };
-  const [errors, prev, series, pages, notFound, vitals] = await Promise.all([
+  const [errors, prev, series, pages, issues, notFound, vitals] = await Promise.all([
     ctx.execute(sql.errors),
     ctx.execute(sql.previous),
     ctx.execute(sql.series),
     ctx.execute(sql.pages),
+    ctx.execute(sql.issues),
     ctx.execute(sql.notFound),
     ctx.execute(sql.vitals),
   ]);
@@ -448,6 +502,11 @@ ORDER BY ts_ms DESC LIMIT 5000`,
     },
     errorPages: pages.map((r) => ({
       path: text(r.path),
+      errors: num(r.n),
+      visitors: num(r.visitors),
+    })),
+    topIssues: issues.map((r) => ({
+      issue: text(r.issue),
       errors: num(r.n),
       visitors: num(r.visitors),
     })),

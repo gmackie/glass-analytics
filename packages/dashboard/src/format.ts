@@ -90,6 +90,8 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 
 export function bucketLabel(ms: number, interval: string): string {
   const d = new Date(ms);
+  if (interval === 'minute')
+    return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
   if (interval === 'hour') return `${String(d.getUTCHours()).padStart(2, '0')}:00`;
   if (interval === 'month') return `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
   return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
@@ -106,4 +108,13 @@ export function ago(value: string | number): string {
   if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
   if (seconds < 86400) return `${Math.floor(seconds / 3600)} h ago`;
   return `${Math.floor(seconds / 86400)} d ago`;
+}
+
+/** An amount of money in a currency, without "-0.00" and with whole units from 1,000 up. */
+export function money(n: number, currency = 'USD'): string {
+  return new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: Math.abs(n) >= 1000 ? 0 : 2,
+  }).format(n === 0 ? 0 : n);
 }

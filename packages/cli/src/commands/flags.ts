@@ -70,6 +70,15 @@ export async function flags(
   );
 }
 
+/** What an experiment measures: its goal event, or (created with metrics) its first metric. */
+function goalOf(e: {
+  goal: { event: string } | null;
+  metrics?: { event?: string; name?: string; kind: string }[];
+}): string {
+  const m = e.metrics?.[0];
+  return e.goal?.event ?? m?.name ?? m?.event ?? m?.kind ?? '–';
+}
+
 export async function experiments(
   sub: string | undefined,
   key: string | undefined,
@@ -79,7 +88,12 @@ export async function experiments(
   if (!sub || sub === 'list') {
     const r = await call<{
       summary: string;
-      experiments: { key: string; status: string; goal: { event: string } }[];
+      experiments: {
+        key: string;
+        status: string;
+        goal: { event: string } | null;
+        metrics?: { event?: string; name?: string; kind: string }[];
+      }[];
     }>('GET', `/api/experiments${projectQuery(flags)}`);
     if (flags.json) return printJson(r);
     if (!r.experiments.length)
@@ -88,7 +102,7 @@ export async function experiments(
       );
     table(
       ['Experiment', 'Status', 'Goal'],
-      r.experiments.map((e) => [e.key, e.status, e.goal.event]),
+      r.experiments.map((e) => [e.key, e.status, goalOf(e)]),
     );
     return;
   }

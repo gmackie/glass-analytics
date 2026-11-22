@@ -2,7 +2,7 @@
   "project": "demo",
   "event": "signup_started",
   "sampled": 500,
-  "lastSeen": "2026-11-05T07:11:31.992Z",
+  "lastSeen": "2026-11-18T15:28:37.022Z",
   "description": "Fired when someone opens the signup form, from the header button or the pricing page.",
   "owner": "Growth",
   "properties": [
@@ -13,14 +13,14 @@
       ],
       "coverage": 1,
       "examples": [
-        "pricing",
-        "header"
+        "header",
+        "pricing"
       ],
       "description": "Where the form was opened: \"pricing\" or \"header\"."
     }
   ],
   "summary": "\"signup_started\": 1 properties across the latest 500 events.",
   "sql": [
-    "SELECT props, ts_ms FROM events\nWHERE project = 'demo' AND event = 'signup_started' AND ts_ms >= 1791282552976\nORDER BY ts_ms DESC LIMIT 500"
+    "SELECT props, ts_ms FROM events\nWHERE project = 'demo' AND event = 'signup_started' AND ts_ms >= 1792432565440\nORDER BY ts_ms DESC LIMIT 500"
   ]
 }

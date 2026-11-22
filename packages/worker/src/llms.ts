@@ -24,7 +24,12 @@ Pageviews, clicks, errors and web vitals are captured automatically.
 
     glass.capture('signup_completed', { plan: 'pro' });
     glass.identify(user.id, { plan: user.plan });   // after login
+    glass.group('company', org.id, { plan: org.plan }); // B2B: later events belong to the company
     glass.flag('new-checkout');                      // "on" | variant | null
+    glass.flagPayload('pricing-copy');               // JSON attached to the value
+    glass.captureException(err, { order: id });      // caught errors become issues
+
+Servers: \`dataflare-node\` (capture, captureException, flags evaluated locally with a server key).
 
 Without JavaScript: \`<button data-glass-event="cta_clicked" data-glass-prop-plan="pro">\`.
 ${EVENT_NAMING_GUIDE}
@@ -58,7 +63,8 @@ Insight kinds: ${Object.entries(INSIGHTS)
 
 ## Properties and filters
 
-Filters are { "property", "op", "value" }. Properties: built-in columns (path, url, host, referrer_host, utm_source, utm_medium, utm_campaign, country, device, browser, os, session_id, user_id), event properties ("plan" or "props.plan"), person properties at event time ("person.plan"), and saved-cohort membership ("cohort" with a cohort key as value, op "eq"/"in" or "neq"/"not_in"). GET /api/properties/values?property=… lists the values that exist.
+Filters are { "property", "op", "value" }. Properties: built-in columns (path, url, host, referrer_host, utm_source, utm_medium, utm_campaign, country, device, browser, os, session_id, user_id), event properties ("plan" or "props.plan"), person properties at event time ("person.plan"), group keys and properties ("group.company", "group.company.plan"), and saved-cohort membership ("cohort" with a cohort key as value, op "eq"/"in" or "neq"/"not_in"). GET /api/properties/values?property=… lists the values that exist.
+Every query also takes "filterTestAccounts": true (leave out internal traffic, per get_settings), "aggregateBy" ("person", "session" or a group type) and "timezone".
 Ops: eq, neq, contains, not_contains, in, not_in, gt, gte, lt, lte, is_set, is_not_set.
 Times: ISO dates, "today", "yesterday", or relative like "-30d", "-12h", "-3mo".
 `;

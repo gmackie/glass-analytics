@@ -55,10 +55,12 @@ export const GLASS: Record<Row, string> = {
   pricing:
     'Your Cloudflare bill: $0 on Workers Free for small sites, $5/month Workers Paid above that',
   cookieless: 'Yes',
-  web: 'Yes, with Core Web Vitals and errors',
-  product: 'Yes: trends, funnels, retention, cohorts',
+  web: 'Yes, with Core Web Vitals, error tracking and revenue',
+  product:
+    'Yes: trends, funnels, retention, user paths, cohorts, correlation, group (account) analytics, dashboards with scheduled Slack and email reports, and alerts',
   replay: 'Yes, with a text transcript for agents',
-  flags: 'Yes: flags in your Worker, Bayesian experiment results',
+  flags:
+    'Yes: payloads, targeting, schedules and early access; experiments with several metrics, holdouts, Bayesian or frequentist',
   sql: 'Yes, read-only SQL in the dashboard, CLI and MCP',
 };
 
@@ -70,7 +72,7 @@ export const COMPETITORS: Competitor[] = [
     description:
       'Dataflare vs PostHog: both are open source with analytics, session replay, flags and experiments. PostHog is a hosted platform; Dataflare runs in your own Cloudflare account.',
     verdict:
-      'PostHog is the closest product to Dataflare and does far more: surveys, a data warehouse, error tracking, mobile SDKs and a hosted cloud with a team behind it. Choose Dataflare if you want the core of that (web and product analytics, replay, flags and experiments) running in your own Cloudflare account, with no vendor, no usage-based bill and an agent that can query it from the first minute.',
+      'PostHog is the closest product to Dataflare and does more: surveys, a data warehouse, LLM analytics, mobile SDKs and a hosted cloud with a team behind it. Choose Dataflare if you want the core of that (web and product analytics, replay, flags and experiments) running in your own Cloudflare account, with no vendor, no usage-based bill and an agent that can query it from the first minute.',
     table: {
       data: 'PostHog Cloud (US or EU), or your own servers',
       license: 'Open source (MIT, with some paid features under a separate licence)',
@@ -83,7 +85,7 @@ export const COMPETITORS: Competitor[] = [
       sql: 'Yes (HogQL / SQL insights)',
     },
     theyWin: [
-      'Many more products in one place: surveys, a data warehouse, error tracking, LLM analytics, a CDP.',
+      'More products in one place: surveys, a data warehouse, LLM analytics, heatmaps, a visual editor for web experiments.',
       'Mobile SDKs (iOS, Android, React Native, Flutter) and many server SDKs.',
       'A hosted cloud with support, SSO and team permissions.',
       'Years of production use at very large scale.',
@@ -154,7 +156,7 @@ export const COMPETITORS: Competitor[] = [
     name: 'Plausible',
     what: 'simple, privacy-friendly web analytics, hosted in the EU',
     description:
-      'Dataflare vs Plausible: both are cookieless and open source. Plausible is a hosted, single-page web analytics tool; Dataflare adds funnels, retention, session replay and A/B tests, and runs in your Cloudflare account.',
+      'Dataflare vs Plausible: both are cookieless and open source. Plausible is hosted web analytics; Dataflare adds product analytics, session replay, flags and A/B tests, and runs in your Cloudflare account.',
     verdict:
       "Plausible is a lovely, focused product: one page of web stats, hosted in the EU, with nothing to run. Choose Dataflare if you've outgrown web stats and need product analytics (funnels, retention, people), session replay or experiments, or if you'd rather keep the data in your own Cloudflare account than pay a subscription.",
     table: {
@@ -163,18 +165,19 @@ export const COMPETITORS: Competitor[] = [
       pricing: 'From $9/month for 10k monthly pageviews; 30-day free trial',
       cookieless: 'Yes, always',
       web: 'Yes',
-      product: 'Funnels on Business plans and above',
+      product: 'Goals, funnels and user journeys, scroll depth, revenue attribution, segments',
       replay: 'No',
       flags: 'No',
       sql: 'No (Stats API)',
     },
     theyWin: [
       'Nothing to deploy or maintain on the hosted plans.',
-      'A single, very simple dashboard.',
+      'A single, very simple dashboard, with email and Slack reports and embeddable shared dashboards.',
+      'Google Analytics import and a Looker Studio connector.',
       'EU-owned infrastructure, a mature product and a long track record.',
     ],
     glassWins: [
-      'Product analytics on any event: trends, funnels, retention, cohorts and people.',
+      'Product analytics on any event and person: trends, retention, cohorts, people and accounts, beyond web funnels.',
       'Session replay, feature flags and A/B tests.',
       "No subscription: you pay Cloudflare's list prices, often $0.",
       'Raw SQL on every event, and an MCP server so your agent can query it.',
@@ -186,6 +189,7 @@ export const COMPETITORS: Competitor[] = [
     ],
     sources: [
       ['Plausible pricing', 'https://plausible.io/#pricing'],
+      ['Plausible features', 'https://plausible.io/'],
       ['Plausible Community Edition', 'https://github.com/plausible/analytics'],
     ],
   },
@@ -268,17 +272,17 @@ export const COMPETITORS: Competitor[] = [
     name: 'Umami',
     what: 'open-source, cookieless web analytics, self-hosted or on Umami Cloud',
     description:
-      'Dataflare vs Umami: both are open source and cookieless. Umami needs a server and database to self-host; Dataflare deploys into your Cloudflare account with one command and adds session replay, flags and A/B tests.',
+      'Dataflare vs Umami: both are open source and cookieless. Umami needs a server and database to self-host; Dataflare deploys into your Cloudflare account with one command and adds feature flags and A/B tests.',
     verdict:
-      'Umami is a clean, open-source web analytics tool with funnels and retention, and a free cloud tier. Choose Dataflare if you want to self-host without running a server or database, or need session replay and experiments without moving to a higher plan.',
+      'Umami is a clean, open-source analytics tool that has grown well beyond web stats: funnels, journeys, retention, cohorts, revenue, error tracking, replays and heatmaps, with a free cloud tier. Choose Dataflare if you want to self-host without running a server or database, or need feature flags and A/B tests.',
     table: {
       data: 'Umami Cloud, or your own server and database',
       license: 'Open source (MIT)',
       pricing: 'Cloud: free up to 100k events/month, Pro $20/month; self-hosting is free',
       cookieless: 'Yes',
       web: 'Yes',
-      product: 'Funnels and retention',
-      replay: 'Business plan on Umami Cloud',
+      product: 'Funnels, journeys, retention, cohorts, segments, revenue and attribution',
+      replay: 'Yes, with heatmaps',
       flags: 'No',
       sql: 'Direct database access when self-hosted',
     },
@@ -288,8 +292,8 @@ export const COMPETITORS: Competitor[] = [
     ],
     glassWins: [
       'Self-hosting without a server, Docker or Postgres: Dataflare is a Worker, D1 and R2 in your Cloudflare account.',
-      'Session replay with agent-readable transcripts, feature flags and A/B tests.',
-      'People: identify() links anonymous visits to users, so funnels span signup.',
+      'Feature flags and A/B tests, and session replay with agent-readable transcripts.',
+      'People and accounts: identify() links anonymous visits to users, so funnels span signup, and groups count companies.',
     ],
     switching: [
       'Run `npx dataflare-cli init` and add the script tag.',
@@ -297,6 +301,7 @@ export const COMPETITORS: Competitor[] = [
     ],
     sources: [
       ['Umami pricing', 'https://umami.is/pricing'],
+      ['Umami features', 'https://umami.is/features'],
       ['Umami on GitHub', 'https://github.com/umami-software/umami'],
     ],
   },

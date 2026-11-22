@@ -1,8 +1,8 @@
 {
   "project": "demo",
   "event": "signup_completed",
-  "sampled": 416,
-  "lastSeen": "2026-11-05T10:26:03.762Z",
+  "sampled": 424,
+  "lastSeen": "2026-11-18T17:53:44.300Z",
   "description": "Fired once the account exists and the person is signed in, right after identify().",
   "owner": "Growth",
   "properties": [
@@ -24,7 +24,7 @@
       "types": [
         "string"
       ],
-      "coverage": 0.9951923076923077,
+      "coverage": 0.9952830188679245,
       "examples": [
         "email",
         "github",
@@ -33,8 +33,8 @@
       "description": "email, google or github."
     }
   ],
-  "summary": "\"signup_completed\": 2 properties across the latest 416 events.",
+  "summary": "\"signup_completed\": 2 properties across the latest 424 events.",
   "sql": [
-    "SELECT props, ts_ms FROM events\nWHERE project = 'demo' AND event = 'signup_completed' AND ts_ms >= 1791282554411\nORDER BY ts_ms DESC LIMIT 500"
+    "SELECT props, ts_ms FROM events\nWHERE project = 'demo' AND event = 'signup_completed' AND ts_ms >= 1792432566870\nORDER BY ts_ms DESC LIMIT 500"
   ]
 }

@@ -2,7 +2,7 @@
 
 import { AGENT_PROMPT, INSTALL, REPO, SITE_URL } from './config.ts';
 import { COMPETITORS, GLASS, ROWS } from './content/compare.ts';
-import { command, esc, layout, shot } from './layout.ts';
+import { command, esc, layout, shot, stripTags } from './layout.ts';
 
 export interface Facts {
   version: string;
@@ -432,7 +432,7 @@ export function homePage(f: Facts): string {
         mainEntity: FAQ.map(([q, a]) => ({
           '@type': 'Question',
           name: q,
-          acceptedAnswer: { '@type': 'Answer', text: a.replace(/<[^>]+>/g, '') },
+          acceptedAnswer: { '@type': 'Answer', text: stripTags(a) },
         })),
       },
     ],

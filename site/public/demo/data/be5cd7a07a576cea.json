@@ -2,7 +2,7 @@
   "project": "demo",
   "event": "$click",
   "sampled": 8,
-  "lastSeen": "2026-11-05T10:26:09.586Z",
+  "lastSeen": "2026-11-18T17:53:50.157Z",
   "description": "",
   "owner": "",
   "properties": [
@@ -43,6 +43,6 @@
   ],
   "summary": "\"$click\": 3 properties across the latest 8 events.",
   "sql": [
-    "SELECT props, ts_ms FROM events\nWHERE project = 'demo' AND event = '$click' AND ts_ms >= 1791282557996\nORDER BY ts_ms DESC LIMIT 500"
+    "SELECT props, ts_ms FROM events\nWHERE project = 'demo' AND event = '$click' AND ts_ms >= 1792432571169\nORDER BY ts_ms DESC LIMIT 500"
   ]
 }

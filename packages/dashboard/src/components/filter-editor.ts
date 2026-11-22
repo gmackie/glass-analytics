@@ -26,6 +26,8 @@ export interface FilterEditorOptions {
   cohorts?: boolean;
   /** Only person properties (cohort definitions). */
   personOnly?: boolean;
+  /** Exactly one row: no joiner, no remove or add buttons (the caller owns those). */
+  single?: boolean;
 }
 
 type Kind = 'cohort' | 'string' | 'number' | 'boolean';
@@ -120,6 +122,46 @@ function select(
   return el;
 }
 
+/** The value part of a filter row: a number field, a value picker, or nothing (is set…). */
+function valueControl(
+  f: FilterRow,
+  op: string,
+  kind: Kind,
+  options: FilterEditorOptions,
+  onChange: () => void,
+): HTMLElement | null {
+  if (NO_VALUE.has(op)) return null;
+  if (NUMERIC.has(op)) {
+    const input = h('input', {
+      type: 'number',
+      class: 'filter-number',
+      value: valuesOf(f)[0] ?? '',
+      placeholder: 'Number',
+      'aria-label': 'Filter value',
+      step: 'any',
+    });
+    // Mutate in place only — remounting would steal focus from the value field.
+    input.addEventListener('input', () => {
+      f.value = input.value === '' ? '' : Number(input.value);
+    });
+    input.addEventListener('change', onChange);
+    return input;
+  }
+  return valueInput({
+    property: f.property,
+    event: options.personOnly ? undefined : options.event,
+    project: options.project,
+    values: valuesOf(f),
+    multiple: MULTI.has(op),
+    placeholder: kind === 'cohort' ? 'Select cohorts' : undefined,
+    onChange: (values) => {
+      const typed = values.map((v) => coerce(v, kind)) as (string | number)[];
+      f.value = typed.length > 1 ? typed : (typed[0] ?? '');
+      onChange();
+    },
+  });
+}
+
 /** Editable list of filters. Mutates `filters` in place, repaints itself, then calls `onChange`. */
 export function filterEditor(
   filters: FilterRow[],
@@ -145,7 +187,7 @@ export function filterEditor(
     const el = h(
       'div',
       { class: 'filter-row' },
-      h('span', { class: 'filter-joiner' }, i === 0 ? 'where' : 'and'),
+      options.single ? null : h('span', { class: 'filter-joiner' }, i === 0 ? 'where' : 'and'),
     );
     el.append(
       propertyPicker({
@@ -179,38 +221,9 @@ export function filterEditor(
         'Operator',
       ),
     );
-    if (NUMERIC.has(op)) {
-      const input = h('input', {
-        type: 'number',
-        class: 'filter-number',
-        value: valuesOf(f)[0] ?? '',
-        placeholder: 'Number',
-        'aria-label': 'Filter value',
-        step: 'any',
-      });
-      // Mutate in place only — remounting would steal focus from the value field.
-      input.addEventListener('input', () => {
-        f.value = input.value === '' ? '' : Number(input.value);
-      });
-      input.addEventListener('change', onChange);
-      el.append(input);
-    } else if (!NO_VALUE.has(op)) {
-      el.append(
-        valueInput({
-          property: f.property,
-          event: options.personOnly ? undefined : options.event,
-          project: options.project,
-          values: valuesOf(f),
-          multiple: MULTI.has(op),
-          placeholder: kind === 'cohort' ? 'Select cohorts' : undefined,
-          onChange: (values) => {
-            const typed = values.map((v) => coerce(v, kind)) as (string | number)[];
-            f.value = typed.length > 1 ? typed : (typed[0] ?? '');
-            onChange();
-          },
-        }),
-      );
-    }
+    const value = valueControl(f, op, kind, options, onChange);
+    if (value) el.append(value);
+    if (options.single) return el;
     el.append(
       h(
         'button',
@@ -244,6 +257,7 @@ export function filterEditor(
         el = next;
       });
     });
+    if (options.single) return;
     root.append(
       h(
         'div',

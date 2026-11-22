@@ -19,11 +19,29 @@ import { cohortMembersSql } from './source.ts';
 /** Prefix a column with a table alias when one is given. */
 const col = (name: string, alias?: string) => (alias ? `${alias}.${name}` : name);
 
+/** The JSON column and path a non-column property lives at. */
+function jsonLocation(
+  r: Exclude<PropertyRef, { kind: 'column' }>,
+  alias?: string,
+): { column: string; path: string[] } {
+  if (r.kind === 'person') return { column: col('person_props', alias), path: r.path };
+  // Events carry the flag values active when they fired.
+  if (r.kind === 'flag') return { column: col('flags', alias), path: [r.key] };
+  if (r.kind === 'group') {
+    // Group keys and a snapshot of each group's properties travel in the event's props.
+    return r.path.length === 0
+      ? { column: col('props', alias), path: ['$groups', r.type] }
+      : { column: col('props', alias), path: ['$group_props', r.type, ...r.path] };
+  }
+  return { column: col('props', alias), path: r.path };
+}
+
 /** A property as a text expression (used for equality, breakdowns, display). */
 export function propertyText(ref: PropertyRef | string, d: Dialect, alias?: string): string {
   const r = typeof ref === 'string' ? parseProperty(ref) : ref;
   if (r.kind === 'column') return col(r.column, alias);
-  return d.jsonText(col(r.kind === 'person' ? 'person_props' : 'props', alias), r.path);
+  const { column, path } = jsonLocation(r, alias);
+  return d.jsonText(column, path);
 }
 
 /** A property as a numeric expression (used for sum/avg and numeric comparisons). */
@@ -34,7 +52,8 @@ export function propertyNumber(ref: PropertyRef | string, d: Dialect, alias?: st
       `"${r.column}" is a text column; numeric operations need an event or person property.`,
     );
   }
-  return d.jsonNumber(col(r.kind === 'person' ? 'person_props' : 'props', alias), r.path);
+  const { column, path } = jsonLocation(r, alias);
+  return d.jsonNumber(column, path);
 }
 
 /**
@@ -71,10 +90,10 @@ export function filterSql(filter: Filter, d: Dialect, alias?: string): string {
   const op = filter.op ?? 'eq';
   const value = filter.value;
   const text = propertyText(ref, d, alias);
-  const isSet =
-    ref.kind === 'column'
-      ? `(${text} IS NOT NULL AND ${text} <> '')`
-      : d.jsonExists(col(ref.kind === 'person' ? 'person_props' : 'props', alias), ref.path);
+  const loc = ref.kind === 'column' ? null : jsonLocation(ref, alias);
+  const isSet = loc
+    ? d.jsonExists(loc.column, loc.path)
+    : `(${text} IS NOT NULL AND ${text} <> '')`;
 
   const need = (what: string) => {
     if (value === undefined || value === null) {
@@ -91,8 +110,8 @@ export function filterSql(filter: Filter, d: Dialect, alias?: string): string {
     case 'neq': {
       need('value');
       let cond: string;
-      if (typeof value === 'boolean' && ref.kind !== 'column') {
-        cond = `${d.jsonBool(col(ref.kind === 'person' ? 'person_props' : 'props', alias), ref.path)} = ${d.bool(value)}`;
+      if (typeof value === 'boolean' && loc) {
+        cond = `${d.jsonBool(loc.column, loc.path)} = ${d.bool(value)}`;
       } else if (typeof value === 'number' && ref.kind !== 'column') {
         cond = `${propertyNumber(ref, d, alias)} = ${d.num(value)}`;
       } else {

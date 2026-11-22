@@ -1,0 +1,67 @@
+{
+  "project": "demo",
+  "event": "$groupidentify",
+  "sampled": 16,
+  "lastSeen": "2026-11-15T00:01:09.441Z",
+  "description": "",
+  "owner": "",
+  "properties": [
+    {
+      "name": "$group_type",
+      "types": [
+        "string"
+      ],
+      "coverage": 1,
+      "examples": [
+        "company"
+      ],
+      "description": ""
+    },
+    {
+      "name": "$group_key",
+      "types": [
+        "string"
+      ],
+      "coverage": 1,
+      "examples": [
+        "ws-user_1669",
+        "ws-user_1657",
+        "ws-user_1633",
+        "ws-user_1590",
+        "ws-user_1578"
+      ],
+      "description": ""
+    },
+    {
+      "name": "$group_set",
+      "types": [
+        "object"
+      ],
+      "coverage": 1,
+      "examples": [],
+      "description": ""
+    },
+    {
+      "name": "$groups",
+      "types": [
+        "object"
+      ],
+      "coverage": 1,
+      "examples": [],
+      "description": ""
+    },
+    {
+      "name": "$group_props",
+      "types": [
+        "object"
+      ],
+      "coverage": 1,
+      "examples": [],
+      "description": ""
+    }
+  ],
+  "summary": "\"$groupidentify\": 5 properties across the latest 16 events.",
+  "sql": [
+    "SELECT props, ts_ms FROM events\nWHERE project = 'demo' AND event = '$groupidentify' AND ts_ms >= 1792432570456\nORDER BY ts_ms DESC LIMIT 500"
+  ]
+}

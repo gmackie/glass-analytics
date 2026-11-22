@@ -1,0 +1,321 @@
+{
+  "project": "demo",
+  "session": "01a1efca-e087-7bd3-8e3b-e444ded37a4e",
+  "person": "user-maya",
+  "device": "desktop, Chrome, GB",
+  "started": "2026-11-18T17:53:32.824Z",
+  "transcript": "Session 01a1efca-e087-7bd3-8e3b-e444ded37a4e\nPerson: user-maya\nDevice: desktop, Chrome, GB\nDuration 00:18 (00:15 active), 2 pages, 9 clicks (1 rage, 1 dead, 2 followed by an error), 1 input, 1 error, 6 console errors, 6 failed requests\n\n00:03 Clicked \"See pricing\" (link) · #cta > a\n00:07 Clicked \"Choose Team\" (button)\n00:07 Viewed /signup — \"Sign up, Inkwell\"\n00:11 Typed into \"Email\" (input) · #email\n00:11 Clicked \"Create account\" (button) · #signup > button\n00:11 Event signup_completed (plan=\"team\")\n00:11 Viewed /app — \"Your notes, Inkwell\"\n00:14 Clicked \"Upgrade now\" (button) · #pay [dead click: nothing changed; an error followed]\n00:14 Event upgrade_clicked\n00:14 ERROR TypeError: Cannot read properties of undefined (reading 'number')\n      at HTMLButtonElement.<anonymous> (http://inkwell.example/app:24:19)\n00:14 Request failed: POST http://inkwell.example/api/billing → 404 (15 ms)\n00:14 Console error: Billing request failed: 404\n00:16 Rage-clicked \"Upgrade now\" (button) ×5 · #pay [an error followed]\n00:16 Event upgrade_clicked ×5\n00:16 Request failed: POST http://inkwell.example/api/billing → 404 (10 ms)\n00:16 Console error: Billing request failed: 404\n00:16 Request failed: POST http://inkwell.example/api/billing → 404 (11 ms)\n00:16 Console error: Billing request failed: 404\n00:16 Request failed: POST http://inkwell.example/api/billing → 404 (15 ms)\n00:16 Console error: Billing request failed: 404\n00:17 Request failed: POST http://inkwell.example/api/billing → 404 (14 ms)\n00:17 Console error: Billing request failed: 404\n00:17 Request failed: POST http://inkwell.example/api/billing → 404 (13 ms)\n00:17 Console error: Billing request failed: 404",
+  "stats": {
+    "durationSeconds": 18,
+    "activeSeconds": 15,
+    "pages": 2,
+    "clicks": 9,
+    "rageClicks": 1,
+    "deadClicks": 1,
+    "errorClicks": 2,
+    "inputs": 1,
+    "errors": 1,
+    "consoleErrors": 6,
+    "failedRequests": 6,
+    "customEvents": 7
+  },
+  "highlights": [
+    {
+      "at": "00:14",
+      "what": "Clicked \"Upgrade now\" (button)",
+      "link": "http://127.0.0.1:49397/app#/replays/01a1efca-e087-7bd3-8e3b-e444ded37a4e?project=demo&t=14547"
+    },
+    {
+      "at": "00:14",
+      "what": "ERROR TypeError: Cannot read properties of undefined (reading 'number')",
+      "link": "http://127.0.0.1:49397/app#/replays/01a1efca-e087-7bd3-8e3b-e444ded37a4e?project=demo&t=14551"
+    },
+    {
+      "at": "00:14",
+      "what": "Request failed: POST http://inkwell.example/api/billing → 404 (15 ms)",
+      "link": "http://127.0.0.1:49397/app#/replays/01a1efca-e087-7bd3-8e3b-e444ded37a4e?project=demo&t=14562"
+    },
+    {
+      "at": "00:14",
+      "what": "Console error: Billing request failed: 404",
+      "link": "http://127.0.0.1:49397/app#/replays/01a1efca-e087-7bd3-8e3b-e444ded37a4e?project=demo&t=14562"
+    },
+    {
+      "at": "00:16",
+      "what": "Rage-clicked \"Upgrade now\" (button) ×5",
+      "link": "http://127.0.0.1:49397/app#/replays/01a1efca-e087-7bd3-8e3b-e444ded37a4e?project=demo&t=16585"
+    },
+    {
+      "at": "00:16",
+      "what": "Request failed: POST http://inkwell.example/api/billing → 404 (10 ms)",
+      "link": "http://127.0.0.1:49397/app#/replays/01a1efca-e087-7bd3-8e3b-e444ded37a4e?project=demo&t=16595"
+    },
+    {
+      "at": "00:16",
+      "what": "Console error: Billing request failed: 404",
+      "link": "http://127.0.0.1:49397/app#/replays/01a1efca-e087-7bd3-8e3b-e444ded37a4e?project=demo&t=16595"
+    },
+    {
+      "at": "00:16",
+      "what": "Request failed: POST http://inkwell.example/api/billing → 404 (11 ms)",
+      "link": "http://127.0.0.1:49397/app#/replays/01a1efca-e087-7bd3-8e3b-e444ded37a4e?project=demo&t=16794"
+    },
+    {
+      "at": "00:16",
+      "what": "Console error: Billing request failed: 404",
+      "link": "http://127.0.0.1:49397/app#/replays/01a1efca-e087-7bd3-8e3b-e444ded37a4e?project=demo&t=16794"
+    },
+    {
+      "at": "00:16",
+      "what": "Request failed: POST http://inkwell.example/api/billing → 404 (15 ms)",
+      "link": "http://127.0.0.1:49397/app#/replays/01a1efca-e087-7bd3-8e3b-e444ded37a4e?project=demo&t=16978"
+    },
+    {
+      "at": "00:16",
+      "what": "Console error: Billing request failed: 404",
+      "link": "http://127.0.0.1:49397/app#/replays/01a1efca-e087-7bd3-8e3b-e444ded37a4e?project=demo&t=16978"
+    },
+    {
+      "at": "00:17",
+      "what": "Request failed: POST http://inkwell.example/api/billing → 404 (14 ms)",
+      "link": "http://127.0.0.1:49397/app#/replays/01a1efca-e087-7bd3-8e3b-e444ded37a4e?project=demo&t=17162"
+    },
+    {
+      "at": "00:17",
+      "what": "Console error: Billing request failed: 404",
+      "link": "http://127.0.0.1:49397/app#/replays/01a1efca-e087-7bd3-8e3b-e444ded37a4e?project=demo&t=17162"
+    },
+    {
+      "at": "00:17",
+      "what": "Request failed: POST http://inkwell.example/api/billing → 404 (13 ms)",
+      "link": "http://127.0.0.1:49397/app#/replays/01a1efca-e087-7bd3-8e3b-e444ded37a4e?project=demo&t=17344"
+    },
+    {
+      "at": "00:17",
+      "what": "Console error: Billing request failed: 404",
+      "link": "http://127.0.0.1:49397/app#/replays/01a1efca-e087-7bd3-8e3b-e444ded37a4e?project=demo&t=17344"
+    }
+  ],
+  "notes": [],
+  "startedAt": 1795024412824,
+  "endedAt": 1795024430411,
+  "timeline": [
+    {
+      "ts": 1795024415894,
+      "kind": "click",
+      "text": "Clicked \"See pricing\" (link)",
+      "label": "\"See pricing\" (link)",
+      "selector": "#cta > a",
+      "t": 3070
+    },
+    {
+      "ts": 1795024419949,
+      "kind": "click",
+      "text": "Clicked \"Choose Team\" (button)",
+      "label": "\"Choose Team\" (button)",
+      "t": 7125
+    },
+    {
+      "ts": 1795024419967,
+      "kind": "page",
+      "text": "Viewed /signup — \"Sign up, Inkwell\"",
+      "url": "http://inkwell.example/signup",
+      "t": 7143
+    },
+    {
+      "ts": 1795024424295,
+      "kind": "input",
+      "text": "Typed into \"Email\" (input)",
+      "label": "\"Email\" (input)",
+      "selector": "#email",
+      "t": 11471
+    },
+    {
+      "ts": 1795024424296,
+      "kind": "click",
+      "text": "Clicked \"Create account\" (button)",
+      "label": "\"Create account\" (button)",
+      "selector": "#signup > button",
+      "t": 11472
+    },
+    {
+      "ts": 1795024424300,
+      "kind": "event",
+      "text": "Event signup_completed (plan=\"team\")",
+      "t": 11476
+    },
+    {
+      "ts": 1795024424323,
+      "kind": "page",
+      "text": "Viewed /app — \"Your notes, Inkwell\"",
+      "url": "http://inkwell.example/app",
+      "t": 11499
+    },
+    {
+      "ts": 1795024427371,
+      "kind": "click",
+      "text": "Clicked \"Upgrade now\" (button)",
+      "label": "\"Upgrade now\" (button)",
+      "selector": "#pay",
+      "signals": [
+        "dead",
+        "error"
+      ],
+      "level": "error",
+      "t": 14547
+    },
+    {
+      "ts": 1795024427373,
+      "kind": "event",
+      "text": "Event upgrade_clicked",
+      "t": 14549
+    },
+    {
+      "ts": 1795024427375,
+      "kind": "error",
+      "level": "error",
+      "text": "ERROR TypeError: Cannot read properties of undefined (reading 'number')",
+      "detail": "Cannot read properties of undefined (reading 'number')\nat HTMLButtonElement.<anonymous> (http://inkwell.example/app:24:19)",
+      "t": 14551
+    },
+    {
+      "ts": 1795024427386,
+      "kind": "network",
+      "level": "error",
+      "text": "Request failed: POST http://inkwell.example/api/billing → 404 (15 ms)",
+      "url": "http://inkwell.example/api/billing",
+      "detail": "POST http://inkwell.example/api/billing\nStatus: 404\nDuration: 15 ms",
+      "verbose": false,
+      "t": 14562
+    },
+    {
+      "ts": 1795024427386,
+      "kind": "console",
+      "level": "error",
+      "text": "Console error: Billing request failed: 404",
+      "detail": "Billing request failed: 404",
+      "verbose": false,
+      "t": 14562
+    },
+    {
+      "ts": 1795024429409,
+      "kind": "click",
+      "text": "Rage-clicked \"Upgrade now\" (button) ×5",
+      "label": "\"Upgrade now\" (button)",
+      "selector": "#pay",
+      "count": 5,
+      "end": 1795024430155,
+      "signals": [
+        "rage",
+        "error"
+      ],
+      "level": "error",
+      "t": 16585
+    },
+    {
+      "ts": 1795024429411,
+      "kind": "event",
+      "text": "Event upgrade_clicked ×5",
+      "count": 5,
+      "t": 16587
+    },
+    {
+      "ts": 1795024429419,
+      "kind": "network",
+      "level": "error",
+      "text": "Request failed: POST http://inkwell.example/api/billing → 404 (10 ms)",
+      "url": "http://inkwell.example/api/billing",
+      "detail": "POST http://inkwell.example/api/billing\nStatus: 404\nDuration: 10 ms",
+      "verbose": false,
+      "t": 16595
+    },
+    {
+      "ts": 1795024429419,
+      "kind": "console",
+      "level": "error",
+      "text": "Console error: Billing request failed: 404",
+      "detail": "Billing request failed: 404",
+      "verbose": false,
+      "t": 16595
+    },
+    {
+      "ts": 1795024429618,
+      "kind": "network",
+      "level": "error",
+      "text": "Request failed: POST http://inkwell.example/api/billing → 404 (11 ms)",
+      "url": "http://inkwell.example/api/billing",
+      "detail": "POST http://inkwell.example/api/billing\nStatus: 404\nDuration: 11 ms",
+      "verbose": false,
+      "t": 16794
+    },
+    {
+      "ts": 1795024429618,
+      "kind": "console",
+      "level": "error",
+      "text": "Console error: Billing request failed: 404",
+      "detail": "Billing request failed: 404",
+      "verbose": false,
+      "t": 16794
+    },
+    {
+      "ts": 1795024429802,
+      "kind": "network",
+      "level": "error",
+      "text": "Request failed: POST http://inkwell.example/api/billing → 404 (15 ms)",
+      "url": "http://inkwell.example/api/billing",
+      "detail": "POST http://inkwell.example/api/billing\nStatus: 404\nDuration: 15 ms",
+      "verbose": false,
+      "t": 16978
+    },
+    {
+      "ts": 1795024429802,
+      "kind": "console",
+      "level": "error",
+      "text": "Console error: Billing request failed: 404",
+      "detail": "Billing request failed: 404",
+      "verbose": false,
+      "t": 16978
+    },
+    {
+      "ts": 1795024429986,
+      "kind": "network",
+      "level": "error",
+      "text": "Request failed: POST http://inkwell.example/api/billing → 404 (14 ms)",
+      "url": "http://inkwell.example/api/billing",
+      "detail": "POST http://inkwell.example/api/billing\nStatus: 404\nDuration: 14 ms",
+      "verbose": false,
+      "t": 17162
+    },
+    {
+      "ts": 1795024429986,
+      "kind": "console",
+      "level": "error",
+      "text": "Console error: Billing request failed: 404",
+      "detail": "Billing request failed: 404",
+      "verbose": false,
+      "t": 17162
+    },
+    {
+      "ts": 1795024430168,
+      "kind": "network",
+      "level": "error",
+      "text": "Request failed: POST http://inkwell.example/api/billing → 404 (13 ms)",
+      "url": "http://inkwell.example/api/billing",
+      "detail": "POST http://inkwell.example/api/billing\nStatus: 404\nDuration: 13 ms",
+      "verbose": false,
+      "t": 17344
+    },
+    {
+      "ts": 1795024430168,
+      "kind": "console",
+      "level": "error",
+      "text": "Console error: Billing request failed: 404",
+      "detail": "Billing request failed: 404",
+      "verbose": false,
+      "t": 17344
+    }
+  ],
+  "summary": "Session 01a1efca-e087-7bd3-8e3b-e444ded37a4e Person: user-maya Device: desktop, Chrome, GB Duration 00:18 (00:15 active), 2 pages, 9 clicks (1 rage, 1 dead, 2 followed by an error), 1 input, 1 error, 6 console errors, 6 failed requests",
+  "hint": "Use replay_snapshot with a time from the transcript to read what was on screen; annotate_replay to leave a finding on the timeline.",
+  "dashboard": "http://127.0.0.1:49397/app#/replays/01a1efca-e087-7bd3-8e3b-e444ded37a4e?project=demo"
+}

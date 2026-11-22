@@ -14,8 +14,13 @@ import { createInterface } from 'node:readline';
 import type { Readable, Writable } from 'node:stream';
 import { after, before, describe, it, mock } from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { exceptionInfo, fingerprint, issueIdFor } from '@dataflare/core/issues';
 import { LAKE_TABLES, type LakeSchemaChange, lakeFields } from '@dataflare/core/lake';
+import { configureExports, runExports } from '../src/exports.ts';
+import { clearGroupTypeCache } from '../src/ingest.ts';
+import { D1Store } from '../src/stores/d1.ts';
 import { LakeStore } from '../src/stores/lake.ts';
+import type { EventStore } from '../src/stores/types.ts';
 import { type TestApp, testApp } from './harness.ts';
 
 const DATAFUSION = 'datafusion==55.0.0';
@@ -115,7 +120,7 @@ function fixture(now: number) {
           distinct_id: device,
           session_id: session,
           url: 'https://acme.com/docs',
-          props: { message: 'TypeError: x is undefined' },
+          props: u % 10 === 0 ? CART_ERROR : { message: 'TypeError: x is undefined' },
         });
       add('$web_vitals', {
         ts: ts + 2000,
@@ -147,7 +152,7 @@ function fixture(now: number) {
           distinct_id: device,
           session_id: session,
           url: 'https://acme.com/pricing',
-          props: { value: 49 + u },
+          props: { value: 49 + u, plan: u % 12 ? 'pro' : 'team', sub: `sub-${u}` },
         });
     }
     add('$exposure', {
@@ -158,10 +163,85 @@ function fixture(now: number) {
       props: { flag: 'checkout-v2', variant: u % 2 ? 'test' : 'control' },
     });
   }
+  // Every device belongs to one of four companies (group analytics).
+  for (const e of events) {
+    const m = /^dev-(\d+)/.exec(String(e.distinct_id));
+    if (m)
+      e.props = {
+        ...((e.props as object | undefined) ?? {}),
+        $groups: { company: `co-${Number(m[1]) % 4}` },
+      };
+  }
   return events;
 }
 
+/** An exception with a stack (error tracking groups these into issues). */
+const CART_ERROR = {
+  type: 'TypeError',
+  message: "Cannot read properties of undefined (reading 'price')",
+  stack:
+    "TypeError: Cannot read properties of undefined (reading 'price')\n    at total (https://acme.com/assets/app-BxT8QXh2.js:1:2345)\n    at https://acme.com/assets/app-BxT8QXh2.js:1:99",
+  $release: 'v1.4.0',
+};
+const CART_ISSUE = issueIdFor(await fingerprint(exceptionInfo(CART_ERROR, 'acme.com')));
+
 const READS: [string, string, unknown?][] = [
+  // Group analytics: counted by company instead of person.
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'trends',
+      from: '-7d',
+      aggregateBy: 'company',
+      series: [{ event: '$pageview', math: 'dau' }],
+    },
+  ],
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'trends',
+      from: '-7d',
+      series: [{ event: '$pageview', math: 'unique_groups', groupType: 'company' }],
+    },
+  ],
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'funnel',
+      from: '-7d',
+      aggregateBy: 'company',
+      steps: [{ event: '$pageview' }, { event: 'signup_completed' }],
+    },
+  ],
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'retention',
+      from: '-7d',
+      period: 'day',
+      aggregateBy: 'company',
+      cohortEvent: { event: '$pageview' },
+      returnEvent: { event: '$pageview' },
+    },
+  ],
+  ['POST', '/api/query', { kind: 'revenue', from: '-30d', aggregateBy: 'company' }],
+  ['GET', '/api/groups/company/co-1?from=-7d'],
+  ['GET', '/api/groups?type=company'],
+  ['POST', '/api/query', { kind: 'revenue', from: '-30d', interval: 'week' }],
+  ['POST', '/api/query', { kind: 'revenue', from: '-14d', interval: 'day', breakdown: 'product' }],
+  [
+    'POST',
+    '/api/query',
+    { kind: 'revenue', from: '-30d', breakdown: 'channel', aggregateBy: 'session' },
+  ],
+  ['POST', '/api/reports/sources?from=-7d', { dimension: 'utm_source' }],
+  ['GET', '/api/issues?from=-7d'],
+  ['GET', `/api/issues/${CART_ISSUE}?from=-7d`],
+  ['GET', '/api/issues?from=-7d&order=users&filters=[{"property":"browser","value":"Chrome"}]'],
   ['GET', '/api/overview?from=-7d'],
   ['GET', '/api/sites?from=-7d'],
   ['POST', '/api/query', { kind: 'web', from: '-7d' }],
@@ -229,6 +309,63 @@ const READS: [string, string, unknown?][] = [
     'POST',
     '/api/query',
     {
+      kind: 'trends',
+      from: '-7d',
+      series: [
+        { event: '$pageview', math: 'dau' },
+        { event: '$pageview', math: 'wau' },
+        { event: '$pageview', math: 'mau' },
+        { event: 'signup_completed', math: 'first_time' },
+      ],
+    },
+  ],
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'trends',
+      from: '-7d',
+      series: [
+        { event: 'signup_completed', math: 'median', property: 'seats' },
+        { event: 'signup_completed', math: 'p90', property: 'seats' },
+        { event: 'signup_completed', math: 'min', property: 'seats' },
+        { event: 'signup_completed', math: 'max', property: 'seats' },
+        { event: '$pageview', math: 'avg_count_per_actor' },
+        { event: '$pageview', math: 'median_count_per_actor' },
+        { event: '$pageview', math: 'max_count_per_actor' },
+      ],
+      breakdown: 'device',
+    },
+  ],
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'trends',
+      from: '-7d',
+      series: [{ event: ['signup_completed', 'purchase'] }, { event: '$pageview' }],
+      formulas: [{ expr: 'A / B * 100' }],
+      cumulative: true,
+      compare: true,
+      timezone: 'Europe/London',
+    },
+  ],
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'trends',
+      from: '-7d',
+      series: [{ event: 'signup_completed' }],
+      breakdown: 'seats',
+      breakdownBins: 3,
+      aggregateBy: 'session',
+    },
+  ],
+  [
+    'POST',
+    '/api/query',
+    {
       kind: 'funnel',
       from: '-7d',
       steps: [{ event: '$pageview' }, { event: 'signup_completed' }, { event: 'purchase' }],
@@ -243,6 +380,66 @@ const READS: [string, string, unknown?][] = [
       steps: [{ event: '$pageview' }, { event: 'signup_completed' }],
       breakdown: 'utm_source',
       window: '1d',
+    },
+  ],
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'funnel',
+      from: '-7d',
+      steps: [
+        { event: '$pageview' },
+        { event: 'signup_completed', optional: true },
+        { event: 'purchase' },
+      ],
+      exclusions: [{ event: '$web_vitals', fromStep: 2, toStep: 3 }],
+      breakdown: 'device',
+      breakdownAttribution: 'last_touch',
+    },
+  ],
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'funnel',
+      from: '-7d',
+      steps: [{ event: '$pageview' }, { event: '$web_vitals' }],
+      order: 'strict',
+      viz: 'time_to_convert',
+    },
+  ],
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'funnel',
+      from: '-7d',
+      steps: [{ event: 'signup_completed' }, { event: '$pageview' }],
+      order: 'unordered',
+      viz: 'trends',
+      aggregateBy: 'session',
+      interval: 'day',
+    },
+  ],
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'funnel_correlation',
+      from: '-7d',
+      steps: [{ event: '$pageview' }, { event: 'signup_completed' }],
+    },
+  ],
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'funnel_correlation',
+      from: '-7d',
+      steps: [{ event: '$pageview' }, { event: 'purchase' }],
+      correlation: 'properties',
+      properties: ['device', 'utm_source'],
     },
   ],
   [
@@ -267,6 +464,134 @@ const READS: [string, string, unknown?][] = [
       period: 'day',
     },
   ],
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'retention',
+      from: '-7d',
+      cohortEvent: { event: '$pageview' },
+      returnEvent: { event: '*' },
+      period: 'day',
+      retentionType: 'recurring',
+      cumulative: true,
+      breakdown: 'device',
+      meanMethod: 'simple',
+    },
+  ],
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'retention',
+      from: '-2d',
+      cohortEvent: { event: '$pageview' },
+      returnEvent: { event: '$pageview' },
+      period: 'hour',
+      periods: 6,
+      aggregateBy: 'session',
+      timezone: 'America/New_York',
+    },
+  ],
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'trends',
+      from: '-7d',
+      series: [{ event: '$pageview', math: 'unique_persons' }],
+      breakdown: 'cohort',
+      breakdownCohorts: ['engaged', 'vips'],
+    },
+  ],
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'retention',
+      from: '-7d',
+      cohortEvent: { event: '$pageview' },
+      returnEvent: { event: '$pageview' },
+      period: 'day',
+      filters: [{ property: 'cohort', value: 'vips' }],
+    },
+  ],
+  ['POST', '/api/query', { kind: 'paths', from: '-7d' }],
+  [
+    'POST',
+    '/api/query',
+    { kind: 'paths', from: '-7d', steps: 3, collapseRepeats: false, aggregateBy: 'session' },
+  ],
+  [
+    'POST',
+    '/api/query',
+    { kind: 'paths', from: '-7d', start: { value: '/pri*' }, include: { events: true } },
+  ],
+  ['POST', '/api/query', { kind: 'paths', from: '-7d', end: { value: '/signup' }, steps: 4 }],
+  [
+    'POST',
+    '/api/query',
+    { kind: 'paths', from: '-7d', start: { value: '/' }, end: { value: '/docs' } },
+  ],
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'paths',
+      from: '-7d',
+      groups: ['/blog/*'],
+      exclude: ['/docs'],
+      perStep: 2,
+      minPeople: 2,
+    },
+  ],
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'paths',
+      from: '-7d',
+      cleaning: [
+        { match: '/b*_launch', alias: '/blog' },
+        { match: '/sign*', alias: '/join' },
+      ],
+      boundary: { minutes: 600 },
+    },
+  ],
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'paths',
+      from: '-7d',
+      funnel: {
+        spec: { steps: [{ event: '$pageview' }, { event: 'signup_completed' }] },
+        step: 2,
+        mode: 'before',
+      },
+    },
+  ],
+  [
+    'POST',
+    '/api/query',
+    {
+      kind: 'paths',
+      from: '-7d',
+      funnel: {
+        spec: { steps: [{ event: '$pageview' }, { event: 'signup_completed' }] },
+        step: 2,
+        mode: 'dropoff',
+      },
+    },
+  ],
+  [
+    'POST',
+    '/api/actors',
+    { kind: 'paths', spec: { from: '-7d' }, selection: { node: '1:/', target: '2:/pricing' } },
+  ],
+  ['GET', '/api/paths/suggest-rules'],
+  ['GET', '/api/cohorts'],
+  ['GET', '/api/cohorts/engaged/members'],
   ['GET', '/api/events?from=-30d'],
   ['GET', '/api/events/signup_completed?from=-30d'],
   ['GET', '/api/properties/values?property=plan&event=signup_completed'],
@@ -275,6 +600,12 @@ const READS: [string, string, unknown?][] = [
   ['POST', '/api/reports/sources?from=-7d'],
   ['POST', '/api/reports/health?from=-7d'],
   ['GET', '/api/experiments/checkout-v2'],
+  ['GET', '/api/experiments/checkout-metrics'],
+  [
+    'POST',
+    '/api/experiments/plan',
+    { metric: { kind: 'conversion', event: 'signup_completed' }, lookback: '-7d', mde: 0.2 },
+  ],
 ];
 
 /** Fields that legitimately differ by store: generated SQL, links, store names and freshness notes. */
@@ -319,6 +650,7 @@ function conformance(name: string, split: boolean) {
     let df: DataFusion;
     let d1: TestApp;
     let lake: TestApp;
+    let stores: Map<TestApp, EventStore>;
 
     before(async () => {
       // One frozen clock, so both Workers resolve `-7d` to the same instant.
@@ -366,13 +698,99 @@ function conformance(name: string, split: boolean) {
         },
         { createStore: (e) => new LakeStore(e, basin, split ? V2 : []) },
       );
+      stores = new Map<TestApp, EventStore>([
+        [d1, new D1Store(d1.db)],
+        [lake, new LakeStore(lake.env, basin, split ? V2 : [])],
+      ]);
       const events = fixture(Date.now());
       for (const app of [d1, lake]) {
+        // Group types are cached per isolate by project; these two apps share one isolate and project.
+        clearGroupTypeCache();
         await app.json('POST', '/api/projects', { body: { id: 'acme' } });
+        // Purchases are revenue (and subscription payments, for MRR).
+        await app.json('PATCH', '/api/settings', {
+          body: {
+            project: 'acme',
+            settings: {
+              baseCurrency: 'GBP',
+              revenueEvents: [
+                {
+                  event: 'purchase',
+                  amountProperty: 'value',
+                  productProperty: 'plan',
+                  subscriptionProperty: 'sub',
+                },
+              ],
+            },
+          },
+        });
         await app.json('POST', '/api/experiments', {
           body: { key: 'checkout-v2', goal: { event: 'purchase' } },
         });
         await app.json('POST', '/api/experiments/checkout-v2/start');
+        await app.json('POST', '/api/experiments', {
+          body: {
+            key: 'checkout-metrics',
+            flag: 'checkout-v2',
+            metrics: [
+              {
+                kind: 'mean',
+                event: 'purchase',
+                math: 'sum',
+                property: 'value',
+                winsorize: { upper: 95 },
+              },
+              {
+                kind: 'ratio',
+                numerator: { event: 'purchase', math: 'sum', property: 'value' },
+                denominator: { event: '$pageview' },
+              },
+              {
+                kind: 'funnel',
+                steps: [{ event: '$pageview' }, { event: 'purchase' }],
+                window: '1d',
+              },
+              { kind: 'retention', event: '$pageview', from: '1h', to: '2h' },
+            ],
+            secondary: [{ kind: 'conversion', event: 'signup_completed', within: '1d' }],
+            engine: 'frequentist',
+            minimumDays: 0,
+            minimumExposures: 0,
+          },
+        });
+        await app.json('POST', '/api/experiments/checkout-metrics/start');
+        await app.json('POST', '/api/cohorts', {
+          body: {
+            key: 'engaged',
+            name: 'Engaged',
+            definition: {
+              groups: [
+                {
+                  match: 'any',
+                  conditions: [
+                    {
+                      type: 'performed',
+                      event: '$pageview',
+                      count: { op: 'gte', value: 3 },
+                      within: '7d',
+                    },
+                    {
+                      type: 'performed_regularly',
+                      event: '$pageview',
+                      period: 'day',
+                      periods: 7,
+                      minPeriods: 2,
+                    },
+                  ],
+                },
+                { conditions: [{ type: 'not_performed', event: 'purchase', within: '7d' }] },
+              ],
+            },
+          },
+        });
+        await app.json('POST', '/api/cohorts', {
+          body: { key: 'vips', name: 'VIPs', static: true, ids: ['user-1', 'user-3', 'user-5'] },
+        });
         // Batches as the SDK sends them, so identities resolve in the same order in both stores.
         for (let i = 0; i < events.length; i += 25) await app.ingest(events.slice(i, i + 25));
       }
@@ -396,6 +814,51 @@ function conformance(name: string, split: boolean) {
         assert.deepEqual(normalise(b), normalise(a));
       });
     }
+
+    it('compares revenue that is really there', async () => {
+      const r = await d1.json<{ totals: { net: number; mrr: number; customers: number } }>(
+        'POST',
+        '/api/query',
+        {
+          body: { kind: 'revenue', from: '-30d' },
+        },
+      );
+      assert.ok(
+        r.totals.net > 0 && r.totals.mrr > 0 && r.totals.customers > 1,
+        JSON.stringify(r.totals),
+      );
+    });
+
+    it('batch exports send the same rows from both stores', async () => {
+      const exported = new Map<TestApp, Record<string, unknown>[]>();
+      for (const app of [d1, lake]) {
+        const rows: Record<string, unknown>[] = [];
+        configureExports({
+          fetch: async (_url, init) => {
+            for (const line of String(init?.body).trim().split('\n')) rows.push(JSON.parse(line));
+            return new Response('{}');
+          },
+        });
+        await app.json('POST', '/api/exports', {
+          body: {
+            project: 'acme',
+            target: 'http',
+            settings: { url: 'https://etl.test/in' },
+            from: '-30d',
+          },
+        });
+        // Pages of 2,000, five a tick: enough ticks to finish the window.
+        for (let i = 0; i < 5; i++)
+          await runExports(app.env, stores.get(app)!, Date.now() + 2 * 3_600_000);
+        exported.set(
+          app,
+          rows.sort((x, y) => String(x.id).localeCompare(String(y.id))),
+        );
+      }
+      const fromD1 = exported.get(d1)!;
+      assert.ok(fromD1.length > 100, `${fromD1.length} rows`);
+      assert.deepEqual(normalise(exported.get(lake)), normalise(fromD1));
+    });
   });
 }
 

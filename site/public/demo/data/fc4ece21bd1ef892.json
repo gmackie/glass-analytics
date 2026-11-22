@@ -1,0 +1,70 @@
+{
+  "project": "demo",
+  "key": "onboarding-checklist",
+  "history": [
+    {
+      "at": "2026-11-18T17:53:28.601Z",
+      "action": "update",
+      "actor": "admin key",
+      "changed": [
+        "enabled"
+      ],
+      "before": {
+        "key": "onboarding-checklist",
+        "enabled": false,
+        "rollout": 100,
+        "description": "Experiment: A three-step checklist gets new writers to their first document.",
+        "variants": [
+          {
+            "key": "control",
+            "weight": 50
+          },
+          {
+            "key": "test",
+            "weight": 50
+          }
+        ]
+      },
+      "after": {
+        "key": "onboarding-checklist",
+        "enabled": true,
+        "rollout": 100,
+        "description": "Experiment: A three-step checklist gets new writers to their first document.",
+        "variants": [
+          {
+            "key": "control",
+            "weight": 50
+          },
+          {
+            "key": "test",
+            "weight": 50
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-18T17:53:28.599Z",
+      "action": "create",
+      "actor": "admin key",
+      "changed": [],
+      "before": null,
+      "after": {
+        "key": "onboarding-checklist",
+        "enabled": false,
+        "rollout": 100,
+        "description": "Experiment: A three-step checklist gets new writers to their first document.",
+        "variants": [
+          {
+            "key": "control",
+            "weight": 50
+          },
+          {
+            "key": "test",
+            "weight": 50
+          }
+        ]
+      }
+    }
+  ],
+  "summary": "2 changes to \"onboarding-checklist\"; latest 2026-11-18 17:53: update (enabled) by admin key."
+}

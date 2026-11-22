@@ -1,0 +1,23 @@
+{
+  "project": "demo",
+  "settings": {
+    "internalFilters": [
+      {
+        "property": "person.email",
+        "op": "contains",
+        "value": "@inkwell.test"
+      }
+    ],
+    "baseCurrency": "USD",
+    "revenueEvents": [
+      {
+        "event": "subscription_started",
+        "amountProperty": "amount",
+        "productProperty": "plan",
+        "subscriptionProperty": "subscription"
+      }
+    ]
+  },
+  "summary": "Time zone UTC (default); 1 internal-traffic filter (applied with filterTestAccounts: true); base currency USD; revenue from subscription_started.",
+  "dashboard": "http://127.0.0.1:49397/app#/settings?project=demo"
+}

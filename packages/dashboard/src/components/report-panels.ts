@@ -233,7 +233,6 @@ export function marketingPanels(filters: Filters, hasGoals: boolean, only?: stri
     panel('Sources', holder, {
       icon: 'megaphone',
       actions: switcher,
-      subtitle: 'Click a row for its full report',
     }),
   );
 }

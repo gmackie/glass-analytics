@@ -69,9 +69,17 @@ export function errorResponse(err: unknown): Response {
   }
   console.error('[glass] unhandled error', err);
   return json(
-    { error: 'Internal error', detail: err instanceof Error ? err.message : String(err) },
+    // The message only: the stack (and whatever `String()` of a non-Error holds) stays in the log.
+    { error: 'Internal error', ...(err instanceof Error ? { detail: err.message } : {}) },
     { status: 500 },
   );
+}
+
+/** The raw body, refusing anything over `maxBytes` (webhooks verify signatures over exact bytes). */
+export async function readText(request: Request, maxBytes = 1_000_000): Promise<string> {
+  const text = await request.text();
+  if (text.length > maxBytes) throw new HttpError(413, `Body too large (max ${maxBytes} bytes)`);
+  return text;
 }
 
 export async function readJson<T = unknown>(request: Request, maxBytes = 1_000_000): Promise<T> {

@@ -1,6 +1,6 @@
 import { EVENT_COLUMNS, type StoredEvent } from '@dataflare/core/events';
 import type { Row } from '@dataflare/core/insights/types';
-import { sqlite } from '@dataflare/core/sql/dialect';
+import { assertSafeKey, sqlite } from '@dataflare/core/sql/dialect';
 import type { D1Database } from '../env.ts';
 import type { EventStore, IdentityLink } from './types.ts';
 
@@ -46,6 +46,18 @@ export class D1Store implements EventStore {
       throw new Error('A read-only query changed the database. Please report this as a bug.');
     }
     return results;
+  }
+
+  async deleteGroupData(project: string, type: string, key: string): Promise<'deleted'> {
+    assertSafeKey(type);
+    await this.db
+      .prepare(
+        `UPDATE events SET props = json_remove(props, '$."$groups"."${type}"', '$."$group_props"."${type}"')
+         WHERE project = ?1 AND json_extract(props, '$."$groups"."${type}"') = ?2`,
+      )
+      .bind(project, key)
+      .run();
+    return 'deleted';
   }
 
   async deletePersonEvents(project: string, ids: string[]): Promise<'deleted'> {

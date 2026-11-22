@@ -39,6 +39,13 @@ export const PRICES = {
     /** Largest a single D1 database can grow on Workers Paid. */
     maxDatabaseGb: 10,
   },
+  /** developers.cloudflare.com/queues/platform/pricing: a message is a write, a read and a delete. */
+  queues: {
+    includedOperations: 1e6,
+    perMillionOperations: 0.4,
+    operationsPerMessage: 3,
+    freeOperationsPerDay: 10_000,
+  },
   r2: {
     includedStorageGb: 10,
     perGbMonth: 0.015,
@@ -78,6 +85,8 @@ export interface UsageInputs {
   stored: { events: number; replayBytes: number; d1Bytes: number | null };
   retentionDays: number | null;
   replayRetentionDays: number;
+  /** Destination deliveries over `days` (delivered, failed and skipped), and whether a queue carries them. */
+  deliveries?: { messages: number; queue: boolean };
 }
 
 export interface Line {
@@ -231,6 +240,20 @@ export function estimateUsage(input: UsageInputs): UsageReport {
       'One per replay chunk, plus cached summaries',
     ),
   ];
+  // Destinations: queue operations when a queue carries deliveries (the outbox uses D1 instead).
+  const deliveries = (input.deliveries?.messages ?? 0) * scale;
+  if (deliveries > 0 && input.deliveries?.queue) {
+    lines.push(
+      line(
+        'Queue operations',
+        'operations',
+        deliveries * p.queues.operationsPerMessage,
+        p.queues.includedOperations,
+        p.queues.perMillionOperations,
+        `${p.queues.operationsPerMessage} per destination delivery (write, read, delete), plus retries`,
+      ),
+    );
+  }
   const overageUsd = round(lines.reduce((n, l) => n + l.overageUsd, 0));
   const storedEvents = input.store === 'd1' ? Math.max(input.stored.events, events) : events;
   const perReportLoad = Math.round(Math.min(storedEvents, events) * QUERIES_PER_REPORT);

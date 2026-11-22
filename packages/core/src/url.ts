@@ -73,3 +73,17 @@ export function referrerHost(referrer: string | null | undefined, pageHost: stri
     return '';
   }
 }
+
+/** `s` without trailing slashes, in linear time (a `/\/+$/` regex backtracks on long runs of slashes). */
+export function trimTrailingSlashes(s: string): string {
+  let end = s.length;
+  while (end > 0 && s.charCodeAt(end - 1) === 47) end--;
+  return s.slice(0, end);
+}
+
+/** `s` without leading or trailing slashes, in linear time. */
+export function trimSlashes(s: string): string {
+  let start = 0;
+  while (start < s.length && s.charCodeAt(start) === 47) start++;
+  return trimTrailingSlashes(s.slice(start));
+}

@@ -2,12 +2,12 @@
   "project": "demo",
   "event": "$pageview",
   "sampled": 500,
-  "lastSeen": "2026-11-05T10:26:04.084Z",
+  "lastSeen": "2026-11-18T17:53:44.593Z",
   "description": "",
   "owner": "",
   "properties": [],
   "summary": "\"$pageview\": 0 properties across the latest 500 events.",
   "sql": [
-    "SELECT props, ts_ms FROM events\nWHERE project = 'demo' AND event = '$pageview' AND ts_ms >= 1791282550111\nORDER BY ts_ms DESC LIMIT 500"
+    "SELECT props, ts_ms FROM events\nWHERE project = 'demo' AND event = '$pageview' AND ts_ms >= 1792432562555\nORDER BY ts_ms DESC LIMIT 500"
   ]
 }

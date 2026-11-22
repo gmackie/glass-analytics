@@ -2,19 +2,6 @@
   "project": "demo",
   "interval": "day",
   "buckets": [
-    1786060800000,
-    1786147200000,
-    1786233600000,
-    1786320000000,
-    1786406400000,
-    1786492800000,
-    1786579200000,
-    1786665600000,
-    1786752000000,
-    1786838400000,
-    1786924800000,
-    1787011200000,
-    1787097600000,
     1787184000000,
     1787270400000,
     1787356800000,
@@ -92,10 +79,23 @@
     1793577600000,
     1793664000000,
     1793750400000,
-    1793836800000
+    1793836800000,
+    1793923200000,
+    1794009600000,
+    1794096000000,
+    1794182400000,
+    1794268800000,
+    1794355200000,
+    1794441600000,
+    1794528000000,
+    1794614400000,
+    1794700800000,
+    1794787200000,
+    1794873600000,
+    1794960000000
   ],
   "errors": {
-    "total": 95,
+    "total": 84,
     "previous": 0,
     "series": [
       0,
@@ -121,154 +121,207 @@
       0,
       0,
       0,
-      0,
-      1,
-      0,
-      0,
-      2,
-      0,
-      0,
-      0,
-      1,
-      0,
-      2,
-      2,
-      0,
-      0,
       1,
       1,
-      1,
-      1,
-      1,
-      1,
-      0,
-      2,
       0,
       0,
       0,
       2,
       1,
-      3,
       1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
       1,
+      2,
+      0,
+      0,
+      1,
+      0,
       0,
       0,
       4,
       0,
       0,
+      1,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0,
       2,
       1,
       1,
       1,
+      2,
       3,
-      3,
-      1,
-      1,
-      1,
       0,
+      1,
+      2,
+      0,
+      0,
+      0,
+      1,
+      2,
+      2,
+      2,
+      0,
+      0,
+      2,
       3,
+      2,
+      2,
+      2,
+      1,
+      2,
+      1,
       4,
       1,
       2,
-      1,
       0,
-      0,
-      1,
-      2,
-      2,
-      1,
-      1,
-      3,
-      2,
       1,
       4,
       1,
-      1,
-      2,
-      2,
-      2,
-      2,
-      1
+      3
     ],
-    "visitors": 94,
-    "sessions": 95,
-    "sessionsTotal": 6528,
-    "sessionRate": 0.014552696078431373
+    "visitors": 84,
+    "sessions": 84,
+    "sessionsTotal": 6745,
+    "sessionRate": 0.01245366938472943
   },
   "errorPages": [
     {
       "path": "/app",
-      "errors": 77,
-      "visitors": 76
-    },
-    {
-      "path": "/templates",
-      "errors": 9,
-      "visitors": 9
+      "errors": 72,
+      "visitors": 72
     },
     {
       "path": "/signup",
-      "errors": 9,
-      "visitors": 9
+      "errors": 6,
+      "visitors": 6
+    },
+    {
+      "path": "/templates",
+      "errors": 6,
+      "visitors": 6
     }
   ],
   "notFound": [],
   "slowPages": [
     {
       "path": "/about",
-      "p75": 3591.471,
-      "samples": 33
+      "p75": 3068.448,
+      "samples": 43
     },
     {
       "path": "/changelog",
-      "p75": 3432.929,
-      "samples": 58
-    },
-    {
-      "path": "/blog/markdown-for-writers",
-      "p75": 3065.235,
-      "samples": 54
-    },
-    {
-      "path": "/templates",
-      "p75": 3023.928,
-      "samples": 161
-    },
-    {
-      "path": "/",
-      "p75": 2901.09,
-      "samples": 301
-    },
-    {
-      "path": "/pricing",
-      "p75": 2839.447,
-      "samples": 252
+      "p75": 3037.806,
+      "samples": 81
     },
     {
       "path": "/blog/writing-every-day",
-      "p75": 2743.031,
-      "samples": 126
+      "p75": 2924.407,
+      "samples": 122
+    },
+    {
+      "path": "/pricing",
+      "p75": 2867.2,
+      "samples": 249
+    },
+    {
+      "path": "/",
+      "p75": 2826.622,
+      "samples": 298
+    },
+    {
+      "path": "/templates",
+      "p75": 2789.847,
+      "samples": 173
+    },
+    {
+      "path": "/docs",
+      "p75": 2603.059,
+      "samples": 93
     },
     {
       "path": "/features/focus-mode",
       "p75": 2548.867,
-      "samples": 114
+      "samples": 123
     },
     {
-      "path": "/docs",
-      "p75": 2505.823,
-      "samples": 92
+      "path": "/blog/markdown-for-writers",
+      "p75": 2341.171,
+      "samples": 30
     }
   ],
   "sql": [
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1786098483962\n    AND e.ts_ms < 1793874483962\n    AND e.event IN ('$pageview', '$exception')\n)\nSELECT\n  (SELECT COUNT(*) FROM ev WHERE event = '$exception') AS errors,\n  (SELECT COUNT(DISTINCT distinct_id) FROM ev WHERE event = '$exception') AS visitors,\n  (SELECT COUNT(DISTINCT session_id) FROM ev WHERE event = '$exception') AS sessions,\n  (SELECT COUNT(DISTINCT session_id) FROM ev WHERE event = '$pageview') AS sessions_total",
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1778322483962\n    AND e.ts_ms < 1786098483962\n    AND e.event IN ('$exception')\n)\nSELECT COUNT(*) AS errors FROM ev",
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1786098483962\n    AND e.ts_ms < 1793874483962\n    AND e.event IN ('$exception')\n)\nSELECT ((ts_ms / 86400000) * 86400000) AS bucket, COUNT(*) AS n FROM ev GROUP BY ((ts_ms / 86400000) * 86400000) ORDER BY bucket LIMIT 5000",
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1786098483962\n    AND e.ts_ms < 1793874483962\n    AND e.event IN ('$exception')\n)\nSELECT COALESCE(NULLIF(path, ''), '(none)') AS path, COUNT(*) AS n, COUNT(DISTINCT distinct_id) AS visitors\nFROM ev GROUP BY COALESCE(NULLIF(path, ''), '(none)') ORDER BY n DESC LIMIT 10",
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1786098483962\n    AND e.ts_ms < 1793874483962\n    AND e.event IN ('$pageview')\n)\nSELECT path, MIN(title) AS title, COUNT(*) AS views, COUNT(DISTINCT distinct_id) AS visitors,\n  MIN(COALESCE(NULLIF(referrer_host, ''), 'Direct / None')) AS referrer\nFROM ev\nWHERE LOWER(COALESCE(title, '')) LIKE '%404%' OR LOWER(COALESCE(title, '')) LIKE '%not found%' OR LOWER(COALESCE(title, '')) LIKE '%page not found%' OR LOWER(COALESCE(path, '')) LIKE '%/404%'\nGROUP BY path ORDER BY views DESC LIMIT 10",
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1786098483962\n    AND e.ts_ms < 1793874483962\n    AND e.event IN ('$web_vitals')\n)\nSELECT COALESCE(NULLIF(path, ''), '(none)') AS path, (CASE WHEN json_type(props, '$.\"value\"') IN ('integer', 'real') THEN json_extract(props, '$.\"value\"') END) AS val\nFROM ev WHERE (CASE json_type(props, '$.\"metric\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"metric\"') AS TEXT) END) = 'LCP'\nORDER BY ts_ms DESC LIMIT 5000"
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248508743\n    AND e.ts_ms < 1795024508743\n    AND e.event IN ('$pageview', '$exception')\n)\nSELECT\n  (SELECT COUNT(*) FROM ev WHERE event = '$exception') AS errors,\n  (SELECT COUNT(DISTINCT distinct_id) FROM ev WHERE event = '$exception') AS visitors,\n  (SELECT COUNT(DISTINCT session_id) FROM ev WHERE event = '$exception') AS sessions,\n  (SELECT COUNT(DISTINCT session_id) FROM ev WHERE event = '$pageview') AS sessions_total",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1779472508743\n    AND e.ts_ms < 1787248508743\n    AND e.event IN ('$exception')\n)\nSELECT COUNT(*) AS errors FROM ev",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248508743\n    AND e.ts_ms < 1795024508743\n    AND e.event IN ('$exception')\n)\nSELECT ((ts_ms / 86400000) * 86400000) AS bucket, COUNT(*) AS n FROM ev GROUP BY ((ts_ms / 86400000) * 86400000) ORDER BY bucket LIMIT 5000",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248508743\n    AND e.ts_ms < 1795024508743\n    AND e.event IN ('$exception')\n)\nSELECT COALESCE(NULLIF(path, ''), '(none)') AS path, COUNT(*) AS n, COUNT(DISTINCT distinct_id) AS visitors\nFROM ev GROUP BY COALESCE(NULLIF(path, ''), '(none)') ORDER BY n DESC, path ASC LIMIT 10",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248508743\n    AND e.ts_ms < 1795024508743\n    AND e.event IN ('$exception')\n)\nSELECT (CASE json_type(props, '$.\"$issue_id\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$issue_id\"') AS TEXT) END) AS issue, COUNT(*) AS n, COUNT(DISTINCT distinct_id) AS visitors\nFROM ev WHERE (CASE json_type(props, '$.\"$issue_id\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$issue_id\"') AS TEXT) END) IS NOT NULL\nGROUP BY (CASE json_type(props, '$.\"$issue_id\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$issue_id\"') AS TEXT) END) ORDER BY n DESC, issue ASC LIMIT 10",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248508743\n    AND e.ts_ms < 1795024508743\n    AND e.event IN ('$pageview')\n)\nSELECT path, MIN(title) AS title, COUNT(*) AS views, COUNT(DISTINCT distinct_id) AS visitors,\n  MIN(COALESCE(NULLIF(referrer_host, ''), 'Direct / None')) AS referrer\nFROM ev\nWHERE LOWER(COALESCE(title, '')) LIKE '%404%' OR LOWER(COALESCE(title, '')) LIKE '%not found%' OR LOWER(COALESCE(title, '')) LIKE '%page not found%' OR LOWER(COALESCE(path, '')) LIKE '%/404%'\nGROUP BY path ORDER BY views DESC, path ASC LIMIT 10",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248508743\n    AND e.ts_ms < 1795024508743\n    AND e.event IN ('$web_vitals')\n)\nSELECT COALESCE(NULLIF(path, ''), '(none)') AS path, (CASE WHEN json_type(props, '$.\"value\"') IN ('integer', 'real') THEN json_extract(props, '$.\"value\"') END) AS val\nFROM ev WHERE (CASE json_type(props, '$.\"metric\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"metric\"') AS TEXT) END) = 'LCP'\nORDER BY ts_ms DESC LIMIT 5000"
   ],
-  "summary": "95 errors in 95 of 6528 sessions (1.5%), affecting 94 visitors. Slowest page by LCP: /about (p75 3591 ms).",
+  "summary": "84 errors in 84 of 6745 sessions (1.2%), affecting 84 visitors. Slowest page by LCP: /about (p75 3068 ms). Top issue: TypeError: Cannot read properties of undefined (reading 'wordCount') (57×); get_issue has its stack.",
+  "topIssues": [
+    {
+      "id": "8cbf4a868c6d4cba",
+      "type": "TypeError",
+      "message": "Cannot read properties of undefined (reading 'wordCount')",
+      "status": "active",
+      "regressed": false,
+      "errors": 57,
+      "visitors": 57,
+      "link": "http://127.0.0.1:49397/app#/errors/8cbf4a868c6d4cba?project=demo"
+    },
+    {
+      "id": "c764395476c11c8e",
+      "type": "TypeError",
+      "message": "Failed to fetch",
+      "status": "active",
+      "regressed": false,
+      "errors": 14,
+      "visitors": 14,
+      "link": "http://127.0.0.1:49397/app#/errors/c764395476c11c8e?project=demo"
+    },
+    {
+      "id": "662e7c2093cd5536",
+      "type": "Error",
+      "message": "ResizeObserver loop limit exceeded",
+      "status": "active",
+      "regressed": false,
+      "errors": 6,
+      "visitors": 6,
+      "link": "http://127.0.0.1:49397/app#/errors/662e7c2093cd5536?project=demo"
+    },
+    {
+      "id": "6fd5484511f90d13",
+      "type": "TypeError",
+      "message": "crypto.randomUUID is not a function",
+      "status": "active",
+      "regressed": false,
+      "errors": 6,
+      "visitors": 6,
+      "link": "http://127.0.0.1:49397/app#/errors/6fd5484511f90d13?project=demo"
+    },
+    {
+      "id": "d49f920f9d28519b",
+      "type": "TypeError",
+      "message": "Cannot read properties of undefined (reading 'number')",
+      "status": "active",
+      "regressed": false,
+      "errors": 1,
+      "visitors": 1,
+      "link": "http://127.0.0.1:49397/app#/errors/d49f920f9d28519b?project=demo"
+    }
+  ],
   "replays": {
     "sessions": 3,
     "rageClicks": 1,

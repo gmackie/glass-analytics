@@ -1,0 +1,96 @@
+{
+  "project": "demo",
+  "id": "user_1708",
+  "identified": true,
+  "properties": {
+    "signup_source": "header",
+    "plan": "free",
+    "email": "user_1708@example.com",
+    "company_size": "1"
+  },
+  "groups": [],
+  "firstSeen": "2026-11-18T05:58:16.268Z",
+  "lastSeen": "2026-11-18T06:00:59.430Z",
+  "devices": [
+    "4a0c5197-9613-4987-a4f8-5a8dfe887641"
+  ],
+  "revenue": {
+    "net": 0,
+    "gross": 0,
+    "orders": 0,
+    "firstAt": null,
+    "lastAt": null,
+    "currency": "USD"
+  },
+  "recentEvents": [
+    {
+      "event": "document_created",
+      "time": "2026-11-18T06:00:54.430Z",
+      "path": "/app",
+      "session": "cs_9b8f8d5fe5fff69231e6_997212",
+      "properties": {
+        "template": "novel-chapter",
+        "words": 399
+      }
+    },
+    {
+      "event": "$exposure",
+      "time": "2026-11-18T05:58:17.268Z",
+      "path": "/app",
+      "session": "cs_9b8f8d5fe5fff69231e6_997211",
+      "properties": {
+        "flag": "onboarding-checklist",
+        "variant": "control"
+      }
+    },
+    {
+      "event": "signup_completed",
+      "time": "2026-11-18T05:58:16.468Z",
+      "path": "/welcome",
+      "session": "459666d2-04ed-4074-a9c6-1a2c51b763e4",
+      "properties": {
+        "plan": "free",
+        "method": "google"
+      }
+    },
+    {
+      "event": "$identify",
+      "time": "2026-11-18T05:58:16.268Z",
+      "path": "",
+      "session": "459666d2-04ed-4074-a9c6-1a2c51b763e4",
+      "properties": {
+        "$set": {
+          "plan": "free",
+          "email": "user_1708@example.com",
+          "company_size": "1"
+        },
+        "$set_once": {
+          "signup_source": "header"
+        }
+      }
+    },
+    {
+      "event": "signup_started",
+      "time": "2026-11-18T05:57:14.554Z",
+      "path": "/signup",
+      "session": "459666d2-04ed-4074-a9c6-1a2c51b763e4",
+      "properties": {
+        "source": "header"
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-18T05:56:19.548Z",
+      "path": "/blog/writing-every-day",
+      "session": "459666d2-04ed-4074-a9c6-1a2c51b763e4",
+      "properties": {}
+    }
+  ],
+  "replays": [],
+  "summary": "Identified person \"user_1708\": 6 events in 90 days.",
+  "sql": [
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248548790\n    AND e.ts_ms < 1795024608790\n)\nSELECT event, ts_ms, path, session_id, props FROM ev WHERE pid = 'user_1708' OR distinct_id = 'user_1708'\nORDER BY ts_ms DESC LIMIT 100",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248548790\n    AND e.ts_ms < 1795024608790\n)\nSELECT 'company' AS type, (CASE json_type(props, '$.\"$groups\".\"company\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$groups\".\"company\"') AS TEXT) END) AS group_key, MAX(ts_ms) AS last_ts FROM ev WHERE (pid = 'user_1708' OR distinct_id = 'user_1708') AND (CASE json_type(props, '$.\"$groups\".\"company\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$groups\".\"company\"') AS TEXT) END) IS NOT NULL GROUP BY (CASE json_type(props, '$.\"$groups\".\"company\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$groups\".\"company\"') AS TEXT) END)"
+  ],
+  "dashboard": "http://127.0.0.1:49397/app#/users/user_1708?project=demo"
+}

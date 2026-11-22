@@ -1,0 +1,51 @@
+{
+  "kind": "trends",
+  "interval": "day",
+  "buckets": [
+    1793750400000,
+    1793836800000,
+    1793923200000,
+    1794009600000,
+    1794096000000,
+    1794182400000,
+    1794268800000,
+    1794355200000
+  ],
+  "series": [
+    {
+      "label": "$pageview",
+      "breakdown": null,
+      "values": [
+        2,
+        338,
+        293,
+        261,
+        176,
+        211,
+        339,
+        351
+      ],
+      "total": 2226,
+      "seriesIndex": 0,
+      "math": "total"
+    }
+  ],
+  "sql": [
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793814878643\n    AND e.ts_ms < 1794419678643\n    AND e.event IN ('$pageview')\n)\nSELECT bucket, bd, COUNT(*) AS agg\nFROM (SELECT ((ts_ms / 86400000) * 86400000) AS bucket, '' AS bd, actor, session_id, ts_ms, NULL AS val, '' AS grp\n    FROM ev WHERE event IN ('$pageview') AND 1 = 1) t\nGROUP BY bucket, bd\nORDER BY bucket\nLIMIT 50000",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793814878643\n    AND e.ts_ms < 1794419678643\n    AND e.event IN ('$pageview')\n)\nSELECT bd, COUNT(*) AS agg\nFROM (SELECT '' AS bd, actor, session_id, ts_ms, NULL AS val, '' AS grp\n    FROM ev WHERE event IN ('$pageview') AND 1 = 1) t\nGROUP BY bd\nORDER BY agg DESC, bd ASC\nLIMIT 1000"
+  ],
+  "range": {
+    "from": "2026-11-04T17:54:38.643Z",
+    "to": "2026-11-11T17:54:38.643Z"
+  },
+  "summary": "2026-11-04 to 2026-11-11 by day. $pageview: 2,226",
+  "annotations": [
+    {
+      "id": "da5d1d69-c8c",
+      "at": "2026-11-06T17:53:28.559Z",
+      "text": "Launched templates"
+    }
+  ],
+  "project": "demo",
+  "dashboard": "http://127.0.0.1:49397/app#/insights/trends?project=demo&spec=%7B%22from%22%3A%222026-11-04T17%3A54%3A38.643Z%22%2C%22to%22%3A%222026-11-11T17%3A54%3A38.643Z%22%2C%22series%22%3A%5B%7B%22event%22%3A%22%24pageview%22%2C%22math%22%3A%22total%22%7D%5D%2C%22interval%22%3A%22day%22%7D"
+}

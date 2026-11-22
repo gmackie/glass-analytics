@@ -4,8 +4,12 @@
 
 import type { FlagDefinition } from '@dataflare/core/flags';
 import { api } from '../api.ts';
+import { lineChart } from '../components/charts.ts';
 import { icon } from '../components/icons.ts';
+import { knownGroupTypes } from '../components/insight-options.ts';
 import { toggle } from '../components/menu.ts';
+import { payloadEditors } from '../components/payload-editors.ts';
+import { cleanFlagRules, type FlagRuleRow, flagRulesEditor } from '../components/rich-editors.ts';
 import {
   copyButton,
   empty,
@@ -16,8 +20,127 @@ import {
   table,
   toast,
 } from '../components/ui.ts';
-import { h, mount } from '../dom.ts';
+import { type Child, h, mount } from '../dom.ts';
+import { ago, dateTime } from '../format.ts';
 import { go, href, type Route, scope } from '../state.ts';
+
+const field = (label: string, ...control: Child[]) =>
+  h('label', { class: 'field' }, h('span', {}, label), ...control);
+
+function rolloutField(flag: FlagDefinition | null) {
+  const input = h('input', {
+    type: 'range',
+    min: 0,
+    max: 100,
+    step: 1,
+    value: flag?.rollout ?? 100,
+  });
+  const shown = h('output', {}, `${flag?.rollout ?? 100}%`);
+  input.addEventListener('input', () => {
+    shown.textContent = `${input.value}%`;
+  });
+  return {
+    el: field('Rollout', h('div', { class: 'range' }, input, shown)),
+    value: () => Number(input.value),
+  };
+}
+
+/** "control:50, test:50" → variants; empty for an on/off flag. */
+function parseVariants(text: string): { key: string; weight: number }[] {
+  if (!text.trim()) return [];
+  return text.split(',').map((part) => {
+    const [k, w] = part.trim().split(':');
+    return { key: k!.trim(), weight: Number(w ?? 1) };
+  });
+}
+
+function bucketField(flag: FlagDefinition | null, project: string | undefined) {
+  const option = (v: string, label: string) =>
+    h('option', { value: v, selected: (flag?.bucketBy ?? 'device') === v }, label);
+  const select = h(
+    'select',
+    {},
+    option('device', 'Device (default)'),
+    option('person', 'Person (same value on every device)'),
+  );
+  const addType = (t: string) => {
+    if (![...select.options].some((o) => o.value === t)) select.append(option(t, `${t} (group)`));
+  };
+  for (const t of knownGroupTypes(project, () =>
+    knownGroupTypes(project, () => {}).forEach(addType),
+  ))
+    addType(t);
+  if (flag?.bucketBy) addType(flag.bucketBy);
+  return {
+    el: field('Same value for the same', select),
+    value: () => (select.value === 'device' ? null : select.value),
+  };
+}
+
+function earlyAccessSection(flag: FlagDefinition | null) {
+  const ea = flag?.earlyAccess;
+  let on = Boolean(ea);
+  const text = (value: string | undefined, placeholder: string, type = 'text') =>
+    h('input', { type, value: value ?? '', placeholder });
+  const name = text(ea?.name, 'New editor');
+  const description = text(ea?.description, 'What people get by opting in');
+  const docs = text(ea?.docsUrl, 'https://… (optional)', 'url');
+  const stage = h(
+    'select',
+    {},
+    ['concept', 'alpha', 'beta'].map((v) =>
+      h('option', { value: v, selected: (ea?.stage ?? 'beta') === v }, v),
+    ),
+  );
+  const fields = h(
+    'div',
+    { class: 'stack tight', hidden: !on },
+    field('Name shown to people', name),
+    field('Description', description),
+    h('div', { class: 'grid-2' }, field('Stage', stage), field('Docs', docs)),
+  );
+  const el = h(
+    'div',
+    { class: 'stack tight' },
+    toggle({
+      checked: on,
+      label: 'Early access: people can opt in themselves (glass.earlyAccessFeatures())',
+      onChange: (c) => {
+        on = c;
+        fields.hidden = !c;
+      },
+    }),
+    fields,
+  );
+  const value = () => {
+    if (!on) return null;
+    if (!name.value.trim())
+      throw new Error('Give the early access feature a name people will see.');
+    return {
+      name: name.value.trim(),
+      stage: stage.value,
+      ...(description.value.trim() ? { description: description.value.trim() } : {}),
+      ...(docs.value.trim() ? { docsUrl: docs.value.trim() } : {}),
+    };
+  };
+  return { el, value };
+}
+
+function enabledToggle(checked: boolean) {
+  const input = h('input', { type: 'checkbox', checked });
+  const el = h(
+    'label',
+    { class: 'toggle' },
+    input,
+    h(
+      'span',
+      { class: 'toggle-track', 'aria-hidden': 'true' },
+      h('span', { class: 'toggle-thumb' }),
+    ),
+    h('span', { class: 'toggle-label' }, 'Enabled'),
+  );
+  return { el, value: () => input.checked };
+}
 
 function editor(flag: FlagDefinition | null): HTMLElement {
   const project = scope().project;
@@ -34,62 +157,57 @@ function editor(flag: FlagDefinition | null): HTMLElement {
     value: flag?.description ?? '',
     placeholder: 'What this flag controls',
   });
-  const enabled = h('input', { type: 'checkbox', checked: flag?.enabled ?? true });
-  const rollout = h('input', {
-    type: 'range',
-    min: 0,
-    max: 100,
-    step: 1,
-    value: flag?.rollout ?? 100,
-  });
-  const rolloutValue = h('output', {}, `${flag?.rollout ?? 100}%`);
-  rollout.addEventListener('input', () => {
-    rolloutValue.textContent = `${rollout.value}%`;
-  });
+  const enabled = enabledToggle(flag?.enabled ?? true);
+  const rollout = rolloutField(flag);
   const variants = h('input', {
     type: 'text',
     value: (flag?.variants ?? []).map((v) => `${v.key}:${v.weight}`).join(', '),
     placeholder: 'control:50, test:50 (leave empty for on/off)',
   });
-  const rules = h(
-    'textarea',
-    {
-      rows: 5,
-      spellcheck: false,
-      placeholder: '[{"conditions":[{"property":"person.plan","value":"pro"}],"rollout":100}]',
-    },
-    flag?.rules?.length ? JSON.stringify(flag.rules, null, 2) : '',
-  );
+  const variantKeys = () =>
+    parseVariants(variants.value)
+      .map((v) => v.key)
+      .filter(Boolean);
+  const ruleRows = structuredClone((flag?.rules ?? []) as FlagRuleRow[]);
+  const rules = flagRulesEditor(ruleRows, variantKeys, project);
+  const valuesNow = () => (variantKeys().length ? variantKeys() : ['on']);
+  const payloads = payloadEditors(flag?.payloads, valuesNow());
+  variants.addEventListener('input', () => payloads.sync(valuesNow()));
+  const bucketBy = bucketField(flag, project);
+  const earlyAccess = earlyAccessSection(flag);
   const error = h('div', {});
   const form = h(
     'form',
     { class: 'stack' },
-    h('label', { class: 'field' }, h('span', {}, 'Key'), key),
-    h('label', { class: 'field' }, h('span', {}, 'Description'), description),
+    field('Key', key),
+    field('Description', description),
+    enabled.el,
+    rollout.el,
+    field('Variants', variants),
     h(
-      'label',
-      { class: 'toggle' },
-      enabled,
-      h(
-        'span',
-        { class: 'toggle-track', 'aria-hidden': 'true' },
-        h('span', { class: 'toggle-thumb' }),
-      ),
-      h('span', { class: 'toggle-label' }, 'Enabled'),
-    ),
-    h(
-      'label',
+      'div',
       { class: 'field' },
-      h('span', {}, 'Rollout'),
-      h('div', { class: 'range' }, rollout, rolloutValue),
-    ),
-    h('label', { class: 'field' }, h('span', {}, 'Variants'), variants),
-    h(
-      'label',
-      { class: 'field' },
-      h('span', {}, 'Targeting rules (JSON, first match wins)'),
+      h('span', {}, 'Targeting rules (first match wins; everyone else gets the rollout above)'),
       rules,
+      h(
+        'small',
+        { class: 'muted' },
+        'Conditions can use person and event properties, group.<type>.<property>, cohort, and flag.<key> (another flag’s value).',
+      ),
     ),
+    h(
+      'div',
+      { class: 'field' },
+      h('span', {}, 'Payloads (optional)'),
+      h(
+        'small',
+        { class: 'muted' },
+        'JSON per value, read with glass.flagPayload(key): copy, prices, config, or page changes for a web experiment.',
+      ),
+      payloads.el,
+    ),
+    bucketBy.el,
+    earlyAccess.el,
     error,
     h(
       'div',
@@ -100,21 +218,23 @@ function editor(flag: FlagDefinition | null): HTMLElement {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     try {
-      const parsedVariants = variants.value.trim()
-        ? variants.value.split(',').map((part) => {
-            const [k, w] = part.trim().split(':');
-            return { key: k!.trim(), weight: Number(w ?? 1) };
-          })
-        : [];
-      const body = {
+      const collected = payloads.collect();
+      if (!collected.ok) {
+        collected.focus();
+        throw new Error(collected.message);
+      }
+      const parsedVariants = parseVariants(variants.value);
+      await api.put(`/api/flags/${encodeURIComponent(key.value)}`, {
         project,
         description: description.value || undefined,
-        enabled: enabled.checked,
-        rollout: Number(rollout.value),
+        enabled: enabled.value(),
+        rollout: rollout.value(),
         variants: parsedVariants.length ? parsedVariants : undefined,
-        rules: rules.value.trim() ? JSON.parse(rules.value) : [],
-      };
-      await api.put(`/api/flags/${encodeURIComponent(key.value)}`, body);
+        rules: cleanFlagRules(ruleRows),
+        payloads: collected.payloads,
+        bucketBy: bucketBy.value(),
+        earlyAccess: earlyAccess.value(),
+      });
       toast(flag ? 'Flag saved' : 'Flag created');
       go('flags');
     } catch (err) {
@@ -124,17 +244,188 @@ function editor(flag: FlagDefinition | null): HTMLElement {
   return form;
 }
 
+/** Who has seen the flag, by value (from $exposure events). */
+function usagePanel(key: string): HTMLElement {
+  return later(async () => {
+    const r = await api.get<{
+      buckets: number[];
+      interval: string;
+      series: {
+        label: string;
+        breakdown: string | null;
+        values: number[];
+        total: number;
+        seriesIndex: number;
+      }[];
+      summary: string;
+    }>(`/api/flags/${encodeURIComponent(key)}/usage`, { project: scope().project, from: '-30d' });
+    const people = r.series.filter((x) => x.seriesIndex === 1 && x.total > 0);
+    return panel(
+      'Exposures',
+      people.length
+        ? lineChart(
+            r.buckets,
+            people.map((x) => ({ label: x.breakdown ?? x.label, values: x.values })),
+            r.interval,
+            { height: 160 },
+          )
+        : h(
+            'p',
+            { class: 'muted' },
+            `No one has seen it yet. It counts once your code reads glass.flag('${key}').`,
+          ),
+      {
+        icon: 'users',
+        subtitle: people.length ? 'People who saw each value, last 30 days' : undefined,
+      },
+    );
+  });
+}
+
+function describeChange(c: Record<string, unknown>): string {
+  if (c.enabled === true) return 'Turn on';
+  if (c.enabled === false) return 'Turn off';
+  return c.rollout !== undefined ? `Rollout ${c.rollout}%` : JSON.stringify(c);
+}
+
+interface Schedule {
+  id: string;
+  runAt: string;
+  change: Record<string, unknown>;
+  status: string;
+  error?: string;
+}
+
+const reloadFlag = (key: string) =>
+  go(`flags/${encodeURIComponent(key)}`, { t: String(Date.now()) });
+
+function scheduleTable(
+  schedules: Schedule[],
+  key: string,
+  project: string | undefined,
+): HTMLElement | null {
+  if (!schedules.length) return null;
+  const cancel = (x: Schedule) =>
+    h(
+      'button',
+      {
+        type: 'button',
+        class: 'link-button',
+        onclick: async () => {
+          await api.delete(`/api/flags/schedules/${x.id}`, { project });
+          reloadFlag(key);
+        },
+      },
+      'Cancel',
+    );
+  return table(
+    ['When', 'Change', 'Status', ''],
+    schedules.map((x) => [
+      h('span', { class: 'nowrap' }, dateTime(x.runAt)),
+      describeChange(x.change),
+      x.error ? `${x.status}: ${x.error}` : x.status,
+      x.status === 'pending' ? cancel(x) : '',
+    ]),
+  );
+}
+
+function schedulesPanel(key: string): HTMLElement {
+  const project = scope().project;
+  return later(async () => {
+    const r = await api.get<{
+      schedules: {
+        id: string;
+        runAt: string;
+        change: Record<string, unknown>;
+        status: string;
+        error?: string;
+      }[];
+    }>('/api/flags/schedules', { project, key });
+    const when = h('input', { type: 'datetime-local', required: true });
+    const what = h(
+      'select',
+      {},
+      [
+        ['enable', 'Turn on'],
+        ['disable', 'Turn off'],
+        ['rollout', 'Set rollout to…'],
+      ].map(([v, label]) => h('option', { value: v }, label)),
+    );
+    const percent = h('input', {
+      type: 'number',
+      min: 0,
+      max: 100,
+      value: 50,
+      class: 'short',
+      hidden: true,
+    });
+    what.addEventListener('change', () => {
+      percent.hidden = what.value !== 'rollout';
+    });
+    const error = h('div', {});
+    const form = h(
+      'form',
+      { class: 'row' },
+      when,
+      what,
+      percent,
+      h('button', { type: 'submit' }, 'Schedule'),
+    );
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const change =
+          what.value === 'rollout'
+            ? { rollout: Number(percent.value) }
+            : { enabled: what.value === 'enable' };
+        await api.post(`/api/flags/${encodeURIComponent(key)}/schedule`, {
+          project,
+          at: new Date(when.value).toISOString(),
+          change,
+        });
+        toast('Change scheduled');
+        go(`flags/${encodeURIComponent(key)}`, { t: String(Date.now()) });
+      } catch (err) {
+        mount(error, errorState(err));
+      }
+    });
+    return panel('Scheduled changes', [scheduleTable(r.schedules, key, project), form, error], {
+      icon: 'clock',
+    });
+  });
+}
+
+function historyPanel(key: string): HTMLElement {
+  return later(async () => {
+    const r = await api.get<{
+      history: { at: string; action: string; actor: string; changed: string[] }[];
+    }>(`/api/flags/${encodeURIComponent(key)}/history`, { project: scope().project });
+    return panel(
+      'History',
+      r.history.length
+        ? table(
+            ['When', 'Change', 'By'],
+            r.history
+              .slice(0, 20)
+              .map((x) => [
+                h('span', { class: 'nowrap', title: dateTime(x.at) }, ago(x.at)),
+                x.action === 'update' && x.changed.length
+                  ? `Changed ${x.changed.join(', ')}`
+                  : x.action,
+                x.actor || '—',
+              ]),
+          )
+        : h('p', { class: 'muted' }, 'No changes recorded yet.'),
+      { icon: 'clock' },
+    );
+  });
+}
+
 export function flagsPage(route: Route): Node[] {
   const project = scope().project;
   const target = route.rest[0];
   if (target === 'new')
-    return [
-      pageHeader(
-        'New flag',
-        'Ship code dark, then roll it out by percentage or to people who match a rule.',
-      ),
-      panel('Definition', editor(null), { icon: 'flag' }),
-    ];
+    return [pageHeader('New flag', undefined), panel('Definition', editor(null), { icon: 'flag' })];
   if (target) {
     return [
       pageHeader(
@@ -147,14 +438,25 @@ export function flagsPage(route: Route): Node[] {
           `/api/flags/${encodeURIComponent(target)}`,
           { project },
         );
-        return panel('Definition', editor(flag), { icon: 'flag' });
+        return h(
+          'div',
+          { class: 'flag-detail' },
+          panel('Definition', editor(flag), { icon: 'flag' }),
+          h(
+            'div',
+            { class: 'flag-side' },
+            usagePanel(target),
+            schedulesPanel(target),
+            historyPanel(target),
+          ),
+        );
       }),
     ];
   }
   return [
     pageHeader(
       'Flags',
-      'Feature flags, evaluated in your Worker. Assignment is stable per device.',
+      'Evaluated in your Worker. Assignment is stable per device.',
       h('a', { class: 'button primary', href: href('flags/new') }, icon('plus', 15), 'New flag'),
     ),
     later(

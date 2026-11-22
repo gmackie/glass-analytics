@@ -2,8 +2,8 @@
   "project": "demo",
   "flag": {
     "key": "new-editor",
-    "description": "The rebuilt editor with inline comments.",
     "enabled": true,
-    "rollout": 25
+    "rollout": 25,
+    "description": "The rebuilt editor with inline comments."
   }
 }

@@ -1,0 +1,495 @@
+{
+  "kind": "web",
+  "interval": "day",
+  "totals": {
+    "visitors": 866,
+    "pageviews": 2226,
+    "sessions": 1140,
+    "bounceRate": 0.593859649122807,
+    "avgSessionSeconds": 45.9134,
+    "viewsPerSession": 1.9526315789473685
+  },
+  "previous": null,
+  "timeseries": {
+    "buckets": [
+      1793750400000,
+      1793836800000,
+      1793923200000,
+      1794009600000,
+      1794096000000,
+      1794182400000,
+      1794268800000,
+      1794355200000
+    ],
+    "visitors": [
+      2,
+      142,
+      131,
+      116,
+      78,
+      97,
+      150,
+      155
+    ],
+    "pageviews": [
+      2,
+      338,
+      293,
+      261,
+      176,
+      211,
+      339,
+      351
+    ]
+  },
+  "breakdowns": {
+    "pages": [
+      {
+        "value": "/",
+        "visitors": 381,
+        "count": 475
+      },
+      {
+        "value": "/pricing",
+        "visitors": 256,
+        "count": 332
+      },
+      {
+        "value": "/templates",
+        "visitors": 222,
+        "count": 262
+      },
+      {
+        "value": "/app",
+        "visitors": 207,
+        "count": 455
+      },
+      {
+        "value": "/features/focus-mode",
+        "visitors": 164,
+        "count": 184
+      },
+      {
+        "value": "/docs",
+        "visitors": 143,
+        "count": 156
+      },
+      {
+        "value": "/blog/writing-every-day",
+        "visitors": 136,
+        "count": 153
+      },
+      {
+        "value": "/changelog",
+        "visitors": 106,
+        "count": 113
+      },
+      {
+        "value": "/blog/markdown-for-writers",
+        "visitors": 50,
+        "count": 50
+      },
+      {
+        "value": "/about",
+        "visitors": 46,
+        "count": 46
+      }
+    ],
+    "entry_pages": [
+      {
+        "value": "/",
+        "visitors": 314,
+        "count": 314
+      },
+      {
+        "value": "/app",
+        "visitors": 207,
+        "count": 455
+      },
+      {
+        "value": "/blog/writing-every-day",
+        "visitors": 77,
+        "count": 77
+      },
+      {
+        "value": "/templates",
+        "visitors": 65,
+        "count": 65
+      },
+      {
+        "value": "/features/focus-mode",
+        "visitors": 56,
+        "count": 56
+      },
+      {
+        "value": "/pricing",
+        "visitors": 54,
+        "count": 54
+      },
+      {
+        "value": "/blog/markdown-for-writers",
+        "visitors": 50,
+        "count": 50
+      },
+      {
+        "value": "/docs",
+        "visitors": 38,
+        "count": 38
+      },
+      {
+        "value": "/changelog",
+        "visitors": 31,
+        "count": 31
+      }
+    ],
+    "exit_pages": [
+      {
+        "value": "/app",
+        "visitors": 207,
+        "count": 455
+      },
+      {
+        "value": "/",
+        "visitors": 164,
+        "count": 164
+      },
+      {
+        "value": "/pricing",
+        "visitors": 138,
+        "count": 138
+      },
+      {
+        "value": "/templates",
+        "visitors": 103,
+        "count": 103
+      },
+      {
+        "value": "/features/focus-mode",
+        "visitors": 75,
+        "count": 75
+      },
+      {
+        "value": "/docs",
+        "visitors": 66,
+        "count": 66
+      },
+      {
+        "value": "/blog/writing-every-day",
+        "visitors": 48,
+        "count": 48
+      },
+      {
+        "value": "/changelog",
+        "visitors": 44,
+        "count": 44
+      },
+      {
+        "value": "/about",
+        "visitors": 27,
+        "count": 27
+      },
+      {
+        "value": "/blog/markdown-for-writers",
+        "visitors": 20,
+        "count": 20
+      }
+    ],
+    "referrers": [
+      {
+        "value": "Direct / None",
+        "visitors": 424,
+        "count": 682
+      },
+      {
+        "value": "google.com",
+        "visitors": 193,
+        "count": 193
+      },
+      {
+        "value": "news.ycombinator.com",
+        "visitors": 58,
+        "count": 58
+      },
+      {
+        "value": "t.co",
+        "visitors": 41,
+        "count": 41
+      },
+      {
+        "value": "reddit.com",
+        "visitors": 40,
+        "count": 40
+      },
+      {
+        "value": "duckduckgo.com",
+        "visitors": 39,
+        "count": 39
+      },
+      {
+        "value": "facebook.com",
+        "visitors": 39,
+        "count": 39
+      },
+      {
+        "value": "producthunt.com",
+        "visitors": 21,
+        "count": 21
+      },
+      {
+        "value": "bing.com",
+        "visitors": 15,
+        "count": 15
+      },
+      {
+        "value": "github.com",
+        "visitors": 12,
+        "count": 12
+      }
+    ],
+    "utm_source": [
+      {
+        "value": "(none)",
+        "visitors": 733,
+        "count": 998
+      },
+      {
+        "value": "newsletter",
+        "visitors": 41,
+        "count": 41
+      },
+      {
+        "value": "twitter",
+        "visitors": 41,
+        "count": 41
+      },
+      {
+        "value": "meta",
+        "visitors": 39,
+        "count": 39
+      },
+      {
+        "value": "producthunt",
+        "visitors": 21,
+        "count": 21
+      }
+    ],
+    "utm_medium": [
+      {
+        "value": "(none)",
+        "visitors": 733,
+        "count": 998
+      },
+      {
+        "value": "email",
+        "visitors": 41,
+        "count": 41
+      },
+      {
+        "value": "social",
+        "visitors": 41,
+        "count": 41
+      },
+      {
+        "value": "paid",
+        "visitors": 39,
+        "count": 39
+      },
+      {
+        "value": "referral",
+        "visitors": 21,
+        "count": 21
+      }
+    ],
+    "utm_campaign": [
+      {
+        "value": "(none)",
+        "visitors": 752,
+        "count": 1019
+      },
+      {
+        "value": "launch-week",
+        "visitors": 41,
+        "count": 41
+      },
+      {
+        "value": "october-digest",
+        "visitors": 41,
+        "count": 41
+      },
+      {
+        "value": "autumn-writers",
+        "visitors": 39,
+        "count": 39
+      }
+    ],
+    "countries": [
+      {
+        "value": "US",
+        "visitors": 250,
+        "count": 637
+      },
+      {
+        "value": "GB",
+        "visitors": 158,
+        "count": 401
+      },
+      {
+        "value": "DE",
+        "visitors": 75,
+        "count": 223
+      },
+      {
+        "value": "CA",
+        "visitors": 65,
+        "count": 171
+      },
+      {
+        "value": "IN",
+        "visitors": 63,
+        "count": 140
+      },
+      {
+        "value": "FR",
+        "visitors": 52,
+        "count": 142
+      },
+      {
+        "value": "AU",
+        "visitors": 47,
+        "count": 118
+      },
+      {
+        "value": "NL",
+        "visitors": 31,
+        "count": 85
+      },
+      {
+        "value": "ES",
+        "visitors": 28,
+        "count": 68
+      },
+      {
+        "value": "BR",
+        "visitors": 28,
+        "count": 60
+      }
+    ],
+    "devices": [
+      {
+        "value": "desktop",
+        "visitors": 558,
+        "count": 1430
+      },
+      {
+        "value": "mobile",
+        "visitors": 308,
+        "count": 796
+      }
+    ],
+    "browsers": [
+      {
+        "value": "Chrome",
+        "visitors": 388,
+        "count": 1033
+      },
+      {
+        "value": "Safari",
+        "visitors": 295,
+        "count": 758
+      },
+      {
+        "value": "Edge",
+        "visitors": 101,
+        "count": 239
+      },
+      {
+        "value": "Firefox",
+        "visitors": 82,
+        "count": 196
+      }
+    ],
+    "os": [
+      {
+        "value": "macOS",
+        "visitors": 375,
+        "count": 995
+      },
+      {
+        "value": "iOS",
+        "visitors": 214,
+        "count": 555
+      },
+      {
+        "value": "Windows",
+        "visitors": 183,
+        "count": 435
+      },
+      {
+        "value": "Android",
+        "visitors": 94,
+        "count": 241
+      }
+    ],
+    "errors": [
+      {
+        "value": "Cannot read properties of undefined (reading 'wordCount')",
+        "visitors": 17,
+        "count": 17
+      },
+      {
+        "value": "ResizeObserver loop limit exceeded",
+        "visitors": 3,
+        "count": 3
+      },
+      {
+        "value": "Failed to fetch",
+        "visitors": 2,
+        "count": 2
+      }
+    ]
+  },
+  "vitals": {
+    "TTFB": {
+      "p75": 794.336,
+      "samples": 167
+    },
+    "CLS": {
+      "p75": 0.093,
+      "samples": 148
+    },
+    "FCP": {
+      "p75": 2031.798,
+      "samples": 161
+    },
+    "INP": {
+      "p75": 287.88,
+      "samples": 164
+    },
+    "LCP": {
+      "p75": 3034.889,
+      "samples": 160
+    }
+  },
+  "sql": [
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793814878643\n    AND e.ts_ms < 1794419678643\n    AND e.event IN ('$pageview', '$pageleave')\n),\npv AS (SELECT distinct_id FROM ev WHERE event = '$pageview'),\ns AS (\n  SELECT session_id, MIN(ts_ms) AS start_ms, MAX(ts_ms) AS end_ms,\n    SUM(CASE WHEN event = '$pageview' THEN 1 ELSE 0 END) AS pvs\n  FROM ev GROUP BY session_id\n)\nSELECT\n  (SELECT COUNT(DISTINCT distinct_id) FROM pv) AS visitors,\n  (SELECT COUNT(*) FROM pv) AS pageviews,\n  (SELECT COUNT(*) FROM s WHERE pvs > 0) AS sessions,\n  (SELECT COUNT(*) FROM s WHERE pvs = 1) AS bounces,\n  (SELECT SUM(end_ms - start_ms) FROM s WHERE pvs > 0) AS duration_ms",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793814878643\n    AND e.ts_ms < 1794419678643\n    AND e.event IN ('$pageview')\n)\nSELECT bucket, COUNT(DISTINCT distinct_id) AS visitors, COUNT(*) AS pageviews\nFROM (SELECT ((ts_ms / 86400000) * 86400000) AS bucket, distinct_id FROM ev) t\nGROUP BY bucket ORDER BY bucket LIMIT 5000",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793814878643\n    AND e.ts_ms < 1794419678643\n    AND e.event IN ('$pageview', '$exception')\n)\nSELECT * FROM (\n  SELECT 'pages' AS dim, val, COUNT(*) AS visitors, SUM(c) AS n\n  FROM (\n    SELECT val, distinct_id, COUNT(*) AS c\n    FROM (SELECT COALESCE(NULLIF(path, ''), '(none)') AS val, distinct_id FROM ev WHERE event = '$pageview') t\n    GROUP BY val, distinct_id\n  ) u\n  GROUP BY val ORDER BY visitors DESC, n DESC, val ASC LIMIT 10\n) pages_t\nUNION ALL\nSELECT * FROM (\n  SELECT 'entry_pages' AS dim, val, COUNT(*) AS visitors, SUM(c) AS n\n  FROM (\n    SELECT val, distinct_id, COUNT(*) AS c\n    FROM (\n      SELECT ev.session_id, MIN(COALESCE(NULLIF(ev.path, ''), '(none)')) AS val, MIN(ev.distinct_id) AS distinct_id\n      FROM (SELECT session_id, MIN(ts_ms) AS t FROM ev WHERE event = '$pageview' GROUP BY session_id) x\n      JOIN ev ON ev.session_id = x.session_id AND ev.ts_ms = x.t AND ev.event = '$pageview'\n      GROUP BY ev.session_id\n    ) t\n    GROUP BY val, distinct_id\n  ) u\n  GROUP BY val ORDER BY visitors DESC, n DESC, val ASC LIMIT 10\n) entry_pages_t\nUNION ALL\nSELECT * FROM (\n  SELECT 'exit_pages' AS dim, val, COUNT(*) AS visitors, SUM(c) AS n\n  FROM (\n    SELECT val, distinct_id, COUNT(*) AS c\n    FROM (\n      SELECT ev.session_id, MIN(COALESCE(NULLIF(ev.path, ''), '(none)')) AS val, MIN(ev.distinct_id) AS distinct_id\n      FROM (SELECT session_id, MAX(ts_ms) AS t FROM ev WHERE event = '$pageview' GROUP BY session_id) x\n      JOIN ev ON ev.session_id = x.session_id AND ev.ts_ms = x.t AND ev.event = '$pageview'\n      GROUP BY ev.session_id\n    ) t\n    GROUP BY val, distinct_id\n  ) u\n  GROUP BY val ORDER BY visitors DESC, n DESC, val ASC LIMIT 10\n) exit_pages_t\nUNION ALL\nSELECT * FROM (\n  SELECT 'referrers' AS dim, val, COUNT(*) AS visitors, SUM(c) AS n\n  FROM (\n    SELECT val, distinct_id, COUNT(*) AS c\n    FROM (\n      SELECT ev.session_id, MIN(COALESCE(NULLIF(ev.referrer_host, ''), 'Direct / None')) AS val, MIN(ev.distinct_id) AS distinct_id\n      FROM (SELECT session_id, MIN(ts_ms) AS t FROM ev WHERE event = '$pageview' GROUP BY session_id) x\n      JOIN ev ON ev.session_id = x.session_id AND ev.ts_ms = x.t AND ev.event = '$pageview'\n      GROUP BY ev.session_id\n    ) t\n    GROUP BY val, distinct_id\n  ) u\n  GROUP BY val ORDER BY visitors DESC, n DESC, val ASC LIMIT 10\n) referrers_t\nUNION ALL\nSELECT * FROM (\n  SELECT 'utm_source' AS dim, val, COUNT(*) AS visitors, SUM(c) AS n\n  FROM (\n    SELECT val, distinct_id, COUNT(*) AS c\n    FROM (\n      SELECT ev.session_id, MIN(COALESCE(NULLIF(ev.utm_source, ''), '(none)')) AS val, MIN(ev.distinct_id) AS distinct_id\n      FROM (SELECT session_id, MIN(ts_ms) AS t FROM ev WHERE event = '$pageview' GROUP BY session_id) x\n      JOIN ev ON ev.session_id = x.session_id AND ev.ts_ms = x.t AND ev.event = '$pageview'\n      GROUP BY ev.session_id\n    ) t\n    GROUP BY val, distinct_id\n  ) u\n  GROUP BY val ORDER BY visitors DESC, n DESC, val ASC LIMIT 10\n) utm_source_t",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793814878643\n    AND e.ts_ms < 1794419678643\n    AND e.event IN ('$pageview', '$exception')\n)\nSELECT * FROM (\n  SELECT 'utm_medium' AS dim, val, COUNT(*) AS visitors, SUM(c) AS n\n  FROM (\n    SELECT val, distinct_id, COUNT(*) AS c\n    FROM (\n      SELECT ev.session_id, MIN(COALESCE(NULLIF(ev.utm_medium, ''), '(none)')) AS val, MIN(ev.distinct_id) AS distinct_id\n      FROM (SELECT session_id, MIN(ts_ms) AS t FROM ev WHERE event = '$pageview' GROUP BY session_id) x\n      JOIN ev ON ev.session_id = x.session_id AND ev.ts_ms = x.t AND ev.event = '$pageview'\n      GROUP BY ev.session_id\n    ) t\n    GROUP BY val, distinct_id\n  ) u\n  GROUP BY val ORDER BY visitors DESC, n DESC, val ASC LIMIT 10\n) utm_medium_t\nUNION ALL\nSELECT * FROM (\n  SELECT 'utm_campaign' AS dim, val, COUNT(*) AS visitors, SUM(c) AS n\n  FROM (\n    SELECT val, distinct_id, COUNT(*) AS c\n    FROM (\n      SELECT ev.session_id, MIN(COALESCE(NULLIF(ev.utm_campaign, ''), '(none)')) AS val, MIN(ev.distinct_id) AS distinct_id\n      FROM (SELECT session_id, MIN(ts_ms) AS t FROM ev WHERE event = '$pageview' GROUP BY session_id) x\n      JOIN ev ON ev.session_id = x.session_id AND ev.ts_ms = x.t AND ev.event = '$pageview'\n      GROUP BY ev.session_id\n    ) t\n    GROUP BY val, distinct_id\n  ) u\n  GROUP BY val ORDER BY visitors DESC, n DESC, val ASC LIMIT 10\n) utm_campaign_t\nUNION ALL\nSELECT * FROM (\n  SELECT 'countries' AS dim, val, COUNT(*) AS visitors, SUM(c) AS n\n  FROM (\n    SELECT val, distinct_id, COUNT(*) AS c\n    FROM (SELECT COALESCE(NULLIF(country, ''), '(none)') AS val, distinct_id FROM ev WHERE event = '$pageview') t\n    GROUP BY val, distinct_id\n  ) u\n  GROUP BY val ORDER BY visitors DESC, n DESC, val ASC LIMIT 10\n) countries_t\nUNION ALL\nSELECT * FROM (\n  SELECT 'devices' AS dim, val, COUNT(*) AS visitors, SUM(c) AS n\n  FROM (\n    SELECT val, distinct_id, COUNT(*) AS c\n    FROM (SELECT COALESCE(NULLIF(device, ''), '(none)') AS val, distinct_id FROM ev WHERE event = '$pageview') t\n    GROUP BY val, distinct_id\n  ) u\n  GROUP BY val ORDER BY visitors DESC, n DESC, val ASC LIMIT 10\n) devices_t\nUNION ALL\nSELECT * FROM (\n  SELECT 'browsers' AS dim, val, COUNT(*) AS visitors, SUM(c) AS n\n  FROM (\n    SELECT val, distinct_id, COUNT(*) AS c\n    FROM (SELECT COALESCE(NULLIF(browser, ''), '(none)') AS val, distinct_id FROM ev WHERE event = '$pageview') t\n    GROUP BY val, distinct_id\n  ) u\n  GROUP BY val ORDER BY visitors DESC, n DESC, val ASC LIMIT 10\n) browsers_t",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793814878643\n    AND e.ts_ms < 1794419678643\n    AND e.event IN ('$pageview', '$exception')\n)\nSELECT * FROM (\n  SELECT 'os' AS dim, val, COUNT(*) AS visitors, SUM(c) AS n\n  FROM (\n    SELECT val, distinct_id, COUNT(*) AS c\n    FROM (SELECT COALESCE(NULLIF(os, ''), '(none)') AS val, distinct_id FROM ev WHERE event = '$pageview') t\n    GROUP BY val, distinct_id\n  ) u\n  GROUP BY val ORDER BY visitors DESC, n DESC, val ASC LIMIT 10\n) os_t\nUNION ALL\nSELECT * FROM (\n  SELECT 'errors' AS dim, val, COUNT(*) AS visitors, SUM(c) AS n\n  FROM (\n    SELECT val, distinct_id, COUNT(*) AS c\n    FROM (SELECT COALESCE(NULLIF((CASE json_type(props, '$.\"message\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"message\"') AS TEXT) END), ''), '(none)') AS val, distinct_id FROM ev WHERE event = '$exception') t\n    GROUP BY val, distinct_id\n  ) u\n  GROUP BY val ORDER BY visitors DESC, n DESC, val ASC LIMIT 10\n) errors_t",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793814878643\n    AND e.ts_ms < 1794419678643\n    AND e.event IN ('$web_vitals')\n)\nSELECT (CASE json_type(props, '$.\"metric\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"metric\"') AS TEXT) END) AS metric, (CASE WHEN json_type(props, '$.\"value\"') IN ('integer', 'real') THEN json_extract(props, '$.\"value\"') END) AS val\nFROM ev\nORDER BY ts_ms DESC\nLIMIT 5000"
+  ],
+  "range": {
+    "from": "2026-11-04T17:54:38.643Z",
+    "to": "2026-11-11T17:54:38.643Z"
+  },
+  "summary": "866 visitors, 2,226 pageviews, 1,140 sessions, bounce rate 59.4%. Top page / (381 visitors). Top referrer Direct / None.",
+  "annotations": [
+    {
+      "id": "da5d1d69-c8c",
+      "at": "2026-11-06T17:53:28.559Z",
+      "text": "Launched templates"
+    }
+  ],
+  "project": "demo",
+  "dashboard": "http://127.0.0.1:49397/app#/reports?project=demo&spec=%7B%22from%22%3A%222026-11-04T17%3A54%3A38.643Z%22%2C%22to%22%3A%222026-11-11T17%3A54%3A38.643Z%22%2C%22filters%22%3A%5B%5D%2C%22interval%22%3A%22day%22%2C%22compare%22%3Afalse%7D"
+}

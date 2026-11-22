@@ -12,6 +12,7 @@ import { join } from 'node:path';
 import { randomToken } from '@dataflare/core/ids';
 import { detectFramework, FRAMEWORKS } from '@dataflare/core/instrument';
 import { LAKE_VERSION } from '@dataflare/core/lake';
+import { trimTrailingSlashes } from '@dataflare/core/url';
 import { GLASS_VERSION } from '@dataflare/core/version';
 import { writeAgentFiles } from '../agent-files.ts';
 import { CI_WORKFLOW_PATH, ciNextSteps, writeCiWorkflow } from '../ci.ts';
@@ -21,6 +22,7 @@ import {
   ensureBucket,
   ensureD1,
   ensureLake,
+  ensureQueues,
   installWorkerFiles,
   listAccounts,
   migrate,
@@ -84,10 +86,7 @@ export interface InitDeps {
  */
 export function normaliseRoute(input: string | undefined): string | undefined {
   if (!input) return undefined;
-  const bare = input
-    .trim()
-    .replace(/^https?:\/\//, '')
-    .replace(/\/+$/, '');
+  const bare = trimTrailingSlashes(input.trim().replace(/^https?:\/\//, ''));
   if (!bare.includes('/')) return `${bare}/_glass/*`;
   return bare.endsWith('/*') ? bare : `${bare}/*`;
 }
@@ -153,6 +152,14 @@ async function settle<T>(fn: () => Promise<T>, pollMs: number, attempts = 8): Pr
       await new Promise((r) => setTimeout(r, pollMs));
     }
   }
+}
+
+/** The delivery queues: the ones already set up, else created (when the token allows it). */
+async function deliveryQueues(
+  existing: { queues?: Awaited<ReturnType<typeof ensureQueues>> } | null | undefined,
+  ...args: Parameters<typeof ensureQueues>
+): Promise<Awaited<ReturnType<typeof ensureQueues>>> {
+  return existing?.queues ?? ensureQueues(...args);
 }
 
 /** Keep deployment and client repos apart: client-init owns `.glass/client.json`. */
@@ -307,6 +314,7 @@ export async function init(options: InitOptions, deps: InitDeps = {}): Promise<v
         }
       : null;
 
+    const queues = await deliveryQueues(existing, wrangler, name, report);
     const config: GlassConfig = {
       name,
       accountId: account.id,
@@ -317,6 +325,7 @@ export async function init(options: InitOptions, deps: InitDeps = {}): Promise<v
       replay,
       lake: lakeConfig,
       route,
+      queues,
       retentionDays,
       eu,
       version: GLASS_VERSION,

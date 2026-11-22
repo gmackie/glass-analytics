@@ -13,11 +13,15 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { GLASS_VERSION } from '@dataflare/core/version';
 import { clientInit } from './commands/client-init.ts';
-import { events, person, projects, query, replays, sql } from './commands/data.ts';
+import { events, group, groups, person, projects, query, replays, sql } from './commands/data.ts';
+import { email } from './commands/email.ts';
 import { experiments, flags as flagCommands } from './commands/flags.ts';
+import { importEvents } from './commands/import.ts';
 import { init } from './commands/init.ts';
 import { lakeMaintain } from './commands/lake.ts';
 import { mcpBridge } from './commands/mcp.ts';
+import { sourcemaps } from './commands/sourcemaps.ts';
+import { revenueRates, stripeImport } from './commands/stripe.ts';
 import { ci, key, status, upgrade } from './commands/upgrade.ts';
 import { UsageError } from './config.ts';
 import { color, fail, line } from './output.ts';
@@ -62,18 +66,25 @@ ${color.bold('Set up')}
     --secret <name>                Repo secret with the Cloudflare token (default CLOUDFLARE_API_TOKEN)
   dataflare status               Check the deployment end to end
   dataflare lake maintain        Lake mode: erase queued people, apply retention (CI runs it daily)
-  dataflare key [--read]         Print the dashboard URL and API key
+  dataflare email enable --from reports@acme.com   Email reports and alerts (Cloudflare Email Sending, Workers Paid)
+  dataflare email disable
+  dataflare key [--read|--server] Print the dashboard URL and an API key (admin, read-only, or for servers)
 
 ${color.bold('Ask questions')}
   dataflare query web [--from -7d]
   dataflare query trends --event signup_completed [--math unique_persons] [--interval week] [--breakdown browser]
   dataflare query funnel --steps '$pageview,signup_started,signup_completed' [--window 1d] [--breakdown utm_source]
   dataflare query retention --cohort signup_completed [--return '$pageview'] [--period week]
+  dataflare query paths [--start /pricing] [--end signup_completed] [--steps 5] [--events] [--by session]
   dataflare query <kind> --spec '<json>'   Any spec; see GET /api/schema
     common: --from, --to, --where prop=value[,…], --project, --sql (print SQL)
   dataflare sql "SELECT …"       Read-only SQL against your events
   dataflare events [name]        Tracked events, or one event's properties
     --describe "<text>"            How/when the event fires (document custom events)
+  dataflare groups [type] [--search text]
+                                 Group types, or the groups of a type (companies, workspaces…)
+  dataflare group <type> <key> [--delete]
+                                 A group's properties and members, or erase it
   dataflare person <id> [--delete]   One person's properties and events (or erase them)
   dataflare replays [--errors] [--rage] [--url /checkout] [--not purchase] [--search text] [--sort most_frustrated]
                                  Find recorded sessions
@@ -93,6 +104,14 @@ ${color.bold('Flags and experiments')}
   dataflare experiments results <key>
 
 ${color.bold('Agents')}
+  dataflare import <file> [--preset posthog|mixpanel|amplitude|segment|ga4] [--format ndjson|json|csv] [--dry-run]
+                                 (alpha) Import a history of events, keeping their timestamps
+  dataflare sourcemaps upload <dir> --release <version> [--url-prefix /assets]
+                                 Upload a build's source maps for error tracking (also: list, delete)
+  dataflare stripe import --api-key rk_… [--since 2024-01-01]
+                                 Import Stripe revenue history (invoices, charges, refunds, subscriptions)
+  dataflare revenue rates [--since 2024-01-01]
+                                 Load older ECB exchange rates, for imported revenue in other currencies
   dataflare mcp                  MCP server over stdio (what .mcp.json runs)
 
 Environment: GLASS_HOST, GLASS_API_KEY and GLASS_PROJECT override .glass/ settings.
@@ -126,6 +145,9 @@ const STRING_OPTIONS = [
   'periods',
   'spec',
   'where',
+  'start',
+  'end',
+  'by',
   'limit',
   'days',
   'describe',
@@ -140,9 +162,20 @@ const STRING_OPTIONS = [
   'hypothesis',
   'variant',
   'retention-days',
+  'format',
+  'preset',
+  'release',
+  'url-prefix',
+  'api-key',
+  'since',
+  'person-key',
+  'search',
+  'group-type',
+  'group-key',
 ];
 const BOOLEAN_OPTIONS = [
   'json',
+  'events',
   'lake',
   'eu',
   'no-replay',
@@ -155,12 +188,158 @@ const BOOLEAN_OPTIONS = [
   'dry-run',
   'frontend-only',
   'read',
+  'server',
   'sql',
   'errors',
   'enable',
   'disable',
   'delete',
 ];
+
+type Flags = Record<string, string | boolean | undefined>;
+
+/** A parsed command line: the flags, and the words after the command. */
+interface Invocation {
+  flags: Flags;
+  sub?: string;
+  arg?: string;
+  rest: string[];
+}
+
+const yes = (v: unknown) => (v === true ? true : undefined);
+const no = (v: unknown) => (v ? false : undefined);
+const num = (v: unknown) => (v === undefined || v === false ? undefined : Number(v));
+
+const runInit = ({ flags }: Invocation) =>
+  init({
+    token: str(flags.token),
+    account: str(flags.account),
+    project: str(flags.project),
+    name: str(flags.name),
+    route: str(flags.route),
+    noRoute: Boolean(flags['no-route']),
+    // Given and not empty: 0 is a valid answer (keep events forever).
+    retentionDays: flags['retention-days'] ? Number(flags['retention-days']) : undefined,
+    lake: yes(flags.lake),
+    eu: yes(flags.eu),
+    replay: no(flags['no-replay']),
+    agentFiles: no(flags['no-agent-files']),
+    ci: no(flags['no-ci']),
+    dryRun: Boolean(flags['dry-run']),
+    json: Boolean(flags.json),
+  });
+
+const runUpgrade = ({ flags }: Invocation) =>
+  upgrade({
+    token: str(flags.token),
+    json: Boolean(flags.json),
+    ci: yes(flags.ci),
+    local: Boolean(flags.local),
+    allowDowngrade: Boolean(flags['allow-downgrade']),
+    retentionDays: num(flags['retention-days']),
+    replay: no(flags['no-replay']),
+  });
+
+const runStripe = ({ flags, sub }: Invocation) => {
+  if (sub !== 'import')
+    throw new UsageError('Usage: dataflare stripe import --api-key rk_… [--since 2024-01-01]');
+  return stripeImport({
+    apiKey: str(flags['api-key']),
+    since: str(flags.since),
+    project: str(flags.project),
+    personKey: str(flags['person-key']),
+    groupType: str(flags['group-type']),
+    groupKey: str(flags['group-key']),
+    json: Boolean(flags.json),
+    dryRun: Boolean(flags['dry-run']),
+  });
+};
+
+const runRevenue = ({ flags, sub }: Invocation) => {
+  if (sub !== 'rates') throw new UsageError('Usage: dataflare revenue rates [--since 2024-01-01]');
+  return revenueRates({ since: str(flags.since), json: Boolean(flags.json) });
+};
+
+const runLake = ({ flags, sub }: Invocation) => {
+  if (sub !== 'maintain')
+    throw new UsageError('Unknown lake command.', 'Run `dataflare lake maintain`.');
+  return lakeMaintain({
+    token: str(flags.token),
+    json: Boolean(flags.json),
+    dryRun: Boolean(flags['dry-run']),
+  });
+};
+
+const runClientInit = ({ flags }: Invocation) =>
+  clientInit({
+    host: str(flags.host),
+    project: str(flags.project),
+    service: str(flags.service),
+    frontendOnly: Boolean(flags['frontend-only']),
+    staticDir: str(flags['static-dir']),
+    origins: str(flags.origins),
+    dryRun: Boolean(flags['dry-run']),
+    json: Boolean(flags.json),
+  });
+
+const COMMANDS: Record<string, (c: Invocation) => Promise<void> | void> = {
+  'client-init': runClientInit,
+  init: runInit,
+  upgrade: runUpgrade,
+  deploy: runUpgrade,
+  ci: ({ flags }) =>
+    ci({ branch: str(flags.branch), secret: str(flags.secret), json: Boolean(flags.json) }),
+  status: ({ flags }) => status({ json: Boolean(flags.json) }),
+  doctor: ({ flags }) => status({ json: Boolean(flags.json) }),
+  import: ({ flags, sub }) =>
+    importEvents(sub, {
+      format: str(flags.format),
+      preset: str(flags.preset),
+      project: str(flags.project),
+      json: Boolean(flags.json),
+      dryRun: Boolean(flags['dry-run']),
+    }),
+  stripe: runStripe,
+  revenue: runRevenue,
+  sourcemaps: ({ flags, sub, arg }) =>
+    sourcemaps(sub, arg, {
+      release: str(flags.release),
+      urlPrefix: str(flags['url-prefix']),
+      project: str(flags.project),
+      json: Boolean(flags.json),
+      dryRun: Boolean(flags['dry-run']),
+    }),
+  key: ({ flags }) =>
+    key({ read: Boolean(flags.read), server: Boolean(flags.server), json: Boolean(flags.json) }),
+  query: ({ flags, sub }) => query(sub, flags),
+  sql: ({ flags, sub }) => sql(sub, flags),
+  events: ({ flags, sub }) => events(sub, flags),
+  person: ({ flags, sub }) => person(sub, flags),
+  persons: ({ flags, sub }) => person(sub, flags),
+  groups: ({ flags, sub }) => groups(sub, flags),
+  group: ({ flags, sub, arg }) => group(sub, arg, flags),
+  replays: ({ flags, sub, arg }) => replays(sub, arg, flags),
+  projects: ({ flags, sub, arg }) => projects(sub, arg, flags),
+  flags: ({ flags, sub, arg }) => flagCommands(sub, arg, flags),
+  experiments: ({ flags, sub, arg, rest }) => experiments(sub, arg, rest, flags),
+  lake: runLake,
+  email: ({ flags, sub }) => email(sub, flags),
+  mcp: () => mcpBridge(),
+};
+
+/** Commands that don't warn about an outdated Worker first (setup, status and the MCP bridge). */
+const SKIP_UPGRADE_WARNING = new Set([
+  'client-init',
+  'init',
+  'upgrade',
+  'email',
+  'deploy',
+  'ci',
+  'status',
+  'doctor',
+  'mcp',
+  'key',
+]);
 
 export async function main(argv: string[]): Promise<void> {
   const { values, positionals } = parseArgs({
@@ -174,113 +353,19 @@ export async function main(argv: string[]): Promise<void> {
       version: { type: 'boolean', short: 'v' },
     },
   });
-  const flags = values as Record<string, string | boolean | undefined>;
+  const flags = values as Flags;
   const [command, sub, arg, ...rest] = positionals;
-
   if (flags.version) return line(GLASS_VERSION);
   if (!command || command === 'help' || flags.help) return line(HELP);
-
-  // Surface an outdated Worker before the real command (skip setup/status/mcp noise).
-  const skipUpgradeWarn = new Set([
-    'client-init',
-    'init',
-    'upgrade',
-    'deploy',
-    'ci',
-    'status',
-    'doctor',
-    'mcp',
-    'key',
-  ]);
-  if (command && !skipUpgradeWarn.has(command)) {
-    await warnIfOutdated({ json: Boolean(flags.json) });
-  }
-
-  switch (command) {
-    case 'client-init':
-      return clientInit({
-        host: str(flags.host),
-        project: str(flags.project),
-        service: str(flags.service),
-        frontendOnly: Boolean(flags['frontend-only']),
-        staticDir: str(flags['static-dir']),
-        origins: str(flags.origins),
-        dryRun: Boolean(flags['dry-run']),
-        json: Boolean(flags.json),
-      });
-    case 'init':
-      return init({
-        token: str(flags.token),
-        account: str(flags.account),
-        project: str(flags.project),
-        name: str(flags.name),
-        route: str(flags.route),
-        noRoute: Boolean(flags['no-route']),
-        retentionDays: flags['retention-days'] ? Number(flags['retention-days']) : undefined,
-        lake: flags.lake === true ? true : undefined,
-        eu: flags.eu === true ? true : undefined,
-        replay: flags['no-replay'] ? false : undefined,
-        agentFiles: flags['no-agent-files'] ? false : undefined,
-        ci: flags['no-ci'] ? false : undefined,
-        dryRun: Boolean(flags['dry-run']),
-        json: Boolean(flags.json),
-      });
-    case 'upgrade':
-    case 'deploy':
-      return upgrade({
-        token: str(flags.token),
-        json: Boolean(flags.json),
-        ci: flags.ci === true ? true : undefined,
-        local: Boolean(flags.local),
-        allowDowngrade: Boolean(flags['allow-downgrade']),
-        retentionDays:
-          flags['retention-days'] !== undefined ? Number(flags['retention-days']) : undefined,
-        replay: flags['no-replay'] ? false : undefined,
-      });
-    case 'ci':
-      return ci({
-        branch: str(flags.branch),
-        secret: str(flags.secret),
-        json: Boolean(flags.json),
-      });
-    case 'status':
-    case 'doctor':
-      return status({ json: Boolean(flags.json) });
-    case 'key':
-      return key({ read: Boolean(flags.read), json: Boolean(flags.json) });
-    case 'query':
-      return query(sub, flags);
-    case 'sql':
-      return sql(sub, flags);
-    case 'events':
-      return events(sub, flags);
-    case 'person':
-    case 'persons':
-      return person(sub, flags);
-    case 'replays':
-      return replays(sub, arg, flags);
-    case 'projects':
-      return projects(sub, arg, flags);
-    case 'flags':
-      return flagCommands(sub, arg, flags);
-    case 'experiments':
-      return experiments(sub, arg, rest, flags);
-    case 'lake':
-      if (sub !== 'maintain')
-        throw new UsageError('Unknown lake command.', 'Run `dataflare lake maintain`.');
-      return lakeMaintain({
-        token: str(flags.token),
-        json: Boolean(flags.json),
-        dryRun: Boolean(flags['dry-run']),
-      });
-    case 'mcp':
-      return mcpBridge();
-    default:
-      throw new UsageError(
-        `Unknown command "${command}".`,
-        'Run `dataflare help` for the list of commands.',
-      );
-  }
+  const run = Object.hasOwn(COMMANDS, command) ? COMMANDS[command] : undefined;
+  if (!run)
+    throw new UsageError(
+      `Unknown command "${command}".`,
+      'Run `dataflare help` for the list of commands.',
+    );
+  // Surface an outdated Worker before the real command.
+  if (!SKIP_UPGRADE_WARNING.has(command)) await warnIfOutdated({ json: Boolean(flags.json) });
+  return run({ flags, sub, arg, rest });
 }
 
 function str(v: string | boolean | undefined): string | undefined {

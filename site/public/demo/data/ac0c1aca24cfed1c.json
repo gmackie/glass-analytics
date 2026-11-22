@@ -1,0 +1,35 @@
+{
+  "project": "demo",
+  "key": "ai-suggestions",
+  "history": [
+    {
+      "at": "2026-11-18T17:53:28.590Z",
+      "action": "create",
+      "actor": "admin key",
+      "changed": [],
+      "before": null,
+      "after": {
+        "key": "ai-suggestions",
+        "enabled": true,
+        "rollout": 0,
+        "description": "Writing suggestions in the sidebar, for paying plans.",
+        "rules": [
+          {
+            "conditions": [
+              {
+                "property": "person.plan",
+                "op": "in",
+                "value": [
+                  "pro",
+                  "team"
+                ]
+              }
+            ],
+            "rollout": 100
+          }
+        ]
+      }
+    }
+  ],
+  "summary": "1 change to \"ai-suggestions\"; latest 2026-11-18 17:53: create by admin key."
+}

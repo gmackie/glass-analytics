@@ -11,7 +11,7 @@
  * `data-replay-on-error-sample-rate="1"`, `data-replay-console="false"` (or
  * `"all"`), `data-replay-network="false"`, `data-replay-mask-all-text="true"`,
  * `data-replay-cookieless="true"` (record without stored ids),
- * `data-debug="true"`.
+ * `data-release="<version>"` (for source maps), `data-debug="true"`.
  *
  * Calls made before the script loads can be queued with this one-line stub:
  * `<script>window.glass=window.glass||{q:[],capture(){this.q.push(['capture',...arguments])},identify(){this.q.push(['identify',...arguments])}}</script>`
@@ -53,6 +53,7 @@ if (script && data?.project) {
           }
         : false,
     debug: data.debug === 'true',
+    release: data.release,
   });
 }
 

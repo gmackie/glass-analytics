@@ -37,6 +37,8 @@ def seed(root):
         NestedField(5, "distinct_id", StringType(), required=False),
         NestedField(6, "user_id", StringType(), required=False),
         NestedField(7, "person_id", StringType(), required=False),
+        NestedField(8, "id", StringType(), required=False),
+        NestedField(9, "props", StringType(), required=False),
     )
     spec = PartitionSpec(PartitionField(1, 1000, DayTransform(), "__ingest_ts_day"))
     events = cat.create_table("glass.events", schema=events_schema, partition_spec=spec)
@@ -60,6 +62,14 @@ def seed(root):
                 "distinct_id": [r[3] for r in rows],
                 "user_id": [r[4] for r in rows],
                 "person_id": [r[5] for r in rows],
+                "id": [f"e{i}" for i in range(len(rows))],
+                # Bob's recent pageview is in the "acme-inc" company (a group that gets deleted).
+                "props": [
+                    json.dumps({"$groups": {"company": "acme-inc"}, "$group_props": {"company": {"plan": "pro"}}, "x": 1})
+                    if r[3] == "dev-bob" and r[2] == NOW - DAY
+                    else "{}"
+                    for r in rows
+                ],
             }
         )
     )
@@ -75,6 +85,8 @@ def seed(root):
                 "distinct_id": ["dev-alice", "dev-carol"],
                 "user_id": pa.array([None, None], pa.string()),
                 "person_id": ["dev-alice", "dev-carol"],
+                "id": ["v2-0", "v2-1"],
+                "props": ["{}", json.dumps({"$groups": {"company": "acme-inc", "team": "t1"}})],
             }
         )
     )

@@ -26,6 +26,6 @@
     "window": "7d",
     "from": "-30d"
   },
-  "updatedAt": "2026-11-05T10:25:51.476Z",
-  "dashboard": "http://127.0.0.1:58904/app#/insights/visit-to-paid?project=demo"
+  "updatedAt": "2026-11-18T17:53:32.372Z",
+  "dashboard": "http://127.0.0.1:49397/app#/insights/visit-to-paid?project=demo"
 }

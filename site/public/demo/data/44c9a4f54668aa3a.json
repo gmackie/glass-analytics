@@ -2,59 +2,70 @@
   "kind": "trends",
   "interval": "week",
   "buckets": [
-    1788739200000,
-    1789344000000,
     1789948800000,
     1790553600000,
     1791158400000,
     1791763200000,
     1792368000000,
     1792972800000,
-    1793577600000
+    1793577600000,
+    1794182400000,
+    1794787200000
   ],
   "series": [
     {
       "label": "Revenue · pro",
       "breakdown": "pro",
       "values": [
-        36,
-        126,
-        405,
-        333,
-        549,
-        819,
-        45,
-        531,
-        414
+        279,
+        315,
+        171,
+        225,
+        441,
+        396,
+        603,
+        1008,
+        306
       ],
-      "total": 3258
+      "total": 3744,
+      "seriesIndex": 0,
+      "math": "sum"
     },
     {
       "label": "Revenue · team",
       "breakdown": "team",
       "values": [
-        29,
-        319,
+        0,
+        0,
+        58,
         87,
+        377,
+        1160,
         87,
-        348,
-        957,
-        638,
-        348,
-        29
+        406,
+        0
       ],
-      "total": 2842
+      "total": 2175,
+      "seriesIndex": 0,
+      "math": "sum"
     }
   ],
   "sql": [
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1789036109121\n    AND e.ts_ms < 1793874509121\n    AND e.event IN ('subscription_started')\n)\nSELECT bucket, bd, SUM(val) AS agg\nFROM (SELECT (((ts_ms / 86400000) - (((ts_ms / 86400000) + 3) % 7)) * 86400000) AS bucket, COALESCE(NULLIF((CASE json_type(props, '$.\"plan\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"plan\"') AS TEXT) END), ''), '(none)') AS bd, pid, session_id, (CASE WHEN json_type(props, '$.\"amount\"') IN ('integer', 'real') THEN json_extract(props, '$.\"amount\"') END) AS val\n    FROM ev WHERE 1 = 1) t\nGROUP BY bucket, bd\nORDER BY bucket\nLIMIT 50000",
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1789036109121\n    AND e.ts_ms < 1793874509121\n    AND e.event IN ('subscription_started')\n)\nSELECT bd, SUM(val) AS agg\nFROM (SELECT (((ts_ms / 86400000) - (((ts_ms / 86400000) + 3) % 7)) * 86400000) AS bucket, COALESCE(NULLIF((CASE json_type(props, '$.\"plan\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"plan\"') AS TEXT) END), ''), '(none)') AS bd, pid, session_id, (CASE WHEN json_type(props, '$.\"amount\"') IN ('integer', 'real') THEN json_extract(props, '$.\"amount\"') END) AS val\n    FROM ev WHERE 1 = 1) t\nGROUP BY bd\nORDER BY agg DESC\nLIMIT 1000"
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1790186128300\n    AND e.ts_ms < 1795024528300\n    AND e.event IN ('subscription_started')\n)\nSELECT bucket, bd, SUM(val) AS agg\nFROM (SELECT (((ts_ms / 86400000) - (((ts_ms / 86400000) + 3) % 7)) * 86400000) AS bucket, COALESCE(NULLIF((CASE json_type(props, '$.\"plan\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"plan\"') AS TEXT) END), ''), '(none)') AS bd, actor, session_id, ts_ms, (CASE WHEN json_type(props, '$.\"amount\"') IN ('integer', 'real') THEN json_extract(props, '$.\"amount\"') END) AS val, '' AS grp\n    FROM ev WHERE event IN ('subscription_started') AND 1 = 1) t\nGROUP BY bucket, bd\nORDER BY bucket\nLIMIT 50000",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1790186128300\n    AND e.ts_ms < 1795024528300\n    AND e.event IN ('subscription_started')\n)\nSELECT bd, SUM(val) AS agg\nFROM (SELECT COALESCE(NULLIF((CASE json_type(props, '$.\"plan\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"plan\"') AS TEXT) END), ''), '(none)') AS bd, actor, session_id, ts_ms, (CASE WHEN json_type(props, '$.\"amount\"') IN ('integer', 'real') THEN json_extract(props, '$.\"amount\"') END) AS val, '' AS grp\n    FROM ev WHERE event IN ('subscription_started') AND 1 = 1) t\nGROUP BY bd\nORDER BY agg DESC, bd ASC\nLIMIT 1000"
   ],
   "range": {
-    "from": "2026-09-10T10:28:29.121Z",
-    "to": "2026-11-05T10:28:29.121Z"
+    "from": "2026-09-23T17:55:28.300Z",
+    "to": "2026-11-18T17:55:28.300Z"
   },
-  "summary": "2026-09-10 to 2026-11-05 by week. Revenue · pro: 3,258; Revenue · team: 2,842",
+  "summary": "2026-09-23 to 2026-11-18 by week. Revenue · pro: 3,744; Revenue · team: 2,175",
+  "annotations": [
+    {
+      "id": "da5d1d69-c8c",
+      "at": "2026-11-06T17:53:28.559Z",
+      "text": "Launched templates"
+    }
+  ],
   "project": "demo",
-  "dashboard": "http://127.0.0.1:58904/app#/insights/trends?project=demo&spec=%7B%22from%22%3A%22-56d%22%2C%22series%22%3A%5B%7B%22event%22%3A%22subscription_started%22%2C%22math%22%3A%22sum%22%2C%22property%22%3A%22amount%22%2C%22label%22%3A%22Revenue%22%7D%5D%2C%22interval%22%3A%22week%22%2C%22breakdown%22%3A%5B%22plan%22%5D%7D"
+  "dashboard": "http://127.0.0.1:49397/app#/insights/trends?project=demo&spec=%7B%22from%22%3A%22-56d%22%2C%22series%22%3A%5B%7B%22event%22%3A%22subscription_started%22%2C%22math%22%3A%22sum%22%2C%22property%22%3A%22amount%22%2C%22label%22%3A%22Revenue%22%7D%5D%2C%22interval%22%3A%22week%22%2C%22breakdown%22%3A%5B%22plan%22%5D%7D"
 }

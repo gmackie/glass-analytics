@@ -1,1 +1,1 @@
-{"ok":true,"version":"0.5.0","latest":null,"upgradeAvailable":false,"upgradeCommand":"npx dataflare-cli@latest upgrade","store":"d1","freshnessSeconds":0,"replay":true}
+{"ok":true,"version":"0.8.4","latest":null,"upgradeAvailable":false,"upgradeCommand":"npx dataflare-cli@latest upgrade","store":"d1","freshnessSeconds":0,"replay":true}

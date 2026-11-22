@@ -13,9 +13,9 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { loadConfig } from './config.ts';
+import { loadConfig, readTextIfExists } from './config.ts';
 
 export const CI_WORKFLOW_PATH = '.github/workflows/glass.yml';
 export const CI_SECRET = 'CLOUDFLARE_API_TOKEN';
@@ -137,8 +137,8 @@ export function writeCiWorkflow(
   const secret = options.secret ?? CI_SECRET;
   const path = join(root, CI_WORKFLOW_PATH);
   const next = ciWorkflow({ branch, secret, lake: loadConfig(root)?.store === 'lake' });
-  if (existsSync(path)) {
-    const current = readFileSync(path, 'utf8');
+  const current = readTextIfExists(path);
+  if (current !== undefined) {
     if (!current.startsWith(MARKER) && !current.startsWith(OLD_MARKER))
       return { path: CI_WORKFLOW_PATH, status: 'kept', branch, secret };
     if (current === next) return { path: CI_WORKFLOW_PATH, status: 'kept', branch, secret };

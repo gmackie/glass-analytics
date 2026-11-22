@@ -8,11 +8,14 @@ stdin/stdout:
   {"op": "query", "sql": "SELECT ..."}                         -> Basin SQL's response body
 
 Basin SQL adds JSON functions from datafusion-functions-json (json_as_text, json_get_float,
-json_get_bool, json_contains); plain DataFusion lacks them, so they are defined here for one
-key, which is all the query compilers use.
+json_get_bool, json_contains), which take a path of keys: json_as_text(props, '$groups',
+'company'). Plain DataFusion lacks them, so they are defined here for paths of one to four
+keys. A Python UDF has a fixed arity, so each arity gets its own function and queries are
+rewritten to call the one matching their path length.
 """
 
 import json
+import re
 import sys
 from datetime import datetime
 
@@ -26,14 +29,21 @@ def arrow_type(name):
     return pa.timestamp("us", tz="UTC") if name == "timestamp" else TYPES[name]
 
 
-def lookup(doc, key):
+MISSING = object()
+
+
+def lookup(doc, keys):
     if doc is None:
-        return None
+        return MISSING
     try:
         value = json.loads(doc)
     except ValueError:
-        return None
-    return value.get(key) if isinstance(value, dict) else None
+        return MISSING
+    for key in keys:
+        if not isinstance(value, dict) or key not in value:
+            return MISSING
+        value = value[key]
+    return value
 
 
 def as_text(value):
@@ -54,32 +64,48 @@ def as_bool(value):
     return value if isinstance(value, bool) else None
 
 
-def json_udf(name, convert, out_type, exists=False):
-    def fn(docs, keys):
-        docs, keys = docs.to_pylist(), keys.to_pylist()
+def json_udf(name, convert, out_type, arity, exists=False):
+    def fn(docs, *keys):
+        docs = docs.to_pylist()
+        paths = list(zip(*[k.to_pylist() for k in keys]))
         out = []
-        for doc, key in zip(docs, keys):
+        for doc, path in zip(docs, paths):
+            value = lookup(doc, path)
             if exists:
-                try:
-                    parsed = json.loads(doc) if doc is not None else None
-                except ValueError:
-                    parsed = None
-                out.append(isinstance(parsed, dict) and key in parsed)
+                out.append(value is not MISSING)
             else:
-                out.append(convert(lookup(doc, key)))
+                out.append(None if value is MISSING else convert(value))
         return pa.array(out, out_type)
 
-    return udf(fn, [pa.string(), pa.string()], out_type, "immutable", name=name)
+    return udf(fn, [pa.string()] * (arity + 1), out_type, "immutable", name=name if arity == 1 else f"{name}__{arity}")
 
+
+JSON_FUNCTIONS = {
+    "json_as_text": (as_text, pa.string(), False),
+    "json_get_float": (as_float, pa.float64(), False),
+    "json_get_bool": (as_bool, pa.bool_(), False),
+    "json_contains": (None, pa.bool_(), True),
+}
+MAX_PATH = 4
 
 ctx = SessionContext()
-for f in (
-    json_udf("json_as_text", as_text, pa.string()),
-    json_udf("json_get_float", as_float, pa.float64()),
-    json_udf("json_get_bool", as_bool, pa.bool_()),
-    json_udf("json_contains", None, pa.bool_(), exists=True),
-):
-    ctx.register_udf(f)
+for fname, (convert, out_type, exists) in JSON_FUNCTIONS.items():
+    for arity in range(1, MAX_PATH + 1):
+        ctx.register_udf(json_udf(fname, convert, out_type, arity, exists))
+
+# json_x(<column>, '<k1>', '<k2>'...) with a plain column and string-literal keys, as the
+# compilers write them; calls with longer paths go to the matching json_x__N.
+CALL = re.compile(r"\b(json_as_text|json_get_float|json_get_bool|json_contains)\(([\w.]+)((?:\s*,\s*'(?:[^']|'')*')+)\s*\)")
+KEY = re.compile(r"'(?:[^']|'')*'")
+
+
+def by_arity(sql):
+    def swap(m):
+        keys = KEY.findall(m.group(3))
+        name = m.group(1) if len(keys) == 1 else f"{m.group(1)}__{len(keys)}"
+        return f"{name}({m.group(2)}, {', '.join(keys)})"
+
+    return CALL.sub(swap, sql)
 ctx.sql("CREATE SCHEMA IF NOT EXISTS glass").collect()
 
 schemas, rows = {}, {}
@@ -120,7 +146,7 @@ def main():
                 register(msg["table"])
                 reply = {"ok": True}
             else:
-                table = ctx.sql(msg["sql"]).to_arrow_table()
+                table = ctx.sql(by_arity(msg["sql"])).to_arrow_table()
                 reply = {
                     "result": {
                         "schema": [{"name": n} for n in table.column_names],

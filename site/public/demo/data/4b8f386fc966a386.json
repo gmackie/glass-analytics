@@ -1,8 +1,8 @@
 {
   "project": "demo",
   "event": "subscription_started",
-  "sampled": 79,
-  "lastSeen": "2026-11-05T07:14:00.440Z",
+  "sampled": 87,
+  "lastSeen": "2026-11-18T06:20:36.874Z",
   "description": "Fired when the first payment succeeds and the plan becomes active.",
   "owner": "Growth",
   "properties": [
@@ -25,8 +25,8 @@
       ],
       "coverage": 1,
       "examples": [
-        "year",
-        "month"
+        "month",
+        "year"
       ],
       "description": "Billing period: month or year."
     },
@@ -37,16 +37,149 @@
       ],
       "coverage": 1,
       "examples": [
-        "90",
         "9",
+        "90",
         "29",
         "290"
       ],
       "description": "First charge in USD."
+    },
+    {
+      "name": "$revenue_amount",
+      "types": [
+        "number"
+      ],
+      "coverage": 1,
+      "examples": [
+        "9",
+        "90",
+        "29",
+        "290"
+      ],
+      "description": ""
+    },
+    {
+      "name": "$revenue_currency",
+      "types": [
+        "string"
+      ],
+      "coverage": 1,
+      "examples": [
+        "USD"
+      ],
+      "description": ""
+    },
+    {
+      "name": "$revenue_product",
+      "types": [
+        "string"
+      ],
+      "coverage": 1,
+      "examples": [
+        "pro",
+        "team"
+      ],
+      "description": ""
+    },
+    {
+      "name": "$revenue_base",
+      "types": [
+        "number"
+      ],
+      "coverage": 1,
+      "examples": [
+        "9",
+        "90",
+        "29",
+        "290"
+      ],
+      "description": ""
+    },
+    {
+      "name": "subscription",
+      "types": [
+        "string"
+      ],
+      "coverage": 0.6436781609195402,
+      "examples": [
+        "sub_user_1707",
+        "sub_user_1688",
+        "sub_user_1684",
+        "sub_user_1676",
+        "sub_user_1671"
+      ],
+      "description": ""
+    },
+    {
+      "name": "$subscription_id",
+      "types": [
+        "string"
+      ],
+      "coverage": 0.6436781609195402,
+      "examples": [
+        "sub_user_1707",
+        "sub_user_1688",
+        "sub_user_1684",
+        "sub_user_1676",
+        "sub_user_1671"
+      ],
+      "description": ""
+    },
+    {
+      "name": "$mrr",
+      "types": [
+        "number"
+      ],
+      "coverage": 0.6436781609195402,
+      "examples": [
+        "9",
+        "29"
+      ],
+      "description": ""
+    },
+    {
+      "name": "$subscription_status",
+      "types": [
+        "string"
+      ],
+      "coverage": 0.6436781609195402,
+      "examples": [
+        "active"
+      ],
+      "description": ""
+    },
+    {
+      "name": "$mrr_grace_days",
+      "types": [
+        "number"
+      ],
+      "coverage": 0.6436781609195402,
+      "examples": [
+        "35"
+      ],
+      "description": ""
+    },
+    {
+      "name": "$groups",
+      "types": [
+        "object"
+      ],
+      "coverage": 0.1839080459770115,
+      "examples": [],
+      "description": ""
+    },
+    {
+      "name": "$group_props",
+      "types": [
+        "object"
+      ],
+      "coverage": 0.1839080459770115,
+      "examples": [],
+      "description": ""
     }
   ],
-  "summary": "\"subscription_started\": 3 properties across the latest 79 events.",
+  "summary": "\"subscription_started\": 14 properties across the latest 87 events.",
   "sql": [
-    "SELECT props, ts_ms FROM events\nWHERE project = 'demo' AND event = 'subscription_started' AND ts_ms >= 1791282555845\nORDER BY ts_ms DESC LIMIT 500"
+    "SELECT props, ts_ms FROM events\nWHERE project = 'demo' AND event = 'subscription_started' AND ts_ms >= 1792432568301\nORDER BY ts_ms DESC LIMIT 500"
   ]
 }

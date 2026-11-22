@@ -3,9 +3,9 @@
   "flags": [
     {
       "key": "ai-suggestions",
-      "description": "Writing suggestions in the sidebar, for paying plans.",
       "enabled": true,
       "rollout": 0,
+      "description": "Writing suggestions in the sidebar, for paying plans.",
       "rules": [
         {
           "conditions": [
@@ -24,9 +24,9 @@
     },
     {
       "key": "annual-billing-nudge",
-      "description": "Experiment: Showing the annual saving at checkout increases paid conversion.",
       "enabled": false,
       "rollout": 100,
+      "description": "Experiment: Showing the annual saving at checkout increases paid conversion.",
       "variants": [
         {
           "key": "control",
@@ -40,21 +40,21 @@
     },
     {
       "key": "new-editor",
-      "description": "The rebuilt editor with inline comments.",
       "enabled": true,
-      "rollout": 25
+      "rollout": 25,
+      "description": "The rebuilt editor with inline comments."
     },
     {
       "key": "offline-mode",
-      "description": "Keep writing without a connection.",
       "enabled": false,
-      "rollout": 0
+      "rollout": 0,
+      "description": "Keep writing without a connection."
     },
     {
       "key": "onboarding-checklist",
-      "description": "Experiment: A three-step checklist gets new writers to their first document.",
       "enabled": true,
       "rollout": 100,
+      "description": "Experiment: A three-step checklist gets new writers to their first document.",
       "variants": [
         {
           "key": "control",
@@ -68,9 +68,9 @@
     },
     {
       "key": "pricing-page-v2",
-      "description": "Experiment: A shorter pricing page with one highlighted plan lifts signups.",
       "enabled": true,
       "rollout": 100,
+      "description": "Experiment: A shorter pricing page with one highlighted plan lifts signups.",
       "variants": [
         {
           "key": "control",
@@ -84,5 +84,5 @@
     }
   ],
   "summary": "6 flags: ai-suggestions (0%), annual-billing-nudge (off), new-editor (25%), offline-mode (off), onboarding-checklist (100%), pricing-page-v2 (100%).",
-  "dashboard": "http://127.0.0.1:58904/app#/flags?project=demo"
+  "dashboard": "http://127.0.0.1:49397/app#/flags?project=demo"
 }

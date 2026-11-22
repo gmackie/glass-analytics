@@ -1,0 +1,48 @@
+{
+  "project": "demo",
+  "id": "01a1efca-e081-74a4-989d-844f21786473",
+  "identified": false,
+  "properties": {},
+  "groups": [],
+  "firstSeen": "2026-11-18T17:53:35.394Z",
+  "lastSeen": "2026-11-18T17:53:44.593Z",
+  "devices": [],
+  "revenue": {
+    "net": 0,
+    "gross": 0,
+    "orders": 0,
+    "firstAt": null,
+    "lastAt": null,
+    "currency": "USD"
+  },
+  "recentEvents": [
+    {
+      "event": "$pageview",
+      "time": "2026-11-18T17:53:44.593Z",
+      "path": "/pricing",
+      "session": "01a1efca-e087-7d50-9381-599fc6e365fa",
+      "properties": {}
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-18T17:53:35.394Z",
+      "path": "/changelog",
+      "session": "01a1efca-e087-7d50-9381-599fc6e365fa",
+      "properties": {}
+    }
+  ],
+  "replays": [
+    {
+      "session": "01a1efca-e087-7d50-9381-599fc6e365fa",
+      "started": "2026-11-18T17:53:32.821Z",
+      "errors": 0,
+      "url": "http://inkwell.example/"
+    }
+  ],
+  "summary": "Anonymous device \"01a1efca-e081-74a4-989d-844f21786473\": 2 events in 90 days, 1 recorded sessions.",
+  "sql": [
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248554521\n    AND e.ts_ms < 1795024614521\n)\nSELECT event, ts_ms, path, session_id, props FROM ev WHERE pid = '01a1efca-e081-74a4-989d-844f21786473' OR distinct_id = '01a1efca-e081-74a4-989d-844f21786473'\nORDER BY ts_ms DESC LIMIT 100",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248554521\n    AND e.ts_ms < 1795024614521\n)\nSELECT 'company' AS type, (CASE json_type(props, '$.\"$groups\".\"company\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$groups\".\"company\"') AS TEXT) END) AS group_key, MAX(ts_ms) AS last_ts FROM ev WHERE (pid = '01a1efca-e081-74a4-989d-844f21786473' OR distinct_id = '01a1efca-e081-74a4-989d-844f21786473') AND (CASE json_type(props, '$.\"$groups\".\"company\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$groups\".\"company\"') AS TEXT) END) IS NOT NULL GROUP BY (CASE json_type(props, '$.\"$groups\".\"company\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$groups\".\"company\"') AS TEXT) END)"
+  ],
+  "dashboard": "http://127.0.0.1:49397/app#/users/01a1efca-e081-74a4-989d-844f21786473?project=demo"
+}

@@ -1,0 +1,270 @@
+{
+  "project": "demo",
+  "id": "user_1521",
+  "identified": true,
+  "properties": {
+    "signup_source": "pricing",
+    "plan": "team",
+    "email": "user_1521@example.com",
+    "company_size": "11-50"
+  },
+  "groups": [
+    {
+      "type": "company",
+      "key": "ws-user_1521",
+      "name": "Blue Heron Media",
+      "properties": {
+        "name": "Blue Heron Media",
+        "seats": 11
+      },
+      "lastSeen": "2026-11-05T08:24:48.390Z",
+      "link": "http://127.0.0.1:49397/app#/groups/company/ws-user_1521?project=demo"
+    }
+  ],
+  "firstSeen": "2026-11-05T08:23:13.390Z",
+  "lastSeen": "2026-11-18T14:33:39.871Z",
+  "devices": [
+    "e7c53e15-5017-43bb-a845-bb7f856b80cb"
+  ],
+  "revenue": {
+    "net": 29,
+    "gross": 29,
+    "orders": 1,
+    "firstAt": "2026-11-05T08:24:43.390Z",
+    "lastAt": "2026-11-05T08:24:43.390Z",
+    "currency": "USD"
+  },
+  "recentEvents": [
+    {
+      "event": "invite_sent",
+      "time": "2026-11-18T14:33:34.872Z",
+      "path": "/app/team",
+      "session": "76d34759-380f-4813-a147-bf5cd6b1b169",
+      "properties": {
+        "role": "editor"
+      }
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-18T14:08:34.872Z",
+      "path": "/app",
+      "session": "76d34759-380f-4813-a147-bf5cd6b1b169",
+      "properties": {
+        "template": "blank",
+        "words": 365
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-18T14:03:34.872Z",
+      "path": "/app",
+      "session": "76d34759-380f-4813-a147-bf5cd6b1b169",
+      "properties": {}
+    },
+    {
+      "event": "document_shared",
+      "time": "2026-11-12T23:49:20.150Z",
+      "path": "/app",
+      "session": "488b58ff-c907-422e-af7a-4b94d6fe029f",
+      "properties": {
+        "via": "email"
+      }
+    },
+    {
+      "event": "document_created",
+      "time": "2026-11-12T23:29:20.150Z",
+      "path": "/app",
+      "session": "488b58ff-c907-422e-af7a-4b94d6fe029f",
+      "properties": {
+        "template": "novel-chapter",
+        "words": 2421
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-12T23:24:20.150Z",
+      "path": "/app",
+      "session": "488b58ff-c907-422e-af7a-4b94d6fe029f",
+      "properties": {}
+    },
+    {
+      "event": "$groupidentify",
+      "time": "2026-11-05T08:24:48.390Z",
+      "path": "",
+      "session": "dfe0cf9f-3f40-4d6b-a9b9-d6ae17e88deb",
+      "properties": {
+        "$group_type": "company",
+        "$group_key": "ws-user_1521",
+        "$group_set": {
+          "name": "Blue Heron Media",
+          "seats": 11
+        },
+        "$groups": {
+          "company": "ws-user_1521"
+        },
+        "$group_props": {
+          "company": {
+            "name": "Blue Heron Media",
+            "seats": 11
+          }
+        }
+      }
+    },
+    {
+      "event": "subscription_started",
+      "time": "2026-11-05T08:24:43.390Z",
+      "path": "/app/billing",
+      "session": "dfe0cf9f-3f40-4d6b-a9b9-d6ae17e88deb",
+      "properties": {
+        "plan": "team",
+        "interval": "month",
+        "amount": 29,
+        "subscription": "sub_user_1521",
+        "$groups": {
+          "company": "ws-user_1521"
+        },
+        "$group_props": {
+          "company": {
+            "name": "Blue Heron Media",
+            "seats": 11
+          }
+        },
+        "$revenue_amount": 29,
+        "$revenue_currency": "USD",
+        "$revenue_product": "team",
+        "$revenue_base": 29,
+        "$subscription_id": "sub_user_1521",
+        "$mrr": 29,
+        "$subscription_status": "active",
+        "$mrr_grace_days": 35
+      }
+    },
+    {
+      "event": "signup_completed",
+      "time": "2026-11-05T08:23:13.590Z",
+      "path": "/welcome",
+      "session": "dfe0cf9f-3f40-4d6b-a9b9-d6ae17e88deb",
+      "properties": {
+        "plan": "team",
+        "method": "google"
+      }
+    },
+    {
+      "event": "$identify",
+      "time": "2026-11-05T08:23:13.390Z",
+      "path": "",
+      "session": "dfe0cf9f-3f40-4d6b-a9b9-d6ae17e88deb",
+      "properties": {
+        "$set": {
+          "plan": "team",
+          "email": "user_1521@example.com",
+          "company_size": "11-50"
+        },
+        "$set_once": {
+          "signup_source": "pricing"
+        }
+      }
+    },
+    {
+      "event": "signup_started",
+      "time": "2026-11-05T08:22:37.325Z",
+      "path": "/signup",
+      "session": "dfe0cf9f-3f40-4d6b-a9b9-d6ae17e88deb",
+      "properties": {
+        "source": "pricing"
+      }
+    },
+    {
+      "event": "$exposure",
+      "time": "2026-11-05T08:22:33.325Z",
+      "path": "/pricing",
+      "session": "dfe0cf9f-3f40-4d6b-a9b9-d6ae17e88deb",
+      "properties": {
+        "flag": "pricing-page-v2",
+        "variant": "test"
+      }
+    },
+    {
+      "event": "$web_vitals",
+      "time": "2026-11-05T08:22:16.453Z",
+      "path": "/pricing",
+      "session": "dfe0cf9f-3f40-4d6b-a9b9-d6ae17e88deb",
+      "properties": {
+        "metric": "TTFB",
+        "value": 457.157
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-05T08:22:13.953Z",
+      "path": "/pricing",
+      "session": "dfe0cf9f-3f40-4d6b-a9b9-d6ae17e88deb",
+      "properties": {}
+    },
+    {
+      "event": "$web_vitals",
+      "time": "2026-11-05T08:20:31.049Z",
+      "path": "/templates",
+      "session": "dfe0cf9f-3f40-4d6b-a9b9-d6ae17e88deb",
+      "properties": {
+        "metric": "CLS",
+        "value": 0.296
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-05T08:20:28.549Z",
+      "path": "/templates",
+      "session": "dfe0cf9f-3f40-4d6b-a9b9-d6ae17e88deb",
+      "properties": {}
+    },
+    {
+      "event": "$web_vitals",
+      "time": "2026-11-05T08:19:03.299Z",
+      "path": "/pricing",
+      "session": "dfe0cf9f-3f40-4d6b-a9b9-d6ae17e88deb",
+      "properties": {
+        "metric": "CLS",
+        "value": 0.023
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-05T08:19:00.799Z",
+      "path": "/pricing",
+      "session": "dfe0cf9f-3f40-4d6b-a9b9-d6ae17e88deb",
+      "properties": {}
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-05T08:18:42.994Z",
+      "path": "/changelog",
+      "session": "dfe0cf9f-3f40-4d6b-a9b9-d6ae17e88deb",
+      "properties": {}
+    },
+    {
+      "event": "$web_vitals",
+      "time": "2026-11-05T08:18:16.092Z",
+      "path": "/blog/markdown-for-writers",
+      "session": "dfe0cf9f-3f40-4d6b-a9b9-d6ae17e88deb",
+      "properties": {
+        "metric": "INP",
+        "value": 47.604
+      }
+    },
+    {
+      "event": "$pageview",
+      "time": "2026-11-05T08:18:13.592Z",
+      "path": "/blog/markdown-for-writers",
+      "session": "dfe0cf9f-3f40-4d6b-a9b9-d6ae17e88deb",
+      "properties": {}
+    }
+  ],
+  "replays": [],
+  "summary": "Identified person \"user_1521\": 21 events in 90 days, in company ws-user_1521, 1 payments worth 29 USD net.",
+  "sql": [
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248539011\n    AND e.ts_ms < 1795024599011\n)\nSELECT event, ts_ms, path, session_id, props FROM ev WHERE pid = 'user_1521' OR distinct_id = 'user_1521'\nORDER BY ts_ms DESC LIMIT 100",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1787248539011\n    AND e.ts_ms < 1795024599011\n)\nSELECT 'company' AS type, (CASE json_type(props, '$.\"$groups\".\"company\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$groups\".\"company\"') AS TEXT) END) AS group_key, MAX(ts_ms) AS last_ts FROM ev WHERE (pid = 'user_1521' OR distinct_id = 'user_1521') AND (CASE json_type(props, '$.\"$groups\".\"company\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$groups\".\"company\"') AS TEXT) END) IS NOT NULL GROUP BY (CASE json_type(props, '$.\"$groups\".\"company\"') WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(props, '$.\"$groups\".\"company\"') AS TEXT) END)"
+  ],
+  "dashboard": "http://127.0.0.1:49397/app#/users/user_1521?project=demo"
+}

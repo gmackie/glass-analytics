@@ -26,6 +26,11 @@ Dataflare is one Worker, one D1 database and one R2 bucket in the user's Cloudfl
   - _Most of a single-page app arrives as mutations_, not in the first snapshot, and rrweb sends each added node separately. `packages/core/src/replay-dom.ts` rebuilds the DOM from snapshots plus every mutation (adds, removes, text and attribute changes), which is what names clicked elements and renders `replay_snapshot`.
   - _Reading every chunk is expensive_, so an hourly cron summarises sessions about 30 minutes after they end: the timeline is cached at `summaries/<project>/<session>.json`, and its frustration counts and a searchable digest (pages, clicked elements, errors) go on the D1 row. Search and `analyse_replays` read those; a new chunk makes the cache stale.
 
+- **Enrichment at ingest**, in order: transformations (drop, rename, set, hash or redact before anything is stored), group and person snapshots, issue assignment for `$exception` events (fingerprint → issue, suppression, a per-issue rate limit), and currency conversion for revenue events (`$revenue_base`, from the ECB rate of the payment's day). Because each lands in the event itself, lake queries group by issue and sum revenue without joins.
+- **Destinations**: after an event is written, matching destinations get a message on a Cloudflare Queue (`glass-<name>-deliveries`, with a dead-letter queue). The Worker's `queue()` handler renders each template and sends it, retrying with backoff; failures are logged in D1 with a retry action. If a message can't be enqueued (no queue, or over the daily quota), it goes to a D1 outbox that the five-minute job drains, 20 sends per tick to stay inside the Free plan's 50 subrequests.
+- **Scheduled work**: one cron trigger every five minutes runs flag schedules, cohort refreshes for flags, error spike alerts, the destination outbox and batch exports. Hourly work (replay summaries, retention, erasure slices, ECB rates) runs on the tick at the top of the hour. Each job works in slices, so nothing exceeds a request's limits.
+- **Secrets**: `GLASS_API_KEY` (admin), a read-only key, `GLASS_SERVER_KEY` (backends: imports, flag definitions, source maps) and `GLASS_ENCRYPTION_KEY` (AES-GCM for destination, export and Stripe credentials). `dataflare init` and `upgrade` create the ones that are missing.
+
 ## Identity
 
 Every event carries `distinct_id` (the device, stable across login), `user_id` (once identified) and `person_id` (resolved at ingest). `identify()` writes a link from device to user in `identities`; the first link wins, so a shared device never moves old events to a new user.
@@ -55,6 +60,7 @@ The core tests execute every compiler on real SQLite against the production migr
 | ---------------------- | ---------------------------- | ---------------------------------------------------------- |
 | `@dataflare/core`      | no (bundled)                 | Event model, SQL, stats, flags, replay summaries, snippets |
 | `dataflare-web`        | npm                          | Browser SDK                                                |
+| `dataflare-node`       | npm (not yet published)      | Server SDK: events, exceptions, local flag evaluation      |
 | `@dataflare/worker`    | no (bundled into the CLI)    | The Worker                                                 |
 | `@dataflare/dashboard` | no (bundled into the Worker) | The dashboard                                              |
 | `dataflare`            | npm                          | CLI, carrying the built Worker and migrations              |

@@ -24,6 +24,29 @@ export async function sha256Hex(input: string): Promise<string> {
   return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
+/** Hex HMAC-SHA-256 of `message` under `key`, via WebCrypto (Workers, browsers, Node). */
+export async function hmacSha256Hex(key: string, message: string): Promise<string> {
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(key),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const sig = await crypto.subtle.sign('HMAC', cryptoKey, encoder.encode(message));
+  return Array.from(new Uint8Array(sig), (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * The server key: what backends use to import history, fetch flag definitions for local
+ * evaluation and upload source maps. It can't read analytics or change settings. It is derived
+ * from the admin key (so CI upgrades, which can't set new Worker secrets, still have one) unless
+ * a deployment sets GLASS_SERVER_KEY explicitly.
+ */
+export async function deriveServerKey(adminKey: string): Promise<string> {
+  return `srv_${(await hmacSha256Hex(adminKey, 'dataflare:server-key:v1')).slice(0, 40)}`;
+}
+
 /** Constant-time string comparison, for API keys. */
 export function timingSafeEqual(a: string, b: string): boolean {
   const ab = encoder.encode(a);

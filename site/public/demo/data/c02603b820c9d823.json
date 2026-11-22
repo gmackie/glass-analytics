@@ -2,41 +2,43 @@
   "kind": "trends",
   "interval": "day",
   "buckets": [
-    1793232000000,
-    1793318400000,
-    1793404800000,
-    1793491200000,
-    1793577600000,
-    1793664000000,
-    1793750400000,
-    1793836800000
+    1794355200000,
+    1794441600000,
+    1794528000000,
+    1794614400000,
+    1794700800000,
+    1794787200000,
+    1794873600000,
+    1794960000000
   ],
   "series": [
     {
       "label": "$pageview",
       "breakdown": null,
       "values": [
-        129,
-        272,
-        293,
-        181,
-        260,
-        270,
-        359,
-        180
+        16,
+        352,
+        297,
+        371,
+        245,
+        210,
+        371,
+        340
       ],
-      "total": 1944
+      "total": 2202,
+      "seriesIndex": 0,
+      "math": "total"
     }
   ],
   "sql": [
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793269650727\n    AND e.ts_ms < 1793874450727\n    AND e.event IN ('$pageview')\n)\nSELECT bucket, bd, COUNT(*) AS agg\nFROM (SELECT ((ts_ms / 86400000) * 86400000) AS bucket, '' AS bd, pid, session_id, NULL AS val\n    FROM ev WHERE 1 = 1) t\nGROUP BY bucket, bd\nORDER BY bucket\nLIMIT 50000",
-    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1793269650727\n    AND e.ts_ms < 1793874450727\n    AND e.event IN ('$pageview')\n)\nSELECT bd, COUNT(*) AS agg\nFROM (SELECT ((ts_ms / 86400000) * 86400000) AS bucket, '' AS bd, pid, session_id, NULL AS val\n    FROM ev WHERE 1 = 1) t\nGROUP BY bd\nORDER BY agg DESC\nLIMIT 1000"
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1794419683630\n    AND e.ts_ms < 1795024483630\n    AND e.event IN ('$pageview')\n)\nSELECT bucket, bd, COUNT(*) AS agg\nFROM (SELECT ((ts_ms / 86400000) * 86400000) AS bucket, '' AS bd, actor, session_id, ts_ms, NULL AS val, '' AS grp\n    FROM ev WHERE event IN ('$pageview') AND 1 = 1) t\nGROUP BY bucket, bd\nORDER BY bucket\nLIMIT 50000",
+    "WITH ev AS (\n  SELECT e.*,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS pid,\n    CASE WHEN e.user_id IS NOT NULL AND e.user_id <> '' THEN e.user_id ELSE COALESCE(i.person_id, e.person_id) END AS actor\n  FROM events e\n  LEFT JOIN (\n    SELECT distinct_id, MIN(person_id) AS person_id\n    FROM identities\n    WHERE project = 'demo'\n    GROUP BY distinct_id\n  ) i ON i.distinct_id = e.distinct_id\n  WHERE e.project = 'demo'\n    AND e.ts_ms >= 1794419683630\n    AND e.ts_ms < 1795024483630\n    AND e.event IN ('$pageview')\n)\nSELECT bd, COUNT(*) AS agg\nFROM (SELECT '' AS bd, actor, session_id, ts_ms, NULL AS val, '' AS grp\n    FROM ev WHERE event IN ('$pageview') AND 1 = 1) t\nGROUP BY bd\nORDER BY agg DESC, bd ASC\nLIMIT 1000"
   ],
   "range": {
-    "from": "2026-10-29T10:27:30.727Z",
-    "to": "2026-11-05T10:27:30.727Z"
+    "from": "2026-11-11T17:54:43.630Z",
+    "to": "2026-11-18T17:54:43.630Z"
   },
-  "summary": "2026-10-29 to 2026-11-05 by day. $pageview: 1,944",
+  "summary": "2026-11-11 to 2026-11-18 by day. $pageview: 2,202",
   "project": "demo",
-  "dashboard": "http://127.0.0.1:58904/app#/insights/trends?project=demo&spec=%7B%22from%22%3A%22-7d%22%2C%22series%22%3A%5B%7B%22event%22%3A%22%24pageview%22%2C%22math%22%3A%22total%22%7D%5D%2C%22interval%22%3A%22day%22%7D"
+  "dashboard": "http://127.0.0.1:49397/app#/insights/trends?project=demo&spec=%7B%22from%22%3A%22-7d%22%2C%22series%22%3A%5B%7B%22event%22%3A%22%24pageview%22%2C%22math%22%3A%22total%22%7D%5D%2C%22interval%22%3A%22day%22%7D"
 }

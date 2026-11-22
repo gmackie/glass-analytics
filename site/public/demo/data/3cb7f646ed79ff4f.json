@@ -1,0 +1,70 @@
+{
+  "project": "demo",
+  "key": "pricing-page-v2",
+  "history": [
+    {
+      "at": "2026-11-18T17:53:28.598Z",
+      "action": "update",
+      "actor": "admin key",
+      "changed": [
+        "enabled"
+      ],
+      "before": {
+        "key": "pricing-page-v2",
+        "enabled": false,
+        "rollout": 100,
+        "description": "Experiment: A shorter pricing page with one highlighted plan lifts signups.",
+        "variants": [
+          {
+            "key": "control",
+            "weight": 50
+          },
+          {
+            "key": "test",
+            "weight": 50
+          }
+        ]
+      },
+      "after": {
+        "key": "pricing-page-v2",
+        "enabled": true,
+        "rollout": 100,
+        "description": "Experiment: A shorter pricing page with one highlighted plan lifts signups.",
+        "variants": [
+          {
+            "key": "control",
+            "weight": 50
+          },
+          {
+            "key": "test",
+            "weight": 50
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-18T17:53:28.595Z",
+      "action": "create",
+      "actor": "admin key",
+      "changed": [],
+      "before": null,
+      "after": {
+        "key": "pricing-page-v2",
+        "enabled": false,
+        "rollout": 100,
+        "description": "Experiment: A shorter pricing page with one highlighted plan lifts signups.",
+        "variants": [
+          {
+            "key": "control",
+            "weight": 50
+          },
+          {
+            "key": "test",
+            "weight": 50
+          }
+        ]
+      }
+    }
+  ],
+  "summary": "2 changes to \"pricing-page-v2\"; latest 2026-11-18 17:53: update (enabled) by admin key."
+}

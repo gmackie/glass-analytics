@@ -1,0 +1,7 @@
+{
+  "project": "demo",
+  "destinations": [],
+  "delivery": "outbox",
+  "summary": "No destinations. Add one with save_destination (list_destination_templates shows what is available).",
+  "dashboard": "http://127.0.0.1:49397/app#/data/destinations?project=demo"
+}

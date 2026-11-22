@@ -2,9 +2,9 @@
   "project": "demo",
   "flag": {
     "key": "onboarding-checklist",
-    "description": "Experiment: A three-step checklist gets new writers to their first document.",
     "enabled": true,
     "rollout": 100,
+    "description": "Experiment: A three-step checklist gets new writers to their first document.",
     "variants": [
       {
         "key": "control",
