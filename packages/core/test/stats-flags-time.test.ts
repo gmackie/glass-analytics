@@ -240,6 +240,15 @@ describe('ingest helpers', () => {
     assert.equal(referrerHost('https://acme.com/', 'acme.com'), '');
   });
 
+  it('keeps the scheme of native app:// screen URLs', () => {
+    const page = parsePage('app://calzone/settings?utm_source=push');
+    assert.equal(page.url, 'app://calzone/settings');
+    assert.equal(page.host, 'calzone');
+    assert.equal(page.path, '/settings');
+    assert.equal(page.utm_source, 'push');
+    assert.equal(parsePage('app://calzone/').url, 'app://calzone/');
+  });
+
   it('generates time-ordered UUIDv7s', () => {
     const a = uuidv7(1000);
     const b = uuidv7(2000);
