@@ -11,6 +11,7 @@ import { mkdirSync } from 'node:fs';
 import { after, before, describe, it } from 'node:test';
 import { type Browser, type BrowserContext, chromium } from 'playwright';
 import { type DevServer, startDevServer } from '../packages/worker/test/server.ts';
+import { assertRendersFrames } from './render-check.ts';
 
 // Headless Chromium says "HeadlessChrome", which Dataflare filters as a bot; look like a real browser.
 const UA =
@@ -59,6 +60,10 @@ describe('Dataflare end to end', { timeout: 120_000 }, () => {
     // Set the UA for the whole browser: context overrides don't apply to sendBeacon requests.
     browser = await chromium.launch({ args: [`--user-agent=${UA}`] });
     context = await browser.newContext({ userAgent: UA, viewport: { width: 1280, height: 860 } });
+    // Every click below waits for animation frames: stop here, with the fix, if there are none.
+    const probe = await context.newPage();
+    await assertRendersFrames(probe);
+    await probe.close();
     // A 50/50 flag on the home page call to action.
     await api('PUT', '/api/flags/new-cta', {
       project: 'demo',
