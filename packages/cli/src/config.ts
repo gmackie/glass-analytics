@@ -110,6 +110,10 @@ export interface ClientConfig {
   host: string;
   project: string;
   service?: string;
+  /** Pages or another static host: browser snippet only (DATFLR-18). */
+  frontendOnly?: boolean;
+  /** Directory served at the site root, where dataflare.js lives. */
+  staticDir?: string;
 }
 
 export function loadClientConfig(root = projectRoot()): ClientConfig | null {

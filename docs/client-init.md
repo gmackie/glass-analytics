@@ -26,6 +26,7 @@ The binding must reference a Worker in the app's Cloudflare account.
 The command writes:
 
 - `.glass/client.json`: public deployment URL, app project id and optional service name.
+  (Pages and static sites get different files; see below.)
 - `.glass/client/README.md`: framework-specific browser setup, integration and verification steps.
 - With `--service`, `.glass/client/worker.ts`: a dependency-free capture helper and same-origin handler.
 - With `--service`, `.glass/client/binding.json`: the Wrangler service-binding fragment to merge.
@@ -41,6 +42,57 @@ restrictions are preserved. Changed generated files are never overwritten.
 To reconnect or change capture mode, review and remove the generated onboarding
 files first. Keep deployment and client repositories separate: `client-init`
 refuses deployment repos, and `init` refuses client repos.
+
+## Cloudflare Pages and static sites
+
+Sites on Cloudflare Pages or any other static host have no Worker to mount a
+capture helper or proxy in, so `client-init` sets them up frontend-only: it
+installs the browser snippet and registers the project, and skips every
+Worker/Durable Object helper, service-binding fragment and `/_glass` proxy. It
+says so in one line: `Pages/static site: browser snippet only (...)`.
+
+Frontend-only mode starts automatically when the root Wrangler config (JSON,
+JSONC or TOML) sets `pages_build_output_dir`, or when there is no Worker `main`
+and the repo is a Jekyll site (`_config.yml`), a Hugo site (`hugo.toml`) or plain
+HTML (`index.html` and no `package.json`). Pass `--frontend-only` to force it for
+any static host. `--service` is refused in this mode.
+
+```sh
+npx dataflare-cli client-init --host https://analytics.example.com \
+  --project my-site --frontend-only --origins https://my-site.example --dry-run
+```
+
+The command writes:
+
+- `<static dir>/dataflare.js`: the journey loader from
+  `deployments/observe/journey-loader/dataflare.js` with its `CONFIG.project` and
+  deployment URL filled in. Edit only its `CONFIG` block afterwards. An existing
+  `dataflare.js` with local edits is kept, not overwritten.
+- `.glass/client.json`: the deployment URL, project id, `frontendOnly` and static dir.
+- `.glass/client/README.md`: the script tag and verification steps.
+
+The static dir is the source directory served at the site root: the repo root
+for Jekyll, `static/` for Hugo and SvelteKit, `public/` for Vite, Next, Astro and
+other apps with a `public/` directory, or `pages_build_output_dir` itself when
+the project has no build step. When none of these applies, the command asks, or
+pass `--static-dir <dir>`.
+
+Load the loader once from the root layout's `<head>`:
+
+```html
+<script defer src="/dataflare.js" data-enabled="true"></script>
+```
+
+The browser sends events straight to the deployment, so the project's allowed
+origins must include the site. `--origins a,b` sets them; without it they come
+from the Jekyll `url` (`_config.<project>.yml`, then `_config.yml`) or a `CNAME`
+file. A new project is created with those origins. An existing project keeps its
+name; origins are only ever added to an existing allowlist, and a project that
+accepts every origin is left as it is.
+
+Server-side events are not covered. Pages Functions with a service binding to
+the Dataflare Worker are a possible future route for them; `client-init` does
+not generate that yet.
 
 ## Workers and Durable Objects
 

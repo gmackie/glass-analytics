@@ -7,6 +7,7 @@ import { afterEach, describe, it } from 'node:test';
 import { pathToFileURL } from 'node:url';
 import { ADMIN, testApp } from '../../worker/test/harness.ts';
 import { workerClientSource } from '../src/client-files.ts';
+import { journeyLoader } from '../src/client-static.ts';
 import { clientInit } from '../src/commands/client-init.ts';
 import { init } from '../src/commands/init.ts';
 import { connection, projectRoot } from '../src/config.ts';
@@ -283,5 +284,200 @@ describe('client-init', () => {
       .prepare('SELECT country FROM events WHERE id = ?')
       .get('browser-event');
     assert.equal(stored?.country, 'US');
+  });
+
+  describe('frontend-only (Cloudflare Pages and static hosts)', () => {
+    const offline: typeof fetch = async () => {
+      throw new Error('Must stay offline');
+    };
+    const WORKER_FILES = ['.glass/client/worker.ts', '.glass/client/binding.json'];
+
+    function cli(root: string, ...args: string[]): string {
+      return execFileSync(
+        process.execPath,
+        [new URL('../src/index.ts', import.meta.url).pathname, 'client-init', ...args],
+        { cwd: root, encoding: 'utf8', env: { ...process.env, CI: '1' } },
+      );
+    }
+    function preview(root: string, ...args: string[]) {
+      return JSON.parse(
+        cli(root, '--host', HOST, '--project', 'my-app', '--dry-run', '--json', ...args),
+      ) as {
+        mode: string;
+        reason?: string;
+        staticDir?: string;
+        snippet?: string;
+        origins: string[];
+        registration: string;
+        files: Record<string, string>;
+      };
+    }
+    function assertFrontendOnly(result: ReturnType<typeof preview>, loader: string) {
+      assert.equal(result.mode, 'frontend-only');
+      assert.equal(
+        result.snippet,
+        '<script defer src="/dataflare.js" data-enabled="true"></script>',
+      );
+      assert.match(result.registration, /Register project my-app/);
+      assert.ok(result.files['.glass/client.json']);
+      assert.ok(result.files['.glass/client/README.md']?.includes(result.snippet));
+      assert.match(result.files[loader] ?? '', /project: 'my-app',/);
+      for (const file of WORKER_FILES) assert.equal(result.files[file], undefined);
+      const all = Object.values(result.files).join('\n');
+      assert.ok(!all.includes('dataflareProxy') && !all.includes('"binding"'));
+    }
+
+    it('detects a Pages project from wrangler.toml and installs into the framework public dir', () => {
+      const root = repo();
+      writeFileSync(
+        join(root, 'package.json'),
+        JSON.stringify({
+          name: 'my-app',
+          scripts: { build: 'vite build' },
+          devDependencies: { vite: '^6.0.0' },
+        }),
+      );
+      writeFileSync(
+        join(root, 'wrangler.toml'),
+        'name = "my-app"\ncompatibility_date = "2026-11-01"\npages_build_output_dir = "./dist"\n',
+      );
+      const result = preview(
+        root,
+        '--origins',
+        'https://my-app.example/path,https://my-app.example',
+      );
+      assertFrontendOnly(result, 'public/dataflare.js');
+      assert.equal(result.reason, 'wrangler.toml sets pages_build_output_dir');
+      assert.equal(result.staticDir, 'public');
+      assert.deepEqual(result.origins, ['https://my-app.example']);
+      assert.equal(existsSync(join(root, '.glass')), false);
+      assert.equal(existsSync(join(root, 'public')), false);
+    });
+
+    it('detects a Pages project from wrangler.jsonc and uses an unbuilt output dir as is', () => {
+      const root = repo();
+      writeFileSync(join(root, 'package.json'), JSON.stringify({ name: 'my-app' }));
+      writeFileSync(
+        join(root, 'wrangler.jsonc'),
+        '{\n  // Pages project\n  "name": "my-app",\n  "pages_build_output_dir": "site",\n}\n',
+      );
+      const result = preview(root);
+      assertFrontendOnly(result, 'site/dataflare.js');
+      assert.equal(result.reason, 'wrangler.jsonc sets pages_build_output_dir');
+      assert.equal(result.staticDir, 'site');
+      assert.match(result.registration, /no origin restriction/);
+    });
+
+    it('forces frontend-only with --frontend-only and explains the skipped Worker steps', () => {
+      const root = repo();
+      assert.throws(() => preview(root, '--frontend-only'), /Missing --static-dir/);
+      const result = preview(root, '--frontend-only', '--static-dir', 'static');
+      assertFrontendOnly(result, 'static/dataflare.js');
+      assert.equal(result.reason, '--frontend-only');
+      const text = cli(
+        root,
+        '--host',
+        HOST,
+        '--project',
+        'my-app',
+        '--frontend-only',
+        '--static-dir',
+        '.',
+        '--dry-run',
+      );
+      assert.match(text, /^Pages\/static site: browser snippet only \(--frontend-only\)/);
+      assert.match(text, /Root layout <head>: <script defer src="\/dataflare.js"/);
+      assert.equal(existsSync(join(root, '.glass')), false);
+      assert.equal(existsSync(join(root, 'dataflare.js')), false);
+    });
+
+    it('rejects a service binding and static dirs outside the repo', async () => {
+      const root = repo();
+      const options = { host: HOST, project: 'my-app', frontendOnly: true, dryRun: true };
+      await assert.rejects(
+        clientInit({ ...options, service: 'analytics', staticDir: 'public' }, { root }),
+        /--service needs an app Worker/,
+      );
+      await assert.rejects(
+        clientInit({ ...options, staticDir: '../elsewhere' }, { root }),
+        /outside the repository/,
+      );
+      await assert.rejects(
+        clientInit({ ...options, staticDir: 'public', origins: 'ftp://x' }, { root }),
+        /Invalid origin/,
+      );
+    });
+
+    it('installs a Jekyll site at its root, registers origins idempotently and keeps edited loaders', async () => {
+      const root = repo();
+      rmSync(join(root, 'package.json'));
+      writeFileSync(join(root, '_config.yml'), 'title: Blog\nurl: https://blog.example\n');
+      writeFileSync(join(root, '_config.my-app.yml'), 'url: "https://my-app.example" # site\n');
+      const worker = testApp();
+      const options = { host: HOST, project: 'my-app' };
+      await clientInit({ ...options, dryRun: true }, { root, fetcher: offline });
+      assert.equal(existsSync(join(root, '.glass')), false);
+      assert.equal(existsSync(join(root, 'dataflare.js')), false);
+
+      await clientInit(options, { root, fetcher: api(worker) });
+      const loader = readFileSync(join(root, 'dataflare.js'), 'utf8');
+      assert.equal(loader, journeyLoader(HOST, 'my-app'));
+      assert.deepEqual(JSON.parse(readFileSync(join(root, '.glass/client.json'), 'utf8')), {
+        host: HOST,
+        project: 'my-app',
+        frontendOnly: true,
+        staticDir: '.',
+      });
+      for (const file of WORKER_FILES) assert.equal(existsSync(join(root, file)), false);
+      const origins = async () =>
+        (
+          await worker.json<{ projects: { id: string; allowedOrigins: string[] }[] }>(
+            'GET',
+            '/api/projects',
+          )
+        ).projects.find((p) => p.id === 'my-app')?.allowedOrigins;
+      assert.deepEqual(await origins(), ['https://my-app.example']);
+
+      // Rerun: same files, same project; an edited loader is kept, a new origin is added.
+      writeFileSync(join(root, 'dataflare.js'), `${loader}\n// local edit\n`);
+      await clientInit(
+        { ...options, origins: 'https://my-app.example,https://www.my-app.example' },
+        { root, fetcher: api(worker) },
+      );
+      assert.match(readFileSync(join(root, 'dataflare.js'), 'utf8'), /local edit/);
+      assert.deepEqual(await origins(), ['https://my-app.example', 'https://www.my-app.example']);
+      await clientInit(options, { root, fetcher: api(worker) });
+      assert.deepEqual(await origins(), ['https://my-app.example', 'https://www.my-app.example']);
+
+      // An unrestricted existing project stays unrestricted.
+      await worker.json('POST', '/api/projects', { body: { id: 'my-app' } });
+      await clientInit(options, { root, fetcher: api(worker) });
+      assert.deepEqual(await origins(), []);
+
+      await assert.rejects(
+        clientInit({ ...options, frontendOnly: false, service: 'analytics' }, { root }),
+        /--service needs an app Worker/,
+      );
+    });
+
+    it('fills in the journey loader project and deployment URL only', () => {
+      const loader = journeyLoader('https://analytics.example', 'site');
+      assert.match(loader, /project: 'site',/);
+      assert.match(loader, /const HOST = 'https:\/\/analytics.example';/);
+      assert.ok(!loader.includes('__PROJECT__'));
+    });
+
+    it('keeps Worker repos and plain package repos in app mode', () => {
+      const root = repo();
+      writeFileSync(
+        join(root, 'wrangler.toml'),
+        'name = "my-app"\nmain = "src/index.ts"\ncompatibility_date = "2026-11-01"\n',
+      );
+      writeFileSync(join(root, 'index.html'), '<!doctype html>');
+      const result = preview(root, '--service', 'analytics');
+      assert.equal(result.mode, 'app');
+      assert.ok(result.files['.glass/client/worker.ts']);
+      assert.equal(preview(repo()).mode, 'app');
+    });
   });
 });

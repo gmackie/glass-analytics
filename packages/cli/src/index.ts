@@ -44,6 +44,10 @@ ${color.bold('Set up')}
     --host <url>                  Existing Dataflare HTTPS URL (or GLASS_HOST)
     --project <id>                App project id (default: package.json name)
     --service <worker>            Generate same-origin Worker/DO service-binding integration
+    --frontend-only               Pages/static site: browser snippet and registration only
+                                   (auto for pages_build_output_dir, Jekyll, Hugo, plain HTML)
+    --static-dir <dir>            Directory served at the site root, for dataflare.js
+    --origins <a,b>               Allowed browser origins (default: Jekyll url or CNAME)
     --dry-run                     Preview files without registering or writing
                                    Set GLASS_API_KEY for project registration; never saved
   dataflare upgrade              Move to this CLI's version of Dataflare and migrate
@@ -98,6 +102,8 @@ Docs: https://github.com/ISNIT0/glass-analytics`;
 const STRING_OPTIONS = [
   'host',
   'service',
+  'static-dir',
+  'origins',
   'token',
   'account',
   'project',
@@ -147,6 +153,7 @@ const BOOLEAN_OPTIONS = [
   'local',
   'allow-downgrade',
   'dry-run',
+  'frontend-only',
   'read',
   'sql',
   'errors',
@@ -195,6 +202,9 @@ export async function main(argv: string[]): Promise<void> {
         host: str(flags.host),
         project: str(flags.project),
         service: str(flags.service),
+        frontendOnly: Boolean(flags['frontend-only']),
+        staticDir: str(flags['static-dir']),
+        origins: str(flags.origins),
         dryRun: Boolean(flags['dry-run']),
         json: Boolean(flags.json),
       });
