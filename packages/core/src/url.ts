@@ -40,8 +40,11 @@ export function parsePage(raw: string | null | undefined): ParsedPage {
   const q = u.searchParams;
   // `ref` and `source` are common untagged alternatives to utm_source.
   const source = q.get('utm_source') ?? q.get('ref') ?? q.get('source') ?? '';
+  // `origin` is the string "null" for non-special schemes such as the
+  // native SDK's app://<project>/<route>, so rebuild it from its parts.
+  const origin = u.origin === 'null' ? `${u.protocol}//${u.host}` : u.origin;
   return {
-    url: `${u.origin}${u.pathname}`.slice(0, 2000),
+    url: `${origin}${u.pathname}`.slice(0, 2000),
     host: u.hostname,
     path: (decodeSafe(u.pathname) || '/').slice(0, 500),
     utm_source: source.slice(0, 200),
