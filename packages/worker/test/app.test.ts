@@ -61,6 +61,9 @@ describe('health and routing', () => {
     const res = await t.call('GET', '/_glass/s.js', { key: null });
     assert.equal(res.status, 200);
     assert.equal(await res.text(), '/* sdk */');
+    assert.equal(res.headers.get('Cross-Origin-Resource-Policy'), 'cross-origin');
+    const replay = await t.call('GET', '/_glass/replay.js', { key: null });
+    assert.equal(replay.headers.get('Cross-Origin-Resource-Policy'), 'cross-origin');
     assert.equal((await t.ingest([wire('$pageview')])).status, 204);
     const html = await (await t.call('GET', '/_glass/app', { key: null })).text();
     assert.match(html, /<meta name="glass-base" content="\/_glass">/);

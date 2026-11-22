@@ -276,6 +276,9 @@ function script(source: string, maxAge: number): Response {
       'Content-Type': 'text/javascript; charset=utf-8',
       'Cache-Control': `public, max-age=${maxAge}`,
       'Access-Control-Allow-Origin': '*',
+      // Pages with Cross-Origin-Embedder-Policy: require-corp (Unity WebGL shells, anything
+      // cross-origin isolated) block a script tag without this header.
+      'Cross-Origin-Resource-Policy': 'cross-origin',
     },
   });
 }
