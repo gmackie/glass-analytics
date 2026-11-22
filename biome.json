@@ -37,5 +37,13 @@
         "noExplicitAny": "error"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": [".changeset/*.md"],
+      "formatter": {
+        "enabled": false
+      }
+    }
+  ]
 }
