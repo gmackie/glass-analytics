@@ -1,5 +1,12 @@
 # dataflare-cli
 
+## 0.9.0
+
+### Minor Changes
+
+- f33a19a: client-init supports Cloudflare Pages and other static sites as frontend-only apps: it installs the journey loader and registers the project with its allowed origins, and skips the Worker/Durable Object helpers, service binding and proxy. Detected from `pages_build_output_dir` or a static site with no Worker `main`, or forced with `--frontend-only`.
+- acf021b: Add client-init to onboard app repos to an existing Dataflare deployment, with browser snippets, optional same-origin Worker/DO capture helpers, and offline previews.
+
 ## 0.8.4
 
 ### Patch Changes
