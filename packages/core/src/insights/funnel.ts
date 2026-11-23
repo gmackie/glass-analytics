@@ -23,6 +23,7 @@ import { SYSTEM_EVENTS } from '../events.ts';
 import type { Filter } from '../filters.ts';
 import type { Dialect } from '../sql/dialect.ts';
 import { breakdownExpr, breakdownProperties, filtersSql } from '../sql/filters.ts';
+import { literalRows } from '../sql/rows.ts';
 import { type SketchCell, sketchColumns, sketchHistogram, sketchQuantile } from '../sql/sketch.ts';
 import {
   type Aggregation,
@@ -434,7 +435,7 @@ function mediansSql(
   const dur = `CASE v.column1 ${ks.map((k) => `WHEN ${k} THEN ${stepDuration(spec, k)}`).join(' ')} END`;
   const sk = sketchColumns(d, 'dur');
   return `${funnelChain(spec, ctx, range, windowMs, o)}SELECT k, bd, ${sk.sign} AS sign, ${sk.key} AS key, COUNT(*) AS n FROM (
-  SELECT v.column1 AS k, f.bd AS bd, ${dur} AS dur FROM f CROSS JOIN (VALUES ${ks.map((k) => `(${k})`).join(', ')}) v
+  SELECT v.column1 AS k, f.bd AS bd, ${dur} AS dur FROM f CROSS JOIN (${literalRows(ks.map((k) => [k]))}) v
 ) x WHERE dur IS NOT NULL GROUP BY k, bd, ${sk.sign}, ${sk.key}`;
 }
 

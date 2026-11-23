@@ -17,6 +17,7 @@
 
 import type { Filter } from '../filters.ts';
 import type { Dialect } from '../sql/dialect.ts';
+import { literalRows } from '../sql/rows.ts';
 import { type Aggregation, eventsCte, num, parseAggregation, text } from '../sql/source.ts';
 import { parseDuration, resolveRange, type TimeRange } from '../time.ts';
 import { funnelChain } from './funnel.ts';
@@ -328,14 +329,14 @@ function linksSql(p: Plan, ctx: QueryContext): string {
   const { d, n } = p;
   const whens = (f: (k: number) => string) =>
     cols(n - 1, (k) => `WHEN ${k} THEN ${f(k)}`).join(' ');
-  const ks = cols(n - 1, (k) => `(${k})`).join(', ');
+  const ks = literalRows(cols(n - 1, (k) => [k]));
   return `${pathsChain(p, ctx)}SELECT * FROM (
 SELECT v.column1 AS k,
   CASE v.column1 ${whens((k) => `pc.i${k}`)} END AS src,
   CASE v.column1 ${whens((k) => `pc.i${k + 1}`)} END AS dst,
   COUNT(*) AS n,
   AVG(CASE v.column1 ${whens((k) => `ABS(pc.t${k + 1} - pc.t${k})`)} END) AS dt
-FROM pc CROSS JOIN (VALUES ${ks}) v
+FROM pc CROSS JOIN (${ks}) v
 WHERE (CASE v.column1 ${whens((k) => `pc.i${k}`)} END) IS NOT NULL
 GROUP BY 1, 2, 3
 ) l
