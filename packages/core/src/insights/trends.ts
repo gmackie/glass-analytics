@@ -25,6 +25,7 @@ import {
   propertyNumber,
   propertyText,
 } from '../sql/filters.ts';
+import { literalRows } from '../sql/rows.ts';
 import { exactQuantile, type SketchCell, sketchColumns, sketchQuantile } from '../sql/sketch.ts';
 import {
   type Aggregation,
@@ -372,9 +373,9 @@ function rollingPlan(series: Series, c: CompileContext, spec: Spec, filters: Fil
     };
   });
   const from = Math.min(c.range.from, ...windows.map((w) => w.s));
-  const values = windows.map((w) => `(${d.num(w.b)}, ${d.num(w.s)}, ${d.num(w.e)})`).join(', ');
+  const values = literalRows(windows.map((w) => [d.num(w.b), d.num(w.s), d.num(w.e)]));
   const head = `WITH ${eventsCteWith(series, c, spec, filters, from)},
-w AS (SELECT column1 AS b, column2 AS s, column3 AS e FROM (VALUES ${values}) v),
+w AS (SELECT column1 AS b, column2 AS s, column3 AS e FROM (${values}) v),
 a AS (SELECT DISTINCT bd, actor, ${bucketExpr(d, 'ts_ms', 'day', c.zone)} AS day FROM (${innerRows(series, c, false)}) t)`;
   const perBucket = `${head}
 SELECT b AS bucket, bd, COUNT(*) AS agg FROM (

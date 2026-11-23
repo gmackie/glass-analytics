@@ -19,6 +19,7 @@ import type { z } from 'zod/v4';
 import type { Filter } from '../filters.ts';
 import type { Dialect } from '../sql/dialect.ts';
 import { breakdownExpr } from '../sql/filters.ts';
+import { literalRows } from '../sql/rows.ts';
 import { type Aggregation, bucketExpr, eventsCte, num, text } from '../sql/source.ts';
 import { bucketsBetween, DAY_MS, resolveRange, type TimeRange, type Zone } from '../time.ts';
 import { aggregationOf } from './actors.ts';
@@ -183,7 +184,7 @@ FROM x GROUP BY actor ORDER BY net DESC, actor ASC LIMIT ${Math.min(r.spec.limit
 function mrrQueries(r: RevenueSetup): Record<string, string> {
   const { d, range, buckets } = r;
   const ends = [buckets[0] ?? range.from, ...buckets.slice(1), range.to];
-  const values = ends.map((e, i) => `(${i - 1}, ${d.num(e)})`).join(', ');
+  const values = literalRows(ends.map((e, i) => [i - 1, d.num(e)]));
   const subscriptions = eventsCte(d, {
     project: r.ctx.project,
     from: range.from - STATE_LOOKBACK_MS,
@@ -197,7 +198,7 @@ s AS (
     ${d.jsonNumber('props', ['$mrr'])} AS mrr, ${d.jsonNumber('props', ['$mrr_grace_days'])} AS grace
   FROM ev
 ),
-w AS (SELECT column1 AS i, column2 AS e FROM (VALUES ${values}) v),
+w AS (SELECT column1 AS i, column2 AS e FROM (${values}) v),
 latest AS (SELECT w.i AS i, w.e AS e, s.sub AS sub, MAX(s.ts_ms) AS t FROM w JOIN s ON s.ts_ms < w.e GROUP BY w.i, w.e, s.sub),
 state AS (
   SELECT latest.i AS i, latest.sub AS sub, MAX(s.actor) AS actor,
