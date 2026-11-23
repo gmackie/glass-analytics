@@ -86,56 +86,76 @@ async function scrubChunk(raw: Uint8Array, gzipped: boolean): Promise<string> {
   return JSON.stringify(scrubReplayEvents(events as ReplayEventLike[]));
 }
 
-/** `POST /r` — store one chunk and update the session index. */
-export async function handleReplayChunk(request: Request, env: Env, url: URL): Promise<void> {
-  const bucket = requireBucket(env);
-  const q = url.searchParams;
-  const project = q.get('project') ?? '';
-  let session = q.get('session') ?? '';
-  let distinct = q.get('d') ?? '';
-  const seq = Number(q.get('seq'));
+/** The project's policy, after checking the project exists and accepts replays. */
+async function replayPolicy(env: Env, project: string) {
   if (!(await getProject(env.DB, project)))
     throw new HttpError(404, `Unknown project "${project}"`);
   const policy = await getPolicy(env.DB, project);
-  const minors = isMinors(policy);
-  if (minors && policy.replay !== 'scrubbed')
+  if (isMinors(policy) && policy.replay !== 'scrubbed')
     throw new HttpError(
       403,
       `Session replay is off for project "${project}" (student mode)`,
       'Remove the replay option from the snippet, or set the policy\'s replay to "scrubbed" once it is approved.',
     );
-  const info = requestInfo(request);
+  return policy;
+}
+
+/** The session and distinct ids to store the chunk under. */
+async function replayIds(
+  env: Env,
+  project: string,
+  q: URLSearchParams,
+  info: ReturnType<typeof requestInfo>,
+  minors: boolean,
+): Promise<{ session: string; distinct: string }> {
   // Student mode never trusts browser-chosen ids: replays use the cookieless ids its events get.
-  if (q.get('cl') === '1' || minors) {
-    // Cookieless: the browser has no ids, so derive the ones its events get. The
-    // session comes from the page load's start, so every chunk of a page stays together.
-    const now = Date.now();
-    const pageStart = Math.min(now, Math.max(now - 86_400_000, Number(q.get('ps')) || now));
-    const ids = await cookielessIds(env, project, info, pageStart);
-    session = ids.sessionId(pageStart);
-    distinct = ids.distinctId;
-  }
+  if (q.get('cl') !== '1' && !minors)
+    return { session: q.get('session') ?? '', distinct: q.get('d') ?? '' };
+  // Cookieless: the browser has no ids, so derive the ones its events get. The
+  // session comes from the page load's start, so every chunk of a page stays together.
+  const now = Date.now();
+  const pageStart = Math.min(now, Math.max(now - 86_400_000, Number(q.get('ps')) || now));
+  const ids = await cookielessIds(env, project, info, pageStart);
+  return { session: ids.sessionId(pageStart), distinct: ids.distinctId };
+}
+
+/** The gzipped chunk to store: scrubbed in student mode, compressed unless it already is. */
+async function chunkBody(raw: Uint8Array, gzipped: boolean, minors: boolean): Promise<Uint8Array> {
+  if (minors) return gzip(new TextEncoder().encode(await scrubChunk(raw, gzipped)));
+  return gzipped ? raw : gzip(raw);
+}
+
+/** The chunk's object name. Keys sort by start time; the page id keeps page loads apart. */
+function chunkName(q: URLSearchParams, seq: number): string {
+  const startKey = String(Math.max(0, Math.floor(Number(q.get('start')) || Date.now()))).padStart(
+    15,
+    '0',
+  );
+  const page = /^[a-z0-9]{1,16}$/i.test(q.get('page') ?? '') ? q.get('page') : 'p';
+  return `${startKey}-${page}-${String(seq).padStart(6, '0')}`;
+}
+
+/** `POST /r` — store one chunk and update the session index. */
+export async function handleReplayChunk(request: Request, env: Env, url: URL): Promise<void> {
+  const bucket = requireBucket(env);
+  const q = url.searchParams;
+  const project = q.get('project') ?? '';
+  const seq = Number(q.get('seq'));
+  const policy = await replayPolicy(env, project);
+  const minors = isMinors(policy);
+  const info = requestInfo(request);
+  const { session, distinct } = await replayIds(env, project, q, info, minors);
   if (!SAFE_ID.test(session) || !Number.isInteger(seq) || seq < 0)
     throw new HttpError(400, 'Invalid session or seq');
 
   const raw = new Uint8Array(await request.arrayBuffer());
   if (raw.byteLength === 0) return;
   if (raw.byteLength > MAX_CHUNK_BYTES) throw new HttpError(413, 'Replay chunk too large');
-  const body = minors
-    ? await gzip(new TextEncoder().encode(await scrubChunk(raw, q.get('enc') === 'gzip')))
-    : q.get('enc') === 'gzip'
-      ? raw
-      : await gzip(raw);
+  const body = await chunkBody(raw, q.get('enc') === 'gzip', minors);
   const userId = q.get('u');
   const user = userId && (!minors || isPseudonym(userId, policy)) ? userId : null;
   const href = minors ? sanitizeUrl(q.get('href')) : (q.get('href') ?? '');
-  // Keys sort by start time; the page id keeps chunks from different page loads apart.
-  const startKey = String(Math.max(0, Math.floor(Number(q.get('start')) || Date.now()))).padStart(
-    15,
-    '0',
-  );
-  const page = /^[a-z0-9]{1,16}$/i.test(q.get('page') ?? '') ? q.get('page') : 'p';
-  const chunk = `${startKey}-${page}-${String(seq).padStart(6, '0')}`;
+  const chunk = chunkName(q, seq);
   // The key is deterministic, so a retried upload overwrites the same object.
   await bucket.put(`${chunkPrefix(project, session)}${chunk}.json.gz`, body, {
     httpMetadata: CHUNK_METADATA,

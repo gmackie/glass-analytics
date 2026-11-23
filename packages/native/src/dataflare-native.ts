@@ -129,17 +129,16 @@ function sanitizeProps(props: DataflareProps | undefined): Record<string, unknow
   const out: Record<string, unknown> = {};
   if (!props) return out;
   for (const [k, v] of Object.entries(props)) {
-    if (k.startsWith('$') || v === undefined) continue;
-    if (typeof v === 'string') {
-      if (v.length > 200 || EMAIL.test(v)) continue;
-      out[k] = v;
-    } else if (typeof v === 'number') {
-      if (Number.isFinite(v)) out[k] = v;
-    } else if (typeof v === 'boolean' || v === null) {
-      out[k] = v;
-    }
+    if (!k.startsWith('$') && keepPropValue(v)) out[k] = v;
   }
   return out;
+}
+
+/** Short strings without an email address, finite numbers, booleans and null. */
+function keepPropValue(v: unknown): boolean {
+  if (typeof v === 'string') return v.length <= 200 && !EMAIL.test(v);
+  if (typeof v === 'number') return Number.isFinite(v);
+  return typeof v === 'boolean' || v === null;
 }
 
 /** A User-Agent that Dataflare parses as an iOS/Android phone or tablet, never a bot. */
@@ -156,6 +155,59 @@ export function userAgentFor(platform: DataflareNativeConfig['platform']): strin
   return `Dataflare-RN/${LIB_VERSION} (${platform.os})`;
 }
 
+/** Properties sent with every event: library, OS and app version. */
+function baseProps(config: DataflareNativeConfig): Record<string, unknown> {
+  const osVersion = config.platform.osVersion;
+  return {
+    $lib: `react-native/${LIB_VERSION}`,
+    $os: config.platform.os,
+    $os_version: osVersion == null ? null : String(osVersion),
+    $app_version: config.app?.version ?? null,
+    $app_build: config.app?.build ?? null,
+  };
+}
+
+/** Stored ids, or nulls when there is no storage or it fails (ids then last the process). */
+async function loadIds(
+  storage: DataflareNativeConfig['storage'],
+  keys: { distinct: string; user: string },
+  allowIdentify: boolean,
+): Promise<{ distinctId: string | null; userId: string | null }> {
+  const ids: { distinctId: string | null; userId: string | null } = {
+    distinctId: null,
+    userId: null,
+  };
+  if (!storage) return ids;
+  try {
+    ids.distinctId = await storage.getItem(keys.distinct);
+    if (allowIdentify) ids.userId = await storage.getItem(keys.user);
+  } catch {
+    // Keep whatever loaded before the failure.
+  }
+  return ids;
+}
+
+/**
+ * POST one batch. Resolves true when it is done with (accepted, or rejected with a 4xx, which
+ * retrying would never fix) and false when it should be retried.
+ */
+async function postBatch(
+  send: NonNullable<DataflareNativeConfig['fetch']>,
+  url: string,
+  init: RequestInit,
+  log: (...args: unknown[]) => void,
+): Promise<boolean> {
+  try {
+    const res = await send(url, init);
+    if (!res.ok && res.status >= 500) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) log('batch rejected', res.status);
+    return true;
+  } catch (err) {
+    log('send failed, will retry', err);
+    return false;
+  }
+}
+
 export function createDataflare(config: DataflareNativeConfig): DataflareClient {
   const enabled = config.enabled !== false && Boolean(config.project);
   const host = (config.host ?? DEFAULT_HOST).replace(/\/+$/, '');
@@ -168,13 +220,7 @@ export function createDataflare(config: DataflareNativeConfig): DataflareClient 
     distinct: `dataflare:${config.project}:distinct_id`,
     user: `dataflare:${config.project}:user_id`,
   };
-  const base: Record<string, unknown> = {
-    $lib: `react-native/${LIB_VERSION}`,
-    $os: config.platform.os,
-    $os_version: config.platform.osVersion == null ? null : String(config.platform.osVersion),
-    $app_version: config.app?.version ?? null,
-    $app_build: config.app?.build ?? null,
-  };
+  const base = baseProps(config);
   const headers = {
     'Content-Type': 'application/json',
     'User-Agent': userAgentFor(config.platform),
@@ -198,14 +244,8 @@ export function createDataflare(config: DataflareNativeConfig): DataflareClient 
 
   const ready: Promise<void> = (async () => {
     if (!enabled) return;
-    try {
-      if (storage) {
-        distinctId = await storage.getItem(keys.distinct);
-        userId = allowIdentify ? await storage.getItem(keys.user) : null;
-      }
-    } catch {
-      // Storage can fail; fall back to process-lifetime ids.
-    }
+    // Storage can fail; loadIds then falls back to process-lifetime ids.
+    ({ distinctId, userId } = await loadIds(storage, keys, allowIdentify));
     if (!distinctId) {
       distinctId = uuidv7(now());
       persist(keys.distinct, distinctId);
@@ -251,28 +291,16 @@ export function createDataflare(config: DataflareNativeConfig): DataflareClient 
     if (queue.length === 0) return;
     const batch = queue;
     queue = [];
-    sending = (async () => {
-      try {
-        const res = await send(`${host}/e`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-            project: config.project,
-            sent_at: now(),
-            lib: `react-native/${LIB_VERSION}`,
-            events: batch,
-          }),
-        });
-        // 4xx means the batch itself is unacceptable; retrying would loop forever.
-        if (!res.ok && res.status >= 500) throw new Error(`HTTP ${res.status}`);
-        if (!res.ok) log('batch rejected', res.status);
-      } catch (err) {
-        log('send failed, will retry', err);
-        queue = batch.concat(queue).slice(-MAX_QUEUE);
-      } finally {
-        sending = null;
-      }
-    })();
+    const body = JSON.stringify({
+      project: config.project,
+      sent_at: now(),
+      lib: `react-native/${LIB_VERSION}`,
+      events: batch,
+    });
+    sending = postBatch(send, `${host}/e`, { method: 'POST', headers, body }, log).then((done) => {
+      if (!done) queue = batch.concat(queue).slice(-MAX_QUEUE);
+      sending = null;
+    });
     return sending;
   };
 

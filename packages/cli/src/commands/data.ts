@@ -492,68 +492,77 @@ export async function projects(
   arg: string | undefined,
   flags: Flags,
 ): Promise<void> {
-  if (sub === 'add') {
-    if (!arg) throw new UsageError('Pass an id: dataflare projects add <id>');
-    const r = await call<{ summary: string }>('POST', '/api/projects', {
-      id: arg,
-      name: str(flags.name),
-    });
-    return flags.json ? printJson(r) : line(r.summary);
-  }
-  if (sub === 'policy') {
-    if (!arg)
-      throw new UsageError(
-        'Pass an id: dataflare projects policy <id> [--audience minors|general]',
-        'Options: --event-props a,b --person-props c --replay off|scrubbed --retention-days N --replay-retention-days N --pseudonym-pattern <regex>. Setting replaces the whole policy.',
-      );
-    const path = `/api/projects/${encodeURIComponent(arg)}/policy`;
-    const audience = str(flags.audience);
-    if (!audience) {
-      const r = await call<{ summary: string }>('GET', path);
-      return flags.json ? printJson(r) : line(r.summary);
-    }
-    const list = (v: string | boolean | undefined) =>
-      str(v)
-        ?.split(',')
-        .map((s) => s.trim())
-        .filter(Boolean);
-    const int = (v: string | boolean | undefined) => (str(v) ? Number(str(v)) : undefined);
-    const r = await call<{ summary: string }>('PUT', path, {
-      audience,
-      pseudonym_pattern: str(flags['pseudonym-pattern']),
-      event_properties: list(flags['event-props']),
-      person_properties: list(flags['person-props']),
-      replay: str(flags.replay),
-      retention_days: int(flags['retention-days']),
-      replay_retention_days: int(flags['replay-retention-days']),
-    });
-    return flags.json ? printJson(r) : line(r.summary);
-  }
-  if (sub === 'audit') {
-    if (!arg) throw new UsageError('Pass an id: dataflare projects audit <id> [--from -30d]');
-    const q = new URLSearchParams({ from: str(flags.from) ?? '-30d' });
-    const r = await call<{
-      summary: string;
-      entries: { ts: number; actor: string; surface: string; operation: string; detail: string }[];
-    }>('GET', `/api/projects/${encodeURIComponent(arg)}/audit?${q}`);
-    if (flags.json) return printJson(r);
-    line(r.summary);
-    table(
-      ['When', 'Who', 'Via', 'Operation', 'Detail'],
-      r.entries.map((e) => [
-        new Date(e.ts).toISOString(),
-        e.actor,
-        e.surface,
-        e.operation,
-        e.detail.slice(0, 60),
-      ]),
-    );
-    return;
-  }
+  const handler = sub && Object.hasOwn(PROJECT_COMMANDS, sub) ? PROJECT_COMMANDS[sub] : undefined;
+  if (handler) return handler(arg, flags);
   const r = await call<{ projects: { id: string; name: string }[] }>('GET', '/api/projects');
   if (flags.json) return printJson(r);
   table(
     ['Project', 'Name'],
     r.projects.map((p) => [p.id, p.name]),
+  );
+}
+
+const PROJECT_COMMANDS: Record<string, (arg: string | undefined, flags: Flags) => Promise<void>> = {
+  add: addProject,
+  policy: projectPolicy,
+  audit: projectAudit,
+};
+
+async function addProject(arg: string | undefined, flags: Flags): Promise<void> {
+  if (!arg) throw new UsageError('Pass an id: dataflare projects add <id>');
+  const r = await call<{ summary: string }>('POST', '/api/projects', {
+    id: arg,
+    name: str(flags.name),
+  });
+  return flags.json ? printJson(r) : line(r.summary);
+}
+
+const listFlag = (v: string | boolean | undefined) =>
+  str(v)
+    ?.split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+const intFlag = (v: string | boolean | undefined) => (str(v) ? Number(str(v)) : undefined);
+
+async function projectPolicy(arg: string | undefined, flags: Flags): Promise<void> {
+  if (!arg)
+    throw new UsageError(
+      'Pass an id: dataflare projects policy <id> [--audience minors|general]',
+      'Options: --event-props a,b --person-props c --replay off|scrubbed --retention-days N --replay-retention-days N --pseudonym-pattern <regex>. Setting replaces the whole policy.',
+    );
+  const path = `/api/projects/${encodeURIComponent(arg)}/policy`;
+  const audience = str(flags.audience);
+  const r = audience
+    ? await call<{ summary: string }>('PUT', path, {
+        audience,
+        pseudonym_pattern: str(flags['pseudonym-pattern']),
+        event_properties: listFlag(flags['event-props']),
+        person_properties: listFlag(flags['person-props']),
+        replay: str(flags.replay),
+        retention_days: intFlag(flags['retention-days']),
+        replay_retention_days: intFlag(flags['replay-retention-days']),
+      })
+    : await call<{ summary: string }>('GET', path);
+  return flags.json ? printJson(r) : line(r.summary);
+}
+
+async function projectAudit(arg: string | undefined, flags: Flags): Promise<void> {
+  if (!arg) throw new UsageError('Pass an id: dataflare projects audit <id> [--from -30d]');
+  const q = new URLSearchParams({ from: str(flags.from) ?? '-30d' });
+  const r = await call<{
+    summary: string;
+    entries: { ts: number; actor: string; surface: string; operation: string; detail: string }[];
+  }>('GET', `/api/projects/${encodeURIComponent(arg)}/audit?${q}`);
+  if (flags.json) return printJson(r);
+  line(r.summary);
+  table(
+    ['When', 'Who', 'Via', 'Operation', 'Detail'],
+    r.entries.map((e) => [
+      new Date(e.ts).toISOString(),
+      e.actor,
+      e.surface,
+      e.operation,
+      e.detail.slice(0, 60),
+    ]),
   );
 }

@@ -155,6 +155,19 @@ test('stored ids survive a restart', async () => {
   assert.equal(sent[0]?.body.events[0]?.user_id, 'user-9');
 });
 
+test('a storage failure keeps the ids that loaded before it', async () => {
+  const storage = memoryStorage({ 'dataflare:latchflow:distinct_id': 'device-1' });
+  storage.getItem = async (k) => {
+    if (k.endsWith(':user_id')) throw new Error('storage unavailable');
+    return storage.data[k] ?? null;
+  };
+  const { client, sent } = setup({ storage });
+  client.track('opened');
+  await client.flush();
+  assert.equal(sent[0]?.body.events[0]?.distinct_id, 'device-1');
+  assert.equal(sent[0]?.body.events[0]?.user_id, null);
+});
+
 test('identify: false never links activity to an account', async () => {
   const storage = memoryStorage({ 'dataflare:latchflow:user_id': 'user-9' });
   const { client, sent } = setup({ storage, identify: false });

@@ -127,4 +127,29 @@ describe('data and flag commands', () => {
       /checkout-v2|exposed|No exposures/i,
     );
   });
+
+  // Runs last: a second project makes the other commands ask which project to use.
+  it('adds a project, sets and reads its policy, and shows its audit log', async () => {
+    await assert.rejects(() => projects('add', undefined, {}), /Pass an id/);
+    await assert.rejects(() => projects('policy', undefined, {}), /Pass an id/);
+    await assert.rejects(() => projects('audit', undefined, {}), /Pass an id/);
+    await output(() => projects('add', 'school', { name: 'School' }));
+    assert.match(await output(() => projects(undefined, undefined, {})), /school/);
+    // An unknown subcommand, even an Object.prototype key, lists projects.
+    assert.match(await output(() => projects('toString', undefined, {})), /school/);
+    await output(() =>
+      projects('policy', 'school', {
+        audience: 'minors',
+        'pseudonym-pattern': '^s[0-9]+$',
+        'event-props': 'step, score',
+        'person-props': 'cohort',
+        replay: 'off',
+        'retention-days': '90',
+      }),
+    );
+    const policy = JSON.parse(await output(() => projects('policy', 'school', { json: true })));
+    assert.match(JSON.stringify(policy), /minors/);
+    assert.match(JSON.stringify(policy), /score/);
+    assert.match(await output(() => projects('audit', 'school', {})), /When/);
+  });
 });
