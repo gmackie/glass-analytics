@@ -26,4 +26,11 @@ the read-only `CF_API_TOKEN`) were set at install and are never synced from Forg
 target has `syncSecrets: false`.
 
 `node scripts/check-deployments.ts` (in CI) checks that each config points at the built bundle,
-that the CLI and wrangler configs agree, and that no credential is committed.
+that the CLI and wrangler configs agree (including retention), and that no credential is committed.
+
+## Retention
+
+`observe` keeps events for 365 days (DATFLR-16, 2026-11-22): `retentionDays` in `config.json`,
+which the daily `lake-maintain` workflow applies to the Basin tables, and `GLASS_RETENTION_DAYS` in
+`wrangler.jsonc`, which the usage report shows. The Worker can't delete lake rows itself.
+`educateos-site` and `district` keep events for 395 days, set the same way.
