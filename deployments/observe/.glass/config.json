@@ -22,7 +22,7 @@
     ]
   },
   "route": null,
-  "retentionDays": null,
+  "retentionDays": 365,
   "eu": false,
   "version": "0.8.0"
 }

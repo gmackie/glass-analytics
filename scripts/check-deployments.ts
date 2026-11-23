@@ -63,6 +63,17 @@ for (const name of names) {
   if (d1[0] && (config.d1 as { name?: string } | undefined)?.name !== d1[0].database_name)
     fail(name, 'config.json d1.name does not match the wrangler D1 binding');
 
+  // Lake retention is applied by `dataflare lake maintain` from config.json, D1 retention by the
+  // Worker from GLASS_RETENTION_DAYS; the usage report reads the Worker's. Keep them equal.
+  const vars = (wrangler.vars as Record<string, string> | undefined) ?? {};
+  const workerDays = Number(vars.GLASS_RETENTION_DAYS ?? 0) || null;
+  const configDays = Number(config.retentionDays ?? 0) || null;
+  if (workerDays !== configDays)
+    fail(
+      name,
+      `retention differs: config.json retentionDays ${configDays}, wrangler GLASS_RETENTION_DAYS ${workerDays}`,
+    );
+
   // Credentials live in ForgeGraph and as Worker secrets, never in these files.
   const raw =
     readFileSync(join(glass, 'wrangler.jsonc'), 'utf8') +

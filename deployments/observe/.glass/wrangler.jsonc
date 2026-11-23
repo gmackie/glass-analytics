@@ -18,7 +18,8 @@
     "LAKE_BUCKET": "dataflare-observe-data",
     "LAKE_NAMESPACE": "glass",
     "LAKE_VERSIONS": "1",
-    "CF_ACCOUNT_ID": "c07a7e704db1808e1fff91bed2b1cd49"
+    "CF_ACCOUNT_ID": "c07a7e704db1808e1fff91bed2b1cd49",
+    "GLASS_RETENTION_DAYS": "365"
   },
   "triggers": {
     "crons": [
