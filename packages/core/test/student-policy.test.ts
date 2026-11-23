@@ -57,6 +57,19 @@ describe('student policy', () => {
     assert.equal(sanitizeUrl('javascript:alert(1)'), '');
   });
 
+  it('keeps short string flags and drops the rest', () => {
+    const { event } = sanitizeMinorsEvent(
+      {
+        id: 'e1',
+        event: 'lesson_completed',
+        ts: 1,
+        flags: { beta: 'on', long: 'x'.repeat(101), count: 3 as unknown as string },
+      },
+      policy,
+    );
+    assert.deepEqual(event?.flags, { beta: 'on' });
+  });
+
   it('strips everything an SDK might send that the policy does not allow', () => {
     const { event, removed } = sanitizeMinorsEvent(
       {
@@ -155,6 +168,11 @@ describe('student policy', () => {
 });
 
 describe('replay scrubbing', () => {
+  it('keeps events it does not read, such as DomContentLoaded, as they are', () => {
+    const loaded = { type: 0, timestamp: 1, data: {} };
+    assert.deepEqual(scrubReplayEvents([loaded]), [loaded]);
+  });
+
   it('masks text, inputs and free-text attributes and drops console and network', () => {
     const events = scrubReplayEvents([
       {

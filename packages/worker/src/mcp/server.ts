@@ -70,6 +70,8 @@ function toolList() {
   return schemaCache;
 }
 
+const toolError = (text: string) => ({ content: [{ type: 'text', text }], isError: true });
+
 async function callTool(
   service: GlassService,
   scope: Scope,
@@ -77,50 +79,48 @@ async function callTool(
 ) {
   const name = String(params?.name ?? '');
   const tool = TOOLS_BY_NAME.get(name);
-  if (!tool) return { content: [{ type: 'text', text: `Unknown tool "${name}".` }], isError: true };
+  if (!tool) return toolError(`Unknown tool "${name}".`);
   if (tool.scope === 'admin' && scope !== 'admin') {
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `"${name}" changes data and needs the admin key; this connection uses the read-only key.`,
-        },
-      ],
-      isError: true,
-    };
+    return toolError(
+      `"${name}" changes data and needs the admin key; this connection uses the read-only key.`,
+    );
   }
   try {
-    if (service.auditActor) {
-      const args = params?.arguments;
-      const sqlText = (args as { query?: unknown } | undefined)?.query;
-      service.setActor({
-        ...service.auditActor,
-        operation: `tool:${name}`,
-        detail: typeof sqlText === 'string' ? sqlText : JSON.stringify(args ?? {}),
-      });
-    }
+    recordToolActor(service, name, params?.arguments);
     const result = await tool.run(service, params?.arguments ?? {});
-    let text = JSON.stringify(result, null, 2);
-    if (text.length > MAX_TEXT)
-      text = `${text.slice(0, MAX_TEXT)}\n… (truncated; narrow the query or lower limits)`;
-    return {
-      content: [{ type: 'text', text }],
-      ...(result && typeof result === 'object' && !Array.isArray(result)
-        ? { structuredContent: result }
-        : {}),
-    };
+    return toolResult(result);
   } catch (err) {
     // Tool errors go back to the model as readable text so it can correct itself.
-    const message =
-      err instanceof HttpError
-        ? `${err.message}${err.hint ? ` Hint: ${err.hint}` : ''}`
-        : isValidationError(err)
-          ? `Invalid arguments — ${describeIssues(err)}`
-          : err instanceof Error
-            ? err.message
-            : String(err);
-    return { content: [{ type: 'text', text: message }], isError: true };
+    return toolError(toolErrorMessage(err));
   }
+}
+
+/** Attribute audited writes to this tool call; SQL tools record their query. */
+function recordToolActor(service: GlassService, name: string, args: unknown): void {
+  if (!service.auditActor) return;
+  const sqlText = (args as { query?: unknown } | undefined)?.query;
+  service.setActor({
+    ...service.auditActor,
+    operation: `tool:${name}`,
+    detail: typeof sqlText === 'string' ? sqlText : JSON.stringify(args ?? {}),
+  });
+}
+
+function toolResult(result: unknown) {
+  let text = JSON.stringify(result, null, 2);
+  if (text.length > MAX_TEXT)
+    text = `${text.slice(0, MAX_TEXT)}\n… (truncated; narrow the query or lower limits)`;
+  const structured = result && typeof result === 'object' && !Array.isArray(result);
+  return {
+    content: [{ type: 'text', text }],
+    ...(structured ? { structuredContent: result } : {}),
+  };
+}
+
+function toolErrorMessage(err: unknown): string {
+  if (err instanceof HttpError) return `${err.message}${err.hint ? ` Hint: ${err.hint}` : ''}`;
+  if (isValidationError(err)) return `Invalid arguments — ${describeIssues(err)}`;
+  return err instanceof Error ? err.message : String(err);
 }
 
 async function handleMessage(msg: JsonRpcRequest, service: GlassService, scope: Scope) {

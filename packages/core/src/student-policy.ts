@@ -203,43 +203,18 @@ export interface SanitizedEvent {
  */
 export function sanitizeMinorsEvent(e: WireEvent, policy: StudentPolicy): SanitizedEvent {
   const removed: string[] = [];
-  let user: string | null = null;
-  if (typeof e.user_id === 'string' && e.user_id) {
-    if (isPseudonym(e.user_id, policy)) user = e.user_id;
-    else removed.push('user_id');
-  }
+  const user = pseudonymousUser(e.user_id, policy, removed);
   if (e.event === '$identify' && !user) return { event: null, removed: [...removed, 'event'] };
 
   const system = Object.hasOwn(SYSTEM_PROPS, e.event) ? SYSTEM_PROPS[e.event]! : null;
   if (e.event.startsWith('$') && !system) return { event: null, removed: ['event'] };
-  const allowed = system ?? policy.event_properties;
   const rawProps = (e.props && typeof e.props === 'object' ? e.props : {}) as Record<
     string,
     unknown
   >;
-  const props: Record<string, unknown> = pick(rawProps, allowed);
-  if (e.event === '$click' && typeof rawProps.href === 'string') {
-    const href = sanitizeUrl(rawProps.href);
-    if (href) props.href = href;
-  }
-  for (const key of Object.keys(rawProps))
-    if (!(key in props) && key !== '$set' && key !== '$set_once') removed.push(`props.${key}`);
-
-  if (e.event === '$identify' || e.event === '$set') {
-    for (const op of ['$set', '$set_once'] as const) {
-      const value = rawProps[op];
-      if (!value || typeof value !== 'object') continue;
-      const kept = pick(value, policy.person_properties);
-      for (const key of Object.keys(value as object))
-        if (!(key in kept)) removed.push(`${op}.${key}`);
-      if (Object.keys(kept).length) props[op] = kept;
-    }
-  }
-
-  const flags: Record<string, string> = {};
-  if (e.flags && typeof e.flags === 'object')
-    for (const [k, v] of Object.entries(e.flags))
-      if (typeof v === 'string' && v.length <= 100 && k.length <= 100) flags[k] = v;
+  const props = eventProps(e.event, rawProps, system ?? policy.event_properties, removed);
+  if (e.event === '$identify' || e.event === '$set')
+    Object.assign(props, personProps(rawProps, policy, removed));
 
   return {
     event: {
@@ -253,10 +228,66 @@ export function sanitizeMinorsEvent(e: WireEvent, policy: StudentPolicy): Saniti
       referrer: sanitizeReferrer(e.referrer),
       title: '',
       props,
-      flags,
+      flags: safeFlags(e.flags),
     },
     removed,
   };
+}
+
+/** The user id when it is a valid pseudonym; any other user id is recorded as removed. */
+function pseudonymousUser(
+  userId: unknown,
+  policy: StudentPolicy,
+  removed: string[],
+): string | null {
+  if (typeof userId !== 'string' || !userId) return null;
+  if (isPseudonym(userId, policy)) return userId;
+  removed.push('user_id');
+  return null;
+}
+
+/** The allowed properties, plus a sanitized `href` on clicks. `$set`/`$set_once` are handled separately. */
+function eventProps(
+  event: string,
+  rawProps: Record<string, unknown>,
+  allowed: readonly string[],
+  removed: string[],
+): Record<string, unknown> {
+  const props: Record<string, unknown> = pick(rawProps, allowed);
+  if (event === '$click' && typeof rawProps.href === 'string') {
+    const href = sanitizeUrl(rawProps.href);
+    if (href) props.href = href;
+  }
+  for (const key of Object.keys(rawProps))
+    if (!(key in props) && key !== '$set' && key !== '$set_once') removed.push(`props.${key}`);
+  return props;
+}
+
+/** `$set` and `$set_once` reduced to the policy's person properties; empty ones are left out. */
+function personProps(
+  rawProps: Record<string, unknown>,
+  policy: StudentPolicy,
+  removed: string[],
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const op of ['$set', '$set_once'] as const) {
+    const value = rawProps[op];
+    if (!value || typeof value !== 'object') continue;
+    const kept = pick(value, policy.person_properties);
+    for (const key of Object.keys(value as object))
+      if (!(key in kept)) removed.push(`${op}.${key}`);
+    if (Object.keys(kept).length) out[op] = kept;
+  }
+  return out;
+}
+
+/** Flag assignments whose key and value are strings of at most 100 characters. */
+function safeFlags(flags: unknown): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!flags || typeof flags !== 'object') return out;
+  for (const [k, v] of Object.entries(flags))
+    if (typeof v === 'string' && v.length <= 100 && k.length <= 100) out[k] = v;
+  return out;
 }
 
 // ── Replay ────────────────────────────────────────────────────────────────
@@ -317,23 +348,25 @@ function scrubAttributes(
   const out: Record<string, unknown> = {};
   if (!attrs || typeof attrs !== 'object') return out;
   for (const [name, value] of Object.entries(attrs)) {
-    if (value === null) {
-      out[name] = null; // a removal in a mutation
-      continue;
-    }
-    if (name === 'rr_dataURL') continue; // inlined canvas/image pixels
-    if (URL_ATTRIBUTES.has(name)) {
-      // Stylesheets and scripts keep their location so the page renders; images and links don't.
-      const keep = tag === 'link' || tag === 'script' || tag === undefined;
-      if (keep && typeof value === 'string') {
-        const url = sanitizeUrl(value);
-        if (url) out[name] = url;
-      }
-      continue;
-    }
-    if (SAFE_ATTRIBUTES.has(name)) out[name] = value;
+    const kept = scrubAttribute(name, value, tag);
+    if (kept !== undefined) out[name] = kept;
   }
   return out;
+}
+
+/** The value to keep for one attribute, or undefined to drop it. */
+function scrubAttribute(name: string, value: unknown, tag: string | undefined): unknown {
+  if (value === null) return null; // a removal in a mutation
+  if (name === 'rr_dataURL') return undefined; // inlined canvas/image pixels
+  if (URL_ATTRIBUTES.has(name)) return scrubUrlAttribute(value, tag);
+  return SAFE_ATTRIBUTES.has(name) ? value : undefined;
+}
+
+/** Stylesheets and scripts keep their location so the page renders; images and links don't. */
+function scrubUrlAttribute(value: unknown, tag: string | undefined): string | undefined {
+  const keep = tag === 'link' || tag === 'script' || tag === undefined;
+  if (!keep || typeof value !== 'string') return undefined;
+  return sanitizeUrl(value) || undefined;
 }
 
 interface RrNode {
@@ -385,45 +418,59 @@ export function scrubReplayEvents(events: ReplayEventLike[]): ReplayEventLike[] 
   const out: ReplayEventLike[] = [];
   for (const event of events) {
     if (!event || typeof event !== 'object') continue;
-    const { type, data } = event;
-    if (type === RR.FullSnapshot) {
-      out.push({ ...event, data: { ...data, node: scrubNode(data?.node) } });
-    } else if (type === RR.Meta) {
-      out.push({ ...event, data: { ...data, href: sanitizeUrl(data?.href) } });
-    } else if (type === RR.Custom) {
-      const kept = scrubCustom(data);
-      if (kept) out.push({ ...event, data: kept });
-    } else if (type === RR.Plugin) {
-      // Plugins record arbitrary page data.
-    } else if (type === RR.Incremental && data?.source === RR.Mutation) {
-      out.push({
-        ...event,
-        data: {
-          ...data,
-          texts: (data.texts ?? []).map((t: { value?: unknown }) => ({
-            ...t,
-            value: typeof t.value === 'string' ? maskText(t.value) : t.value,
-          })),
-          attributes: (data.attributes ?? []).map(
-            (a: { attributes?: Record<string, unknown> }) => ({
-              ...a,
-              attributes: scrubAttributes(a.attributes, undefined),
-            }),
-          ),
-          adds: (data.adds ?? []).map((a: { node?: RrNode }) => ({
-            ...a,
-            node: scrubNode(a.node as RrNode),
-          })),
-        },
-      });
-    } else if (type === RR.Incremental && data?.source === RR.Input) {
-      out.push({
-        ...event,
-        data: { ...data, text: typeof data.text === 'string' ? maskText(data.text) : '' },
-      });
-    } else {
-      out.push(event);
-    }
+    const kept = scrubReplayEvent(event);
+    if (kept) out.push(kept);
   }
   return out;
+}
+
+/** One rrweb event masked for student mode, or null to drop it. */
+function scrubReplayEvent(event: ReplayEventLike): ReplayEventLike | null {
+  const { type, data } = event;
+  switch (type) {
+    case RR.FullSnapshot:
+      return { ...event, data: { ...data, node: scrubNode(data?.node) } };
+    case RR.Meta:
+      return { ...event, data: { ...data, href: sanitizeUrl(data?.href) } };
+    case RR.Custom: {
+      const kept = scrubCustom(data);
+      return kept ? { ...event, data: kept } : null;
+    }
+    case RR.Plugin:
+      return null; // Plugins record arbitrary page data.
+    case RR.Incremental:
+      return scrubIncremental(event);
+    default:
+      return event;
+  }
+}
+
+function scrubIncremental(event: ReplayEventLike): ReplayEventLike {
+  const { data } = event;
+  if (data?.source === RR.Mutation) return { ...event, data: scrubMutation(data) };
+  if (data?.source === RR.Input)
+    return {
+      ...event,
+      data: { ...data, text: typeof data.text === 'string' ? maskText(data.text) : '' },
+    };
+  return event;
+}
+
+// biome-ignore lint/suspicious/noExplicitAny: rrweb payloads are heterogeneous
+function scrubMutation(data: any): unknown {
+  return {
+    ...data,
+    texts: (data.texts ?? []).map((t: { value?: unknown }) => ({
+      ...t,
+      value: typeof t.value === 'string' ? maskText(t.value) : t.value,
+    })),
+    attributes: (data.attributes ?? []).map((a: { attributes?: Record<string, unknown> }) => ({
+      ...a,
+      attributes: scrubAttributes(a.attributes, undefined),
+    })),
+    adds: (data.adds ?? []).map((a: { node?: RrNode }) => ({
+      ...a,
+      node: scrubNode(a.node as RrNode),
+    })),
+  };
 }

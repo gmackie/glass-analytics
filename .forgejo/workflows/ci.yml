@@ -25,9 +25,12 @@ jobs:
           corepack enable
           pnpm config set store-dir "${RUNNER_TEMP:-/tmp}/pnpm-store"
           pnpm install --frozen-lockfile
+      # Upstream's `pnpm check` (DATFLR-17): typecheck, lint, knip, tests, then the coverage and
+      # complexity ratchet. `pnpm quality` runs the tests itself, with coverage.
       - run: pnpm typecheck
       - run: pnpm lint
-      - run: pnpm test
+      - run: pnpm knip
+      - run: pnpm quality
       - run: pnpm build
       - name: Check deployment configs
         run: node scripts/check-deployments.ts
