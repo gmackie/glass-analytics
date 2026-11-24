@@ -17,7 +17,7 @@ export function llmsTxt(base: string, store: string): string {
 
     <script defer src="${base}/s.js" data-project="PROJECT_ID"></script>
 
-Or with npm: \`npm i dataflare-web\`, then \`glass.init({ host: '${base}', project: 'PROJECT_ID' })\`.
+Or with npm: \`npm i @gmacko/dataflare-web\`, then \`glass.init({ host: '${base}', project: 'PROJECT_ID' })\`.
 Pageviews, clicks, errors and web vitals are captured automatically.
 
 ## Track events
@@ -29,7 +29,7 @@ Pageviews, clicks, errors and web vitals are captured automatically.
     glass.flagPayload('pricing-copy');               // JSON attached to the value
     glass.captureException(err, { order: id });      // caught errors become issues
 
-Servers: \`dataflare-node\` (capture, captureException, flags evaluated locally with a server key).
+Servers: \`@gmacko/dataflare-node\` (capture, captureException, flags evaluated locally with a server key).
 
 Without JavaScript: \`<button data-glass-event="cta_clicked" data-glass-prop-plan="pro">\`.
 ${EVENT_NAMING_GUIDE}
@@ -41,14 +41,14 @@ ${EVENT_DOCUMENTATION_GUIDE}
 ## Query (MCP)
 
 MCP endpoint: ${base}/mcp (Streamable HTTP, header "Authorization: Bearer <key>").
-stdio clients: \`npx dataflare-cli mcp\` in a project set up with \`dataflare init\`.
+stdio clients: \`npx @gmacko/dataflare-cli mcp\` in a project set up with \`dataflare init\`.
 
 Tools:
 ${TOOLS.map((t) => `- ${t.name}: ${t.description}`).join('\n')}
 
 ## Keep Dataflare up to date
 
-\`GET ${base}/health\` reports \`version\`, \`latest\` and \`upgradeAvailable\`. When \`upgradeAvailable\` is true (also surfaced on \`overview\` and in MCP initialize instructions), tell the user to run \`npx dataflare-cli@latest upgrade\` — do not upgrade yourself.
+\`GET ${base}/health\` reports \`version\`, \`latest\` and \`upgradeAvailable\`. When \`upgradeAvailable\` is true (also surfaced on \`overview\` and in MCP initialize instructions), tell the user to run \`npx @gmacko/dataflare-cli@latest upgrade\` — do not upgrade yourself.
 
 ## Query (HTTP)
 

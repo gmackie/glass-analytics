@@ -290,7 +290,7 @@ function stackPanel(d: IssueDetail): HTMLElement {
       icon: 'code',
       subtitle: d.stack.mapped
         ? `${d.stack.mapped} frames mapped to source`
-        : 'Minified? Upload source maps: npx dataflare-cli sourcemaps upload dist --release <version>',
+        : 'Minified? Upload source maps: npx @gmacko/dataflare-cli sourcemaps upload dist --release <version>',
     },
   );
 }
@@ -604,7 +604,7 @@ function sourcemapsPanel(): HTMLElement {
             h(
               'pre',
               { class: 'code-inline' },
-              'npx dataflare-cli sourcemaps upload dist --release "$GITHUB_SHA"',
+              'npx @gmacko/dataflare-cli sourcemaps upload dist --release "$GITHUB_SHA"',
             ),
             h(
               'p',

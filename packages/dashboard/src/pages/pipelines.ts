@@ -1153,10 +1153,14 @@ function imports(): Child {
         h(
           'pre',
           { class: 'code-inline' },
-          'npx dataflare-cli import export.ndjson --preset posthog   # mixpanel, amplitude, segment, ga4, raw',
+          'npx @gmacko/dataflare-cli import export.ndjson --preset posthog   # mixpanel, amplitude, segment, ga4, raw',
         ),
         h('p', { class: 'muted' }, 'Payments from Stripe have their own importer:'),
-        h('pre', { class: 'code-inline' }, 'npx dataflare-cli stripe import --api-key rk_live_…'),
+        h(
+          'pre',
+          { class: 'code-inline' },
+          'npx @gmacko/dataflare-cli stripe import --api-key rk_live_…',
+        ),
       ],
       { icon: 'code' },
     ),

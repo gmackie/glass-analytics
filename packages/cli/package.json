@@ -1,7 +1,7 @@
 {
-  "name": "dataflare-cli",
+  "name": "@gmacko/dataflare-cli",
   "version": "0.9.1",
-  "description": "Agent-first analytics in your own Cloudflare account. `npx dataflare-cli init` deploys it.",
+  "description": "Agent-first analytics in your own Cloudflare account. `npx @gmacko/dataflare-cli init` deploys it.",
   "license": "MIT",
   "type": "module",
   "bin": {
@@ -36,6 +36,7 @@
     "@dataflare/worker": "workspace:*"
   },
   "publishConfig": {
+    "registry": "https://npm.forgegraf.com/",
     "access": "public"
   }
 }

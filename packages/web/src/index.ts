@@ -1,8 +1,8 @@
 /**
- * dataflare-web — the Dataflare browser SDK.
+ * @gmacko/dataflare-web — the Dataflare browser SDK.
  *
  * ```ts
- * import { glass } from 'dataflare-web';
+ * import { glass } from '@gmacko/dataflare-web';
  *
  * glass.init({ host: 'https://glass.acme.workers.dev', project: 'acme' });
  * glass.capture('signup_completed', { plan: 'pro' });

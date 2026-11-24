@@ -15,7 +15,7 @@ export interface WireEvent {
   title?: string | null;
   props?: Record<string, unknown>;
   flags?: Record<string, string>;
-  /** Server-side senders only (imports, dataflare-node with a key). */
+  /** Server-side senders only (imports, @gmacko/dataflare-node with a key). */
   context?: {
     country?: string;
     region?: string;

@@ -4,7 +4,7 @@
  * A flag either returns `null` (off for this user) or a value: `"on"` for simple
  * flags, or a variant key for multivariate flags. Each value can carry a JSON
  * payload (remote config). Assignment is deterministic — a hash of the flag key
- * and an id — so the browser, the Worker and your own servers (dataflare-node,
+ * and an id — so the browser, the Worker and your own servers (@gmacko/dataflare-node,
  * local evaluation) always agree, with no shared state.
  *
  * What is hashed (`bucketBy`):

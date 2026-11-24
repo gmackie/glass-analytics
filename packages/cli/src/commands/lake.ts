@@ -119,7 +119,7 @@ export async function lakeMaintain(
   if (!config)
     throw new UsageError(
       'No Dataflare deployment in this project.',
-      'Run `npx dataflare-cli init` first.',
+      'Run `npx @gmacko/dataflare-cli init` first.',
     );
   if (config.store !== 'lake' || !config.lake)
     throw new UsageError(

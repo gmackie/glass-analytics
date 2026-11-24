@@ -598,7 +598,7 @@ function bucket(env: Env) {
     throw new HttpError(
       501,
       'Source maps are stored in R2, and this deployment has no R2 bucket',
-      'Enable R2 on the Cloudflare account, then run `npx dataflare-cli upgrade`.',
+      'Enable R2 on the Cloudflare account, then run `npx @gmacko/dataflare-cli upgrade`.',
     );
   }
   return env.REPLAYS;
