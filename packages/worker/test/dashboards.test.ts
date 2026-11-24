@@ -4,8 +4,10 @@
  * and an unsubscribe link, the cron sending what's due, and alerts firing and resolving.
  */
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { beforeEach, describe, it } from 'node:test';
 import { runMaintenance } from '../src/cron.ts';
+import { ensureStarterDashboard } from '../src/dashboards.ts';
 import { clearDestinationCache, configureDeliveries } from '../src/destinations.ts';
 import type { EmailSender } from '../src/env.ts';
 import { clearGroupTypeCache } from '../src/ingest.ts';
@@ -92,6 +94,113 @@ type Tile = {
 
 describe('dashboards', () => {
   beforeEach(() => setup());
+
+  it('initializes existing and new projects once and keeps edited or deleted boards as the owner left them', async () => {
+    const list = async (project: string) =>
+      (
+        await t.json<{ dashboards: { id: string; name: string; tiles: number }[] }>(
+          'GET',
+          `/api/dashboards?project=${project}`,
+          { key: READ },
+        )
+      ).dashboards;
+    const [starter] = await list('acme');
+    assert.equal(starter!.name, 'Website overview');
+    assert.equal(starter!.tiles, 5);
+    await t.json('PUT', `/api/dashboards/${starter!.id}`, {
+      body: { project: 'acme', name: 'Our overview' },
+    });
+    await t.json('POST', '/api/projects', { body: { id: 'acme' } });
+    assert.deepEqual(
+      (await list('acme')).map((d) => [d.id, d.name, d.tiles]),
+      [[starter!.id, 'Our overview', 5]],
+    );
+    await t.json('DELETE', `/api/dashboards/${starter!.id}?project=acme`);
+    assert.deepEqual(await list('acme'), []);
+
+    // An install upgraded with existing projects may have boards and customized analyses already.
+    t.db.sqlite.exec("INSERT INTO projects (id,name,created_at) VALUES ('legacy','Legacy',1)");
+    const custom = await t.json<{ id: string }>('POST', '/api/dashboards', {
+      body: { project: 'legacy', name: 'Executive metrics' },
+    });
+    const [a, b] = await Promise.all([list('legacy'), list('legacy')]);
+    assert.deepEqual(a, b);
+    assert.deepEqual(
+      a.map((d) => [d.name, d.tiles]),
+      [
+        ['Executive metrics', 0],
+        ['Website overview', 5],
+      ],
+    );
+    assert.equal(a[0]!.id, custom.id);
+    const detail = await t.json<{ tiles: Tile[] }>(
+      'GET',
+      `/api/dashboards/${a[1]!.id}?project=legacy`,
+      { key: READ },
+    );
+    assert.ok(detail.tiles.every((tile) => tile.insight?.key));
+  });
+
+  it('runs the starter analyses as a reader and keeps a deleted analysis out of the board', async () => {
+    const { dashboards } = await t.json<{ dashboards: { id: string }[] }>(
+      'GET',
+      '/api/dashboards?project=acme',
+    );
+    const board = '/api/dashboards/' + dashboards[0]!.id;
+    const read = () =>
+      t.json<{ tiles: Tile[]; results: { title: string; note?: string }[] }>(
+        'GET',
+        board + '?project=acme&results=true',
+        { key: READ },
+      );
+    const ready = await read();
+    assert.equal(ready.results.length, 5);
+    assert.ok(ready.results.some((r) => r.title === 'Pageviews'));
+    const key = ready.tiles[0]!.insight!.key;
+    await t.json('DELETE', '/api/insights/' + key + '?project=acme');
+    const edited = await read();
+    assert.equal(edited.tiles[0]!.insight, null);
+    const missing = await t.call('POST', board + '/tiles', {
+      body: { project: 'acme', kind: 'insight', insightKey: key },
+    });
+    assert.equal(missing.status, 404);
+  });
+
+  it('adopts pre-upgrade starter boards and retries an interrupted setup without partial tiles', async () => {
+    const db = t.db.sqlite;
+    db.exec("INSERT INTO projects (id,name,created_at) VALUES ('old','Old',1),('retry','Retry',1)");
+    const old = await t.json<{ id: string }>('POST', '/api/dashboards/from-template', {
+      body: { project: 'old', template: 'website' },
+    });
+    db.exec(
+      readFileSync(new URL('../migrations/0020_dashboard_setup.sql', import.meta.url), 'utf8'),
+    );
+    await ensureStarterDashboard(t.db, 'old');
+    assert.deepEqual(
+      db
+        .prepare("SELECT id FROM dashboards WHERE project='old'")
+        .all()
+        .map((r) => r.id),
+      [old.id],
+    );
+
+    db.exec(
+      "CREATE TRIGGER fail_tile BEFORE INSERT ON dashboard_tiles WHEN NEW.project = 'retry' AND NEW.position = 1 BEGIN SELECT RAISE(ABORT, 'tile failed'); END",
+    );
+    await assert.rejects(ensureStarterDashboard(t.db, 'retry'), /tile failed/);
+    for (const table of ['dashboards', 'insights', 'dashboard_tiles', 'dashboard_setup']) {
+      assert.equal(
+        db.prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE project = 'retry'`).get()!.n,
+        0,
+      );
+    }
+    db.exec('DROP TRIGGER fail_tile');
+    await ensureStarterDashboard(t.db, 'retry');
+    assert.equal(
+      db.prepare("SELECT COUNT(*) AS n FROM dashboard_tiles WHERE project='retry'").get()!.n,
+      5,
+    );
+  });
 
   it('starts from a template with the project’s own events', async () => {
     const templates = await t.json<{ events: { signup?: string; purchase?: string } }>(

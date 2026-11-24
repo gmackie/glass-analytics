@@ -1,7 +1,6 @@
 /**
  * Charts, drawn as plain SVG at the container's real pixel width (so text and
- * strokes stay crisp at any size). Series colours are the traditional colours
- * of bottle glass — float green, cobalt, amber, ruby — defined in styles.css.
+ * strokes stay crisp at any size). Series share the dashboard palette in styles.css.
  */
 
 import { addMonths } from '@dataflare/core/time';
@@ -11,11 +10,11 @@ import { href } from '../state.ts';
 import { icon } from './icons.ts';
 
 export const SERIES = [
-  'var(--glass-green)',
-  'var(--glass-cobalt)',
-  'var(--glass-amber)',
-  'var(--glass-ruby)',
-  'var(--glass-teal)',
+  'var(--accent)',
+  'var(--series-violet)',
+  'var(--series-amber)',
+  'var(--series-rose)',
+  'var(--series-cyan)',
   'var(--smoke)',
 ];
 

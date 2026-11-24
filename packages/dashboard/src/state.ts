@@ -131,7 +131,10 @@ export function href(page: string, params: Record<string, string | undefined | n
   const current = currentRoute().params;
   const next = new URLSearchParams();
   for (const k of ['project', 'from', 'to']) if (current.get(k)) next.set(k, current.get(k)!);
-  for (const [k, v] of Object.entries(params)) if (v) next.set(k, v);
+  for (const [k, v] of Object.entries(params)) {
+    if (v) next.set(k, v);
+    else if (v === null) next.delete(k);
+  }
   const q = next.toString();
   return `#/${page}${q ? `?${q}` : ''}`;
 }

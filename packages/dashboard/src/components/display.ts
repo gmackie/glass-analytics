@@ -137,7 +137,7 @@ function countryValues(rows: { code: string; value: number }[]): {
 
 /** The fill for a country's value, on a square-root scale so mid-sized countries still show. */
 const shadeFor = (max: number) => (v: number) =>
-  `color-mix(in srgb, var(--glass-green) ${Math.round(12 + 78 * Math.sqrt(v / (max || 1)))}%, var(--surface-2))`;
+  `color-mix(in srgb, var(--accent) ${Math.round(12 + 78 * Math.sqrt(v / (max || 1)))}%, var(--surface-2))`;
 
 /** The floating label that follows the pointer over the map. */
 function mapReadout(svg: SVGElement): HTMLElement {

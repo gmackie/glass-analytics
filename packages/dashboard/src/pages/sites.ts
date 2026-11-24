@@ -1,36 +1,23 @@
 /**
  * All sites: every project side by side, so a deployment that tracks several
  * sites shows which are gaining or losing traffic, and which stopped sending
- * pageviews. Reached from the project switcher; only offered with 2+ projects.
- * Data: `GET /api/sites` (also the `compare_sites` MCP tool).
+ * pageviews.
+ * Traffic rankings drill into exact paths and their contributing sites.
  */
 
+import type {
+  SiteRow as Site,
+  SitesResult as Sites,
+  SiteTrend as Trend,
+} from '@dataflare/core/insights/sites';
 import { api } from '../api.ts';
 import { sparkline } from '../components/charts.ts';
 import { icon } from '../components/icons.ts';
 import { empty, later, pageHeader, panel, table, tabs } from '../components/ui.ts';
 import { h } from '../dom.ts';
 import { ago, change, count } from '../format.ts';
-import { currentRoute, go, href, prefs, type Route, scope } from '../state.ts';
-
-type Trend = 'up' | 'down' | 'steady' | 'quiet' | 'new' | 'stopped' | 'none';
-
-interface Site {
-  project: string;
-  visitors: number;
-  pageviews: number;
-  previous: { visitors: number; pageviews: number };
-  change: number | null;
-  trend: Trend;
-  series: number[];
-  lastPageview: string | null;
-}
-
-interface Sites {
-  sites: Site[];
-  buckets: number[];
-  sql: string[];
-}
+import { go, href, type Route, scope } from '../state.ts';
+import { trafficPanels } from './traffic.ts';
 
 type Sort = 'traffic' | 'change';
 
@@ -65,7 +52,9 @@ const ATTENTION: Record<Trend, number> = {
 
 function sorted(sites: Site[], sort: Sort): Site[] {
   if (sort === 'traffic')
-    return [...sites].sort((a, b) => b.visitors - a.visitors || a.project.localeCompare(b.project));
+    return [...sites].sort(
+      (a, b) => b.pageviews - a.pageviews || a.project.localeCompare(b.project),
+    );
   return [...sites].sort(
     (a, b) =>
       ATTENTION[a.trend] - ATTENTION[b.trend] ||
@@ -92,109 +81,122 @@ function delta(now: number, before: number): HTMLElement | string {
   );
 }
 
-function open(project: string): void {
-  prefs.project = project;
-  go('reports', { project });
+/** Site activity keeps the comparison with the preceding period alongside the path ranking. */
+function siteActivity(route: Route): HTMLElement {
+  const sc = scope();
+  const sort: Sort = route.params.get('sort') === 'change' ? 'change' : 'traffic';
+  const order = tabs(
+    [
+      { value: 'traffic', label: 'Most traffic' },
+      { value: 'change', label: 'Needs attention' },
+    ],
+    sort,
+    (next) => go('sites', { project: null, sort: next }),
+  );
+  return later(
+    async () => {
+      const r = await api.get<Sites>('/api/sites', { from: sc.from, to: sc.to });
+      if (r.sites.length === 0) return empty('No projects yet.');
+      const counts = (t: Trend) => r.sites.filter((s) => s.trend === t).length;
+      const chips = (['up', 'down', 'stopped', 'new'] as Trend[])
+        .filter((t) => counts(t) > 0)
+        .map((t) =>
+          h(
+            'span',
+            { class: `site-trend ${TREND[t].class}`, title: TREND[t].title },
+            `${counts(t)} ${TREND[t].label.toLowerCase()}`,
+          ),
+        );
+      const rows = sorted(r.sites, sort).map((s) => {
+        const t = TREND[s.trend];
+        return [
+          h(
+            'a',
+            {
+              class: 'site-name',
+              href: href('sites', { project: s.project }),
+            },
+            h(
+              'span',
+              { class: 'project-mark', 'aria-hidden': 'true' },
+              s.project[0]!.toUpperCase(),
+            ),
+            s.project,
+          ),
+          h('span', { class: `site-trend ${t.class}`, title: t.title }, t.label),
+          h('span', { class: 'site-spark' }, sparkline(s.series, { height: 28 })),
+          count(s.visitors),
+          delta(s.visitors, s.previous.visitors),
+          count(s.pageviews),
+          delta(s.pageviews, s.previous.pageviews),
+          s.lastPageview
+            ? h('span', { class: 'muted', title: s.lastPageview }, ago(s.lastPageview))
+            : h('span', { class: 'muted' }, 'never'),
+        ];
+      });
+      return panel(
+        'Site activity',
+        [
+          h(
+            'p',
+            { class: 'sites-summary' },
+            chips,
+            h(
+              'span',
+              { class: 'muted' },
+              `${count(r.sites.reduce((n, s) => n + s.visitors, 0))} visitors across ${r.sites.length} sites`,
+            ),
+          ),
+          table(
+            [
+              'Site',
+              'Trend',
+              'Visitors over time',
+              'Visitors',
+              '',
+              'Pageviews',
+              '',
+              'Last pageview',
+            ],
+            rows,
+            { numeric: [3, 4, 5, 6], class: 'sites-table' },
+          ),
+        ],
+        { sql: r.sql, actions: order },
+      );
+    },
+    'Loading sites',
+    'table',
+  );
+}
+
+function trafficLink(label: string, page: string, params: Record<string, string | null>) {
+  return h('a', { class: 'button small', href: href(page, params) }, label);
 }
 
 export function sitesPage(route: Route): Node[] {
-  const sc = scope();
-  const sort: Sort = route.params.get('sort') === 'change' ? 'change' : 'traffic';
-  return [
-    pageHeader(
-      'All sites',
-      'Visitors per site vs the previous period of the same length.',
-      tabs(
-        [
-          { value: 'traffic', label: 'Most traffic', icon: 'barChart' },
-          { value: 'change', label: 'Needs attention', icon: 'trendingUp' },
-        ],
-        sort,
-        (next) =>
-          go(currentRoute().page, { sort: next === 'traffic' ? null : next, project: null }),
-      ),
-    ),
-    later(
-      async () => {
-        const r = await api.get<Sites>('/api/sites', { from: sc.from, to: sc.to });
-        if (r.sites.length === 0) return empty('No projects yet.');
-        const counts = (t: Trend) => r.sites.filter((s) => s.trend === t).length;
-        const chips = (['up', 'down', 'stopped', 'new'] as Trend[])
-          .filter((t) => counts(t) > 0)
-          .map((t) =>
-            h(
-              'span',
-              { class: `site-trend ${TREND[t].class}`, title: TREND[t].title },
-              `${counts(t)} ${TREND[t].label.toLowerCase()}`,
-            ),
-          );
-        const rows = sorted(r.sites, sort).map((s) => {
-          const t = TREND[s.trend];
-          return [
-            h(
-              'a',
-              {
-                class: 'site-name',
-                href: href('reports', { project: s.project }),
-                // A plain click also remembers the site; modified clicks open a new tab as usual.
-                onclick: (event: Event) => {
-                  const e = event as MouseEvent;
-                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-                  e.preventDefault();
-                  open(s.project);
-                },
-              },
-              h(
-                'span',
-                { class: 'project-mark', 'aria-hidden': 'true' },
-                s.project[0]!.toUpperCase(),
-              ),
-              s.project,
-            ),
-            h('span', { class: `site-trend ${t.class}`, title: t.title }, t.label),
-            h('span', { class: 'site-spark' }, sparkline(s.series, { height: 28 })),
-            count(s.visitors),
-            delta(s.visitors, s.previous.visitors),
-            count(s.pageviews),
-            delta(s.pageviews, s.previous.pageviews),
-            s.lastPageview
-              ? h('span', { class: 'muted', title: s.lastPageview }, ago(s.lastPageview))
-              : h('span', { class: 'muted' }, 'never'),
-          ];
-        });
-        return panel(
-          '',
-          [
-            h(
-              'p',
-              { class: 'sites-summary' },
-              chips,
-              h(
-                'span',
-                { class: 'muted' },
-                `${count(r.sites.reduce((n, s) => n + s.visitors, 0))} visitors across ${r.sites.length} sites`,
-              ),
-            ),
-            table(
-              [
-                'Site',
-                'Trend',
-                'Visitors over time',
-                'Visitors',
-                '',
-                'Pageviews',
-                '',
-                'Last pageview',
-              ],
-              rows,
-              { numeric: [3, 4, 5, 6], class: 'sites-table' },
-            ),
-          ],
-          { sql: r.sql },
-        );
-      },
-      'Loading sites',
-      'table',
-    ),
-  ];
+  const project = route.params.get('project');
+  const path = route.params.get('path');
+  if (!project && !path) {
+    return [
+      pageHeader('All sites', 'Pageviews across every registered site.'),
+      trafficPanels(route),
+      siteActivity(route),
+    ];
+  }
+  const actions = [];
+  if (project && path) {
+    actions.push(trafficLink('Compare sites for this path', 'sites', { project: null, path }));
+    actions.push(trafficLink('Top paths', 'sites', { project }));
+    actions.push(
+      trafficLink('Explore sessions', 'reports/segment', { project, p: 'path', v: path }),
+    );
+  } else {
+    actions.push(trafficLink('All sites', 'sites', { project: null }));
+  }
+  if (project) actions.push(trafficLink('Site dashboards', 'dashboards', { project }));
+  const description = path
+    ? `Pageviews for this path · ${project ?? 'All sites'}`
+    : 'Pageviews and paths for this site.';
+  return [pageHeader(path ?? project!, description, actions), trafficPanels(route)];
 }

@@ -4,6 +4,7 @@
  * analyses (the insights table), so editing an analysis updates every dashboard it is on.
  */
 
+import { DASHBOARD_TEMPLATES } from '@dataflare/core/dashboard-templates';
 import { randomToken } from '@dataflare/core/ids';
 import type { D1Database, D1PreparedStatement } from './env.ts';
 import { HttpError } from './http.ts';
@@ -105,6 +106,66 @@ function toTile(r: TileRow): Tile {
         }
       : {}),
   };
+}
+
+/** Install the editable website template once, atomically with its analyses and tiles. */
+export async function ensureStarterDashboard(db: D1Database, project: string): Promise<void> {
+  const completed = db.prepare('SELECT 1 FROM dashboard_setup WHERE project = ?').bind(project);
+  if (await completed.first()) return;
+  const template = DASHBOARD_TEMPLATES.find((t) => t.id === 'website')!;
+  const id = newId('d');
+  const now = Date.now();
+  const statements = [
+    db.prepare('INSERT INTO dashboard_setup (project) VALUES (?)').bind(project),
+    db
+      .prepare(
+        'INSERT INTO dashboards (project, id, name, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+      )
+      .bind(project, id, template.name, template.description, now, now),
+  ];
+  for (const [position, tile] of template.tiles({}).entries()) {
+    const key = tile.insight ? `${id}-${position}` : null;
+    if (tile.insight) {
+      statements.push(
+        db
+          .prepare(
+            'INSERT INTO insights (project, key, name, kind, spec, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          )
+          .bind(
+            project,
+            key,
+            tile.insight.name,
+            tile.insight.kind,
+            JSON.stringify(tile.insight.spec),
+            now,
+            now,
+          ),
+      );
+    }
+    statements.push(
+      db
+        .prepare(
+          'INSERT INTO dashboard_tiles (project, dashboard, id, kind, insight_key, text, width, height, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        )
+        .bind(
+          project,
+          id,
+          newId('t'),
+          key ? 'insight' : 'text',
+          key,
+          tile.text ?? null,
+          tile.width,
+          tile.height,
+          position,
+        ),
+    );
+  }
+  try {
+    await db.batch(statements);
+  } catch (err) {
+    // Two first visits can race. A committed marker guarantees the entire other batch succeeded.
+    if (!(await completed.first())) throw err;
+  }
 }
 
 export async function listDashboards(db: D1Database, project: string) {

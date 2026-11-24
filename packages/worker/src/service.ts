@@ -54,6 +54,7 @@ import {
 import { runRevenue } from '@dataflare/core/insights/revenue';
 import { experimentOptions, metricSchema } from '@dataflare/core/insights/schemas';
 import { runSites } from '@dataflare/core/insights/sites';
+import { runTraffic } from '@dataflare/core/insights/traffic';
 import type { QueryContext, ResultBase } from '@dataflare/core/insights/types';
 import { runWeb } from '@dataflare/core/insights/web';
 import {
@@ -114,6 +115,7 @@ import {
   addTile,
   deleteDashboard,
   duplicateDashboard,
+  ensureStarterDashboard,
   getDashboard,
   listDashboards,
   removeTile,
@@ -481,6 +483,18 @@ export const inputs = {
       .optional()
       .describe('Start, e.g. "-30d". Default -30d.'),
     to: z.union([z.string(), z.number()]).optional(),
+  }),
+  traffic: z.object({
+    project: z.string().min(1).optional().describe('One site. Omit for all registered sites.'),
+    from: reportRange.from,
+    to: reportRange.to,
+    path: z
+      .string()
+      .min(1)
+      .optional()
+      .describe('Exact stored page path, including a hash route when present.'),
+    limit: z.number().int().min(1).max(100).default(10),
+    offset: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).default(0),
   }),
   markEvent: z.object({
     project,
@@ -1956,6 +1970,31 @@ GROUP BY event ORDER BY cur DESC, event ASC LIMIT 50`;
         dashboard: this.link('reports', { project: site.project, from: spec.from, to: spec.to }),
       })),
       dashboard: this.link('sites', { from: spec.from, to: spec.to }),
+    };
+  }
+
+  async traffic(input: unknown) {
+    const spec = inputs.traffic.parse(input);
+    const ctx = spec.project ? await this.context(spec.project) : undefined;
+    if (!ctx) await this.auditAll();
+    const projects = ctx?.project ?? (await listProjects(this.env.DB)).map((p) => p.id);
+    const result = await runTraffic(
+      spec,
+      projects,
+      ctx ?? {
+        dialect: this.store.dialect,
+        execute: (sql) => this.store.query(sql),
+      },
+    );
+    return {
+      ...result,
+      dashboard: this.link('sites', {
+        project: spec.project,
+        path: spec.path,
+        from: spec.from,
+        to: spec.to,
+        offset: spec.offset,
+      }),
     };
   }
 
@@ -4026,6 +4065,7 @@ WHERE project = ${d.str(project)} AND session_id = ${d.str(row.session_id)} AND 
       allowedOrigins: spec.allowed_origins,
     });
     await this.seedDefaultInsights(created.id);
+    await ensureStarterDashboard(this.env.DB, created.id);
     return {
       project: created,
       summary: `Project "${created.id}" is ready. Use data-project="${created.id}" in the snippet.`,
@@ -5055,6 +5095,8 @@ GROUP BY path ORDER BY views DESC, path LIMIT 2000`);
 
   async listDashboards(input: unknown) {
     const ctx = await this.context(BOARD_INPUTS.listDashboards.parse(input).project);
+    await this.seedDefaultInsights(ctx.project);
+    await ensureStarterDashboard(this.env.DB, ctx.project);
     const dashboards = await listDashboards(this.env.DB, ctx.project);
     return {
       project: ctx.project,

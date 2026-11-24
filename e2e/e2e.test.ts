@@ -10,6 +10,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync } from 'node:fs';
 import { after, before, describe, it } from 'node:test';
 import { type Browser, type BrowserContext, chromium } from 'playwright';
+import { wire } from '../packages/worker/test/harness.ts';
 import { type DevServer, startDevServer } from '../packages/worker/test/server.ts';
 import { assertRendersFrames } from './render-check.ts';
 
@@ -345,5 +346,88 @@ describe('Dataflare end to end', { timeout: 120_000 }, () => {
       query: `SELECT COUNT(*) AS n FROM events WHERE event = '$pageview' AND session_id = '${replay.session}'`,
     });
     assert.ok(sql.rows[0]!.n >= 1, "the replay joins the visit's events");
+  });
+  it('drills from fleet pageviews into one path and site while retaining the date range', async () => {
+    await api('POST', '/api/projects', { id: 'quiet-site' });
+    await api('POST', '/api/projects', { id: 'help-center' });
+    const paths = [
+      '/pricing',
+      '/guides',
+      '/releases',
+      '/integrations',
+      '/about',
+      '/status',
+      '/support',
+      '/docs',
+      '/roadmap',
+      '/customers',
+      '/features',
+    ];
+    for (const project of ['demo', 'help-center']) {
+      const events = paths.flatMap((path, i) =>
+        Array.from({ length: paths.length - i }, (_, j) =>
+          wire('$pageview', {
+            url: `https://example.test${path}`,
+            distinct_id: `reader-${j}`,
+            referrer: 'https://search.example/',
+            ts: Date.now() - (1 + ((i + j) % 6)) * 86400000,
+          }),
+        ),
+      );
+      await api('POST', '/api/import', { project, events });
+    }
+    const page = await context.newPage();
+    await page.emulateMedia({ colorScheme: 'light' });
+    await page.goto(`${server.glassUrl}/app#/sites?from=-7d`);
+    await page.locator('.sites-table a', { hasText: 'quiet-site' }).waitFor();
+    const total = await api<{ pageviews: number }>('GET', '/api/traffic?from=-7d');
+    assert.equal(
+      await page.locator('.traffic-total').innerText(),
+      total.pageviews.toLocaleString(),
+    );
+    await page.screenshot({ path: SHOTS + 'dashboard-traffic.png', animations: 'disabled' });
+    await page.getByRole('link', { name: 'Next', exact: true }).click();
+    await page.locator('.traffic-ranking td').filter({ hasText: /^11$/ }).first().waitFor();
+    await page.getByRole('link', { name: 'Previous', exact: true }).click();
+    await page
+      .locator('.traffic-ranking')
+      .getByRole('link', { name: '/pricing', exact: true })
+      .click();
+    await page.getByRole('heading', { name: 'Contributing sites' }).waitFor();
+    await page.locator('.traffic-ranking').getByRole('link', { name: 'demo', exact: true }).click();
+    await page.getByRole('heading', { name: 'Referrers' }).waitFor();
+    const getParams = () => new URLSearchParams(new URL(page.url()).hash.split('?')[1]);
+    assert.equal(getParams().get('from'), '-7d');
+    assert.equal(getParams().get('path'), '/pricing');
+    assert.equal(getParams().get('project'), 'demo');
+    const sessions = page.getByRole('link', { name: 'Explore sessions' });
+    assert.match((await sessions.getAttribute('href'))!, /reports\/segment/);
+    await page.reload();
+    await page.getByRole('heading', { name: 'Referrers' }).waitFor();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.locator('.topbar .project-switch').click();
+    await page.getByRole('option', { name: 'quiet-site' }).click();
+    await page.getByText('No referrer data in this period.').waitFor();
+    assert.equal(await page.locator('.traffic-total').innerText(), '0');
+    assert.equal(getParams().get('path'), '/pricing');
+    assert.equal(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+      true,
+    );
+    await page.getByRole('link', { name: 'Site dashboards' }).click();
+    await page.getByText('Website overview', { exact: true }).first().waitFor();
+    await page.locator('.dashboard-card').filter({ hasText: 'Website overview' }).click();
+    await page.getByRole('heading', { name: 'Website overview' }).waitFor();
+    await page.goBack();
+    await page.getByRole('link', { name: 'Pageview rankings' }).click();
+    await page.getByRole('heading', { name: 'Most viewed paths' }).waitFor();
+    assert.equal(getParams().get('project'), 'quiet-site');
+    await page.locator('.page-actions').getByRole('link', { name: 'All sites' }).click();
+    await page.locator('.sites-table').waitFor();
+    assert.equal(getParams().get('project'), null);
+    await page.locator('.traffic-total').waitFor();
+    await page.screenshot({ path: SHOTS + 'dashboard-traffic-mobile.png', animations: 'disabled' });
+    await page.close();
   });
 });
