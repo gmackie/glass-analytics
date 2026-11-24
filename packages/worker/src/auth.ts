@@ -11,11 +11,50 @@
  * Ingest endpoints (/e, /r, /f) are public by design: browsers call them.
  */
 
-import { deriveServerKey, timingSafeEqual } from '@dataflare/core/hash';
-import type { Env } from './env.ts';
+import { deriveServerKey, sha256Hex, timingSafeEqual } from '@dataflare/core/hash';
+import type { Env, WorkerAccess } from './env.ts';
 import { HttpError } from './http.ts';
 
 export type Scope = 'read' | 'admin' | 'server';
+
+export function dashboardUsesAccess(env: Env): boolean {
+  return env.GLASS_ACCESS_AUD !== undefined || env.GLASS_ACCESS_ADMIN_EMAIL_SHA256 !== undefined;
+}
+
+/** The runtime validates Access tokens. Request headers alone never establish a dashboard session. */
+export async function dashboardAdmin(env: Env, access?: WorkerAccess): Promise<string> {
+  if (!env.GLASS_ACCESS_AUD || !env.GLASS_ACCESS_ADMIN_EMAIL_SHA256)
+    throw new HttpError(
+      503,
+      'Dashboard sign-in is not configured',
+      'Set the Access audience and administrator email hash on the Worker.',
+    );
+  if (access?.aud !== env.GLASS_ACCESS_AUD)
+    throw new HttpError(
+      401,
+      'Cloudflare Access sign-in required',
+      'Open the dashboard on its protected hostname.',
+    );
+  const identity = await access.getIdentity().catch(() => {
+    throw new HttpError(
+      503,
+      'Cloudflare Access could not verify your identity',
+      'Try opening the dashboard again.',
+    );
+  });
+  const email = identity?.email?.trim().toLowerCase();
+  if (
+    !email ||
+    identity?.service_token_status ||
+    (await sha256Hex(email)) !== env.GLASS_ACCESS_ADMIN_EMAIL_SHA256
+  )
+    throw new HttpError(
+      403,
+      'This account cannot open the dashboard',
+      'Sign in with the configured administrator account.',
+    );
+  return email;
+}
 
 const derived = new Map<string, string>();
 

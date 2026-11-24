@@ -92,6 +92,12 @@ export interface PipelineStream {
   send(records: object[]): Promise<void>;
 }
 
+/** Cloudflare supplies this execution context only after Access authenticates the request. */
+export interface WorkerAccess {
+  readonly aud: string;
+  getIdentity(): Promise<{ email?: string; service_token_status?: boolean } | undefined>;
+}
+
 export interface Env {
   /** D1: config, persons, identities, flags, experiments, replay index — and events in "d1" mode. */
   DB: D1Database;
@@ -129,6 +135,10 @@ export interface Env {
   GLASS_SALT_SECRET?: string;
   /** Public URL of this Worker (for links in agent responses). Inferred from requests when unset. */
   GLASS_PUBLIC_URL?: string;
+  /** Access application audience for the dashboard and its same-origin browser API. */
+  GLASS_ACCESS_AUD?: string;
+  /** SHA-256 of the administrator's normalized Access email, kept out of the deployment manifest. */
+  GLASS_ACCESS_ADMIN_EMAIL_SHA256?: string;
   /** Delete events older than this many days (d1 mode). Unset keeps everything. */
   GLASS_RETENTION_DAYS?: string;
   /** Delete replays older than this many days. Default 30. */

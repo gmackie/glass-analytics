@@ -28,6 +28,18 @@ target has `syncSecrets: false`.
 `node scripts/check-deployments.ts` (in CI) checks that each config points at the built bundle,
 that the CLI and wrangler configs agree (including retention), and that no credential is committed.
 
+## Observe dashboard sign-in
+
+Sign in to Observe with Cloudflare Access. [Open the dashboard](https://observe.gmac.io/app)
+The `Observe analytics dashboard` Access application protects `/app` and `/_glass/app`, including their
+browser APIs. The session lasts 24 hours. The Worker checks the application's audience and the signed-in
+administrator's email using Cloudflare's authenticated Worker context. To change the administrator,
+update the Access policy and set `GLASS_ACCESS_ADMIN_EMAIL_SHA256` to the SHA-256 of the trimmed,
+lowercase email address (UTF-8, no trailing newline).
+
+Scripts and agents still use bearer keys on `/api` and `/mcp`. Sites send events to their existing
+public collection URLs.
+
 ## Retention
 
 `observe` keeps events for 365 days (DATFLR-16, 2026-11-22): `retentionDays` in `config.json`,

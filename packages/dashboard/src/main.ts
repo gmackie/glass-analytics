@@ -9,7 +9,7 @@ import type { Stage } from '@dataflare/core/stages';
 import { api } from './api.ts';
 import { dateRangeControl } from './components/date-range.ts';
 import { type IconName, icon } from './components/icons.ts';
-import { listKeys, selectMenu, toggle } from './components/menu.ts';
+import { closePopover, listKeys, selectMenu, toggle } from './components/menu.ts';
 import { stagePill } from './components/ui.ts';
 import { h, mount } from './dom.ts';
 import { dashboardsPage } from './pages/dashboards.ts';
@@ -23,7 +23,7 @@ import { peoplePage } from './pages/people.ts';
 import { pipelinesPage } from './pages/pipelines.ts';
 import { replaysPage } from './pages/replays.ts';
 import { revenuePage } from './pages/revenue.ts';
-import { keyScreen, settingsPage } from './pages/settings.ts';
+import { accessSignIn, keyScreen, settingsPage } from './pages/settings.ts';
 import { sitesPage } from './pages/sites.ts';
 import { usagePage } from './pages/usage.ts';
 import { webPage } from './pages/web.ts';
@@ -80,6 +80,7 @@ const GROUPS: { label: string; pages: string[] }[] = [
 const root = document.getElementById('app')!;
 let projects: string[] = [];
 let version = '';
+let signedIn = false;
 let upgradeBanner: { version: string; latest: string; command: string } | null = null;
 
 const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
@@ -456,6 +457,7 @@ function openPalette(): void {
   const close = () => {
     overlay.remove();
     paletteOpen = false;
+    window.removeEventListener('glass:unauthorized', close);
     document.removeEventListener('keydown', onKey, true);
   };
   const matches = () => {
@@ -530,6 +532,7 @@ function openPalette(): void {
     if (e.target === overlay) close();
   });
   document.addEventListener('keydown', onKey, true);
+  window.addEventListener('glass:unauthorized', close);
   listKeys(list);
   document.body.appendChild(overlay);
   paint();
@@ -581,20 +584,22 @@ function render(): void {
   document.title = `${page.label} · Dataflare`;
 }
 
+function showSignIn(): void {
+  signedIn = false;
+  closePopover();
+  mount(root, config.access ? accessSignIn() : keyScreen(() => void start()));
+}
+
 async function start(): Promise<void> {
   // Re-assigning runs the setters, which apply the stored preferences to the page.
   // oxlint-disable-next-line no-self-assign -- the setters have side effects
   prefs.showSql = prefs.showSql;
   // oxlint-disable-next-line no-self-assign -- the setters have side effects
   prefs.theme = prefs.theme;
+  if (config.access) prefs.key = null;
   takeKeyFromLink();
-  if (!prefs.key) {
-    mount(
-      root,
-      keyScreen(() => void start()),
-    );
-    return;
-  }
+  if (!config.access && !prefs.key) return showSignIn();
+  signedIn = true;
   try {
     const [r, health] = await Promise.all([
       api.get<{ projects: { id: string }[] }>('/api/projects'),
@@ -616,41 +621,47 @@ async function start(): Promise<void> {
           }
         : null;
   } catch {
-    if (!prefs.key) return;
+    // Page requests can display their own errors. An expired session already shows sign-in.
   }
+  if (signedIn) renderInitialRoute();
+}
+
+function renderInitialRoute(): void {
   // With several sites, an empty URL lands on All sites; one site goes straight to its reports.
   if (projects.length > 1 && /^#?\/?$/.test(location.hash)) {
     go('sites', {}, false);
     return;
   }
-  if (currentRoute().page !== 'sites' && !currentRoute().params.get('project') && projects[0]) {
+  const route = currentRoute();
+  if (route.page !== 'sites' && !route.params.get('project') && projects[0]) {
     const preferred =
       prefs.project && projects.includes(prefs.project) ? prefs.project : projects[0];
-    go(currentRoute().page, { project: preferred });
-    return;
+    route.params.set('project', preferred);
+    const path = [route.page, ...route.rest].map(encodeURIComponent).join('/');
+    history.replaceState(null, '', `#/${path}?${route.params}`);
   }
   render();
 }
 
-window.addEventListener('hashchange', () => (prefs.key ? render() : undefined));
+window.addEventListener('hashchange', () => {
+  if (config.access) takeKeyFromLink();
+  if (signedIn) render();
+});
 window.addEventListener('glass:unauthorized', () => {
   prefs.key = null;
-  mount(
-    root,
-    keyScreen(() => void start()),
-  );
+  showSignIn();
 });
 window.addEventListener('keydown', (e) => {
   const target = e.target as HTMLElement;
   const typing =
     ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable;
-  if ((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey) && prefs.key) {
+  if ((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey) && signedIn) {
     e.preventDefault();
     openPalette();
     return;
   }
   if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
-  if (e.key === '/' && prefs.key) {
+  if (e.key === '/' && signedIn) {
     e.preventDefault();
     openPalette();
   } else if (e.key === 's') {

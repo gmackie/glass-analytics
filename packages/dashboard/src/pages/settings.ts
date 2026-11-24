@@ -25,6 +25,29 @@ function codeBlock(code: string): HTMLElement {
   return h('div', { class: 'code-block' }, h('pre', {}, h('code', {}, code)), copyButton(code));
 }
 
+function sessionControl(): HTMLElement {
+  if (config.access)
+    return h(
+      'a',
+      { class: 'button ghost small', href: '/cdn-cgi/access/logout' },
+      icon('logout', 14),
+      'Sign out of Cloudflare Access',
+    );
+  return h(
+    'button',
+    {
+      type: 'button',
+      class: 'ghost small',
+      onclick: () => {
+        prefs.key = null;
+        location.reload();
+      },
+    },
+    icon('logout', 14),
+    'Forget this key',
+  );
+}
+
 export function settingsPage(): Node[] {
   const project = scope().project ?? 'your-project';
   const host = workerUrl();
@@ -163,23 +186,7 @@ export function settingsPage(): Node[] {
               h('dt', {}, 'Session replay'),
               h('dd', {}, health.replay ? 'Enabled' : 'Disabled (no R2 bucket)'),
               h('dt', {}, 'Signed in with'),
-              h(
-                'dd',
-                {},
-                h(
-                  'button',
-                  {
-                    type: 'button',
-                    class: 'ghost small',
-                    onclick: () => {
-                      prefs.key = null;
-                      location.reload();
-                    },
-                  },
-                  icon('logout', 14),
-                  'Forget this key',
-                ),
-              ),
+              h('dd', {}, sessionControl()),
             ),
           ],
           { icon: 'zap' },
@@ -249,6 +256,24 @@ export function keyScreen(onDone: () => void): HTMLElement {
       'p',
       { class: 'key-foot muted small' },
       'Analytics that lives in your own Cloudflare account.',
+    ),
+  );
+}
+
+export function accessSignIn(): HTMLElement {
+  return h(
+    'main',
+    { class: 'key-screen' },
+    h(
+      'div',
+      { class: 'key-card' },
+      h('h1', {}, 'Sign in to continue'),
+      h('p', { class: 'muted' }, 'Your Cloudflare Access session has ended.'),
+      h(
+        'button',
+        { type: 'button', class: 'primary', onclick: () => location.reload() },
+        'Sign in with Cloudflare Access',
+      ),
     ),
   );
 }

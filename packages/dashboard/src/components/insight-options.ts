@@ -320,15 +320,15 @@ export function showActors(
         {
           type: 'button',
           onclick: async () => {
-            const r = await api.post<{ csv: string }>('/api/actors', {
-              ...request,
-              format: 'csv',
-              limit: 1000,
-            });
-            const url = URL.createObjectURL(new Blob([r.csv], { type: 'text/csv' }));
-            const a = h('a', { href: url, download: 'people.csv' });
-            a.click();
-            URL.revokeObjectURL(url);
+            try {
+              await api.download('/api/actors', {}, 'people.csv', {
+                ...request,
+                format: 'csv',
+                limit: 1000,
+              });
+            } catch (err) {
+              toast(err instanceof Error ? err.message : String(err), 'error');
+            }
           },
         },
         'Download CSV',

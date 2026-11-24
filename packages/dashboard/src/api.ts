@@ -40,43 +40,63 @@ async function demoRequest<T>(method: string, url: URL, body?: unknown): Promise
   return (await res.json()) as T;
 }
 
+function apiUrl(path: string, params: Params = {}): URL {
+  const prefix = config.access && (path === '/api' || path.startsWith('/api/')) ? '/app' : '';
+  const url = new URL(`${config.base}${prefix}${path}`, location.origin);
+  for (const [k, v] of Object.entries(params))
+    if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, String(v));
+  return url;
+}
+
+async function fetchApi(url: URL, method: string, body?: unknown): Promise<Response> {
+  const res = await fetch(url, {
+    method,
+    credentials: 'same-origin',
+    redirect: config.access ? 'manual' : 'follow',
+    headers: {
+      ...(config.access ? {} : { Authorization: `Bearer ${prefs.key ?? ''}` }),
+      ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  // An expired Access cookie is challenged at the edge, before the Worker sees the request.
+  if (
+    config.access &&
+    (res.type === 'opaqueredirect' ||
+      (res.status === 403 && res.headers.get('Content-Type')?.includes('text/html')))
+  ) {
+    window.dispatchEvent(new Event('glass:unauthorized'));
+    throw new ApiError(401, 'Sign in with Cloudflare Access to continue.');
+  }
+  if (!res.ok) {
+    if (res.status === 401) window.dispatchEvent(new Event('glass:unauthorized'));
+    const data = (await res.json().catch(() => ({}))) as { error?: string; hint?: string };
+    throw new ApiError(res.status, data.error ?? `Request failed (${res.status})`, data.hint);
+  }
+  return res;
+}
+
 async function request<T>(
   method: string,
   path: string,
   body?: unknown,
   params?: Params,
 ): Promise<T> {
-  const url = new URL(`${config.base}${path}`, location.origin);
-  for (const [k, v] of Object.entries(params ?? {}))
-    if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, String(v));
+  const url = apiUrl(path, params);
   if (config.demo) return demoRequest<T>(method, url, body);
-  const res = await fetch(url, {
-    method,
-    headers: {
-      Authorization: `Bearer ${prefs.key ?? ''}`,
-      ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  const data = (await res.json().catch(() => ({}))) as { error?: string; hint?: string };
-  if (!res.ok) {
-    if (res.status === 401) window.dispatchEvent(new CustomEvent('glass:unauthorized'));
-    throw new ApiError(res.status, data.error ?? `Request failed (${res.status})`, data.hint);
-  }
-  return data as T;
+  const res = await fetchApi(url, method, body);
+  return res.json() as Promise<T>;
 }
 
 /** Fetch a file the API returns (CSV, for example) and save it in the browser. */
-async function download(path: string, params: Params, filename: string): Promise<void> {
+async function download(
+  path: string,
+  params: Params,
+  filename: string,
+  body?: unknown,
+): Promise<void> {
   if (config.demo) throw new ApiError(403, 'Downloads are not part of the demo.');
-  const url = new URL(`${config.base}${path}`, location.origin);
-  for (const [k, v] of Object.entries(params))
-    if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, String(v));
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${prefs.key ?? ''}` } });
-  if (!res.ok) {
-    const data = (await res.json().catch(() => ({}))) as { error?: string; hint?: string };
-    throw new ApiError(res.status, data.error ?? `Download failed (${res.status})`, data.hint);
-  }
+  const res = await fetchApi(apiUrl(path, params), body === undefined ? 'GET' : 'POST', body);
   const blob = URL.createObjectURL(await res.blob());
   const a = document.createElement('a');
   a.href = blob;

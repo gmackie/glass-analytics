@@ -5,7 +5,7 @@
 
 import { isMinors, type StudentPolicy, studentPolicySchema } from '@dataflare/core/student-policy';
 import type { Scope } from './auth.ts';
-import type { D1Database } from './env.ts';
+import type { D1Database, WorkerAccess } from './env.ts';
 import { HttpError } from './http.ts';
 
 // Read on every ingest request, like projects; cached per isolate briefly.
@@ -99,13 +99,13 @@ export interface AuditActor {
   detail?: string;
 }
 
-export function actorFromRequest(
-  request: Request,
+export async function keyActor(
+  access: WorkerAccess | undefined,
   scope: Scope,
   surface: AuditActor['surface'],
   operation: string,
-): AuditActor {
-  const email = request.headers.get('Cf-Access-Authenticated-User-Email');
+): Promise<AuditActor> {
+  const email = (await access?.getIdentity().catch(() => undefined))?.email;
   return { surface, scope, actor: email ? email.slice(0, 200) : `${scope}-key`, operation };
 }
 

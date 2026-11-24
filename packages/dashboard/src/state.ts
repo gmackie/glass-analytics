@@ -16,6 +16,8 @@ export const config = {
   base,
   /** URL of the recorded responses, when this is the public demo. */
   demo,
+  /** The Worker authenticated the dashboard with Cloudflare Access. */
+  access: document.querySelector('meta[name="glass-auth"]')?.getAttribute('content') === 'access',
 };
 
 function stored(key: string): string | null {
@@ -92,12 +94,12 @@ export interface Route {
  * Sign in from a link: `<host>/app#key=<api key>` (what a QR code for a phone carries).
  * The fragment never reaches the server, so the key stays out of request logs. The key
  * is saved like a pasted one and wiped from the address bar and history straight away.
- * Returns true when a key was taken.
+ * Access dashboards discard old key links. Returns true when a key link was cleared.
  */
 export function takeKeyFromLink(): boolean {
   const match = /^#\/?key=([^&]+)$/.exec(location.hash);
   if (!match?.[1]) return false;
-  prefs.key = decodeURIComponent(match[1]);
+  if (!config.access) prefs.key = decodeURIComponent(match[1]);
   history.replaceState(null, '', location.pathname + location.search);
   return true;
 }
