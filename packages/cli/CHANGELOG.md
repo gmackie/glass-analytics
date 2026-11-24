@@ -1,5 +1,11 @@
 # dataflare-cli
 
+## 0.9.1
+
+### Patch Changes
+
+- 80f883d: `dataflare init` no longer fails in a terminal on Node 24 with "Cannot read properties of undefined (reading 'bind')". The API-token prompt hides what you type with a muted output stream instead of patching readline internals.
+
 ## 0.9.0
 
 ### Minor Changes
