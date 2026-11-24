@@ -1,0 +1,25 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript"],
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "typescript/no-explicit-any": "error",
+    "typescript/no-non-null-assertion": "off",
+    "no-control-regex": "error",
+    "no-template-curly-in-string": "error",
+    "no-self-assign": "error"
+  },
+  "ignorePatterns": [
+    "**/dist",
+    "**/node_modules",
+    "**/.wrangler",
+    "**/.glass",
+    "**/coverage",
+    "**/.stryker-tmp",
+    ".github/workflows/glass.yml",
+    "site/public/demo",
+    "packages/dashboard/src/components/world-paths.ts"
+  ]
+}

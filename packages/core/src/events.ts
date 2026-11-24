@@ -185,7 +185,7 @@ export function isValidEventName(name: unknown): name is string {
     typeof name === 'string' &&
     name.length > 0 &&
     name.length <= 200 &&
-    // biome-ignore lint/suspicious/noControlCharactersInRegex: rejecting control characters is the point
+    // oxlint-disable-next-line no-control-regex -- rejecting control characters is the point
     !/[\u0000-\u001f]/.test(name)
   );
 }

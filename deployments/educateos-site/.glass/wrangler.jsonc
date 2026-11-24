@@ -3,7 +3,7 @@
 {
   "name": "glass-educateos-site",
   "main": "../../../packages/worker/dist/worker.js",
-  "compatibility_date": "2026-10-01",
+  "compatibility_date": "2026-11-17",
   "workers_dev": false,
   "d1_databases": [
     {

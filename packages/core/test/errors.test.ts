@@ -154,7 +154,7 @@ describe('source maps', () => {
       '  }',
       '  return total;',
       '}',
-      // biome-ignore lint/suspicious/noTemplateCurlyInString: this is source code for esbuild to compile
+      // oxlint-disable-next-line no-template-curly-in-string -- this is source code for esbuild to compile
       'export const label = (n: number) => `£${n.toFixed(2)}`;',
     ].join('\n');
     const out = transformSync(source, {

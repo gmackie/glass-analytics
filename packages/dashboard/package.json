@@ -6,6 +6,6 @@
   "type": "module",
   "dependencies": {
     "@dataflare/core": "workspace:*",
-    "rrweb": "^2.0.0"
+    "rrweb": "2.2.2"
   }
 }

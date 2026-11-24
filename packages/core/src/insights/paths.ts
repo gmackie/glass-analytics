@@ -253,11 +253,11 @@ function firstStepCtes(p: Plan): string[] {
   const span = p.windowMs ?? SESSION_SPAN_MS;
   const near = forward ? `e.ts_ms <= a.t0 + ${d.num(span)}` : `e.ts_ms >= a.t0 - ${d.num(span)}`;
   return [
-    `pn1 AS (SELECT a.actor, ${forward ? 'MIN' : 'MAX'}(e.ts_ms) AS ts FROM a0 a JOIN pe e ON e.actor = a.actor AND ${cmp} AND ${near}${lim} GROUP BY a.actor)`,
+    `pn1 AS (SELECT a.actor, ${forward ? 'MIN' : 'MAX'}(e.ts_ms) AS ts, MIN(a.lim) AS lim FROM a0 a JOIN pe e ON e.actor = a.actor AND ${cmp} AND ${near}${lim} GROUP BY a.actor)`,
     `ps1 AS (
-  SELECT n.actor, n.ts, MIN(e.item) AS item, MIN(e.session_id) AS sid, n.ts AS t0, MIN(a.lim) AS lim
-  FROM pn1 n JOIN a0 a ON a.actor = n.actor JOIN pe e ON e.actor = n.actor AND e.ts_ms = n.ts
-  GROUP BY n.actor, n.ts
+  SELECT n.actor, n.ts, MIN(e.item) AS item, MIN(e.session_id) AS sid, n.ts AS t0, n.lim
+  FROM pn1 n JOIN pe e ON e.actor = n.actor AND e.ts_ms = n.ts
+  GROUP BY n.actor, n.ts, n.lim
 )`,
   ];
 }
@@ -281,15 +281,21 @@ function stepConditions(p: Plan): string[] {
   return out;
 }
 
+/**
+ * Each step reads the one before it exactly once: `pn{k}` carries the previous step's item,
+ * session, anchor and limit forward (one row per actor, so grouping by them changes nothing).
+ * Reading `ps{k-1}` from both `pn{k}` and `ps{k}` doubles the expanded query at every step, and
+ * SQLite 3.53+ rejects that ("VIEWs and/or subqueries nested too deep") from about 5 steps.
+ */
 function stepCtes(p: Plan, k: number): string[] {
   const agg = p.direction === 'forward' ? 'MIN' : 'MAX';
-  const repeat = p.collapse ? ' AND e.item <> p.item' : '';
+  const repeat = p.collapse ? ' AND e.item <> n.prev' : '';
   return [
-    `pn${k} AS (SELECT p.actor, ${agg}(e.ts_ms) AS ts FROM ps${k - 1} p JOIN pe e ON e.actor = p.actor AND ${stepConditions(p).join(' AND ')} GROUP BY p.actor)`,
+    `pn${k} AS (SELECT p.actor, ${agg}(e.ts_ms) AS ts, p.item AS prev, p.sid, p.t0, p.lim FROM ps${k - 1} p JOIN pe e ON e.actor = p.actor AND ${stepConditions(p).join(' AND ')} GROUP BY p.actor, p.item, p.sid, p.t0, p.lim)`,
     `ps${k} AS (
-  SELECT n.actor, n.ts, MIN(e.item) AS item, p.sid, p.t0, p.lim
-  FROM pn${k} n JOIN ps${k - 1} p ON p.actor = n.actor JOIN pe e ON e.actor = n.actor AND e.ts_ms = n.ts${repeat}
-  GROUP BY n.actor, n.ts, p.sid, p.t0, p.lim
+  SELECT n.actor, n.ts, MIN(e.item) AS item, n.sid, n.t0, n.lim
+  FROM pn${k} n JOIN pe e ON e.actor = n.actor AND e.ts_ms = n.ts${repeat}
+  GROUP BY n.actor, n.ts, n.sid, n.t0, n.lim
 )`,
   ];
 }

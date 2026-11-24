@@ -206,7 +206,7 @@ function withinRate(run: IssueRun, id: string): boolean {
 /** Suppressed issues keep nothing; others keep up to the per-minute limit. The rest are dropped. */
 function keptOf(run: IssueRun, id: string, g: Group, items: Parsed[]): Parsed[] {
   const suppressed = g.known?.status === 'suppressed';
-  const keep = items.filter((p) => !suppressed && withinRate(run, id));
+  const keep = items.filter((_p) => !suppressed && withinRate(run, id));
   for (const p of items) if (!keep.includes(p)) run.drop.add(p.row);
   if (rates.size > 10_000) for (const [k, r] of rates) if (r.minute < run.minute) rates.delete(k);
   for (const p of keep) {

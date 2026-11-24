@@ -4,7 +4,7 @@ Thanks for helping. This guide gets you from clone to pull request, and shows wh
 
 ## Set up
 
-You need Node 22.18+ and pnpm 10. You do **not** need a Cloudflare account to work on Dataflare.
+You need Node 26.13+ and pnpm 12. You do **not** need a Cloudflare account to work on Dataflare.
 
 ```sh
 git clone https://github.com/ISNIT0/glass-analytics && cd glass-analytics
@@ -19,7 +19,7 @@ pnpm dev            # Dataflare on http://localhost:8787, a demo site on http://
 | Command                     | What it does                                                                                                                            |
 | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `pnpm typecheck`            | TypeScript, strict, across every package                                                                                                |
-| `pnpm lint` / `pnpm format` | Biome                                                                                                                                   |
+| `pnpm lint` / `pnpm format` | oxlint lints; Biome formats (`pnpm format:check` checks formatting)                                                                     |
 | `pnpm test`                 | `node:test` suites in `packages/*/test`                                                                                                 |
 | `pnpm test:e2e`             | Builds, then drives the demo site in Chromium with Playwright and checks the API and dashboard (`npx playwright install chromium` once) |
 | `pnpm check`                | typecheck + lint + knip + test + quality, what CI runs first                                                                            |
@@ -77,7 +77,7 @@ Dependencies point one way: `core` ← `web`, `worker`, `dashboard`, `cli`. `cor
 
 ## Code style
 
-Biome formats and lints (`pnpm format`). TypeScript is strict, with `noUncheckedIndexedAccess` and `erasableSyntaxOnly` (no enums or parameter properties, so Node can run sources directly). Import local files with their `.ts` extension. Prefer small pure functions with a doc comment that explains _why_, not _what_.
+oxlint lints (`pnpm lint`, rules in `.oxlintrc.json`) and Biome formats (`pnpm format`). TypeScript is strict, with `noUncheckedIndexedAccess` and `erasableSyntaxOnly` (no enums or parameter properties, so Node can run sources directly). Import local files with their `.ts` extension. Prefer small pure functions with a doc comment that explains _why_, not _what_.
 
 ## Pull requests
 

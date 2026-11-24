@@ -1,6 +1,6 @@
 /**
- * Per-function complexity for `packages/* /src`, using the TypeScript compiler API (already a
- * dev dependency) so there is nothing new to install.
+ * Per-function complexity for `packages/* /src`, using the TypeScript 6 compiler API (the
+ * `@typescript/typescript6` dev dependency; see the import below).
  *
  * Two numbers per function:
  *
@@ -19,7 +19,10 @@
  */
 
 import { readFileSync } from 'node:fs';
-import ts from 'typescript';
+// TypeScript 7 (tsgo) ships no in-process parser yet (typescript/unstable/ast has a scanner but no
+// createSourceFile), so the complexity walk keeps the TypeScript 6 compiler API through its
+// explicit alias package; `typescript` itself is 7 and does the typecheck.
+import ts from '@typescript/typescript6';
 
 export interface FunctionMetrics {
   /** Repo-relative path with forward slashes. */

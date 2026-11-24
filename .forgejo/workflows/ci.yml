@@ -19,16 +19,17 @@ jobs:
       - name: Toolchain
         run: bash scripts/ci-toolchain.sh
       - name: Install
-        # The runner's default pnpm store lands inside the checkout, where `biome check .` would
-        # lint its index files; keep it outside.
+        # The runner's default pnpm store lands inside the checkout, where `biome check .` is the
+        # format check and would scan its index files; keep it outside.
         run: |
-          corepack enable
+          npm i -g pnpm@12.21.0
           pnpm config set store-dir "${RUNNER_TEMP:-/tmp}/pnpm-store"
           pnpm install --frozen-lockfile
       # Upstream's `pnpm check` (DATFLR-17): typecheck, lint, knip, tests, then the coverage and
       # complexity ratchet. `pnpm quality` runs the tests itself, with coverage.
       - run: pnpm typecheck
       - run: pnpm lint
+      - run: pnpm format:check
       - run: pnpm knip
       - run: pnpm quality
       - run: pnpm build

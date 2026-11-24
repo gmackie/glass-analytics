@@ -14,7 +14,7 @@
 export interface RrwebEvent {
   type: number;
   timestamp: number;
-  // biome-ignore lint/suspicious/noExplicitAny: rrweb event payloads are heterogeneous
+  // oxlint-disable-next-line no-explicit-any -- rrweb event payloads are heterogeneous
   data?: any;
 }
 
@@ -209,7 +209,7 @@ export class DomModel {
   }
 
   /** Apply one rrweb mutation in the order the rrweb player does: removes, adds, texts, attributes. */
-  // biome-ignore lint/suspicious/noExplicitAny: rrweb mutation payload
+  // oxlint-disable-next-line no-explicit-any -- rrweb mutation payload
   mutate(data: any): void {
     for (const r of data.removes ?? []) if (r && typeof r.id === 'number') this.remove(r.id);
     for (const a of data.adds ?? []) if (a?.node) this.add(a.node, a.parentId, a.nextId);
@@ -229,7 +229,7 @@ export class DomModel {
     }
   }
 
-  // biome-ignore lint/suspicious/noExplicitAny: rrweb input payload
+  // oxlint-disable-next-line no-explicit-any -- rrweb input payload
   input(data: any): void {
     if (typeof data?.id !== 'number') return;
     this.values.set(data.id, {

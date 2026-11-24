@@ -32,7 +32,7 @@
   ],
   "devDependencies": {
     "@dataflare/core": "workspace:*",
-    "rrweb": "^2.0.0"
+    "rrweb": "2.2.2"
   },
   "publishConfig": {
     "registry": "https://npm.forgegraf.com/",

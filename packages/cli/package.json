@@ -29,7 +29,7 @@
     "ab-testing"
   ],
   "dependencies": {
-    "wrangler": "^4.165.0"
+    "wrangler": "4.164.0"
   },
   "devDependencies": {
     "@dataflare/core": "workspace:*",

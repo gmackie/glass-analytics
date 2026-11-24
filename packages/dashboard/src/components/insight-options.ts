@@ -5,13 +5,13 @@
  */
 
 import { api } from '../api.ts';
-import { type Child, h, mount } from '../dom.ts';
+import { h, mount } from '../dom.ts';
 import { count } from '../format.ts';
 import { href, scope } from '../state.ts';
 import { lineChart } from './charts.ts';
 import { icon } from './icons.ts';
-import { modal, selectMenu, toggle } from './menu.ts';
-import { eventPicker, propertyPicker } from './picker.ts';
+import { modal } from './menu.ts';
+import { propertyPicker } from './picker.ts';
 import { empty, errorState, loading, table, tabs, toast } from './ui.ts';
 
 type Spec = Record<string, unknown>;

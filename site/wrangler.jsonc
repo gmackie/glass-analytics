@@ -3,7 +3,7 @@
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
   "name": "glass-site",
-  "compatibility_date": "2026-10-01",
+  "compatibility_date": "2026-11-17",
   // Served at dataflare.dev (www too); the zone is in the same Cloudflare account.
   "routes": [
     { "pattern": "dataflare.dev", "custom_domain": true },

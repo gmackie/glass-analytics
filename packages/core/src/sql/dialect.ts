@@ -60,7 +60,7 @@ export interface Dialect {
 }
 
 /** Characters allowed in property keys. Excluding quotes and backslashes keeps JSON paths injection-proof. */
-// biome-ignore lint/suspicious/noControlCharactersInRegex: rejecting control characters is the point
+// oxlint-disable-next-line no-control-regex -- rejecting control characters is the point
 const SAFE_KEY = /^[^"'\\\u0000-\u001f]{1,200}$/;
 
 export function assertSafeKey(key: string): void {

@@ -3,9 +3,10 @@
   "private": true,
   "type": "module",
   "description": "Agent-first, open-source analytics that runs in your own Cloudflare account.",
-  "packageManager": "pnpm@10.28.0",
+  "packageManager": "pnpm@12.21.0",
   "engines": {
-    "node": ">=22.18"
+    "node": "^26.13.1",
+    "pnpm": "^12.21.0"
   },
   "scripts": {
     "build": "node scripts/build.ts",
@@ -21,24 +22,27 @@
     "site:assets": "node scripts/site-assets.ts",
     "site:dev": "node scripts/build.ts && node site/build.ts && pnpm --filter @dataflare/site exec wrangler dev",
     "dev:wrangler": "node scripts/build.ts && pnpm --filter @dataflare/worker exec wrangler dev",
-    "lint": "biome check .",
+    "lint": "oxlint",
     "knip": "knip",
     "size": "node scripts/size.ts",
     "format": "biome format --write .",
-    "check": "pnpm typecheck && pnpm lint && pnpm knip && pnpm test && pnpm quality",
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm knip && pnpm test && pnpm quality",
     "changeset": "changeset",
     "version-packages": "changeset version && biome format --write packages/cli/CHANGELOG.md packages/web/CHANGELOG.md && node scripts/sync-version.ts",
-    "release": "pnpm build && changeset publish"
+    "release": "pnpm build && changeset publish",
+    "format:check": "biome check ."
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.0.0",
-    "@changesets/cli": "^2.29.0",
+    "@biomejs/biome": "2.6.8",
+    "@changesets/cli": "3.0.3",
     "@stryker-mutator/core": "10.1.1",
-    "@types/node": "^22.18.0",
-    "esbuild": "^0.28.0",
-    "knip": "6.45.1",
-    "marked": "^15.0.12",
-    "playwright": "^1.63.0",
-    "typescript": "^6.0.0"
+    "@types/node": "26.6.6",
+    "@typescript/typescript6": "6.0.2",
+    "esbuild": "0.28.2",
+    "knip": "6.46.0",
+    "marked": "18.2.1",
+    "oxlint": "1.94.0",
+    "playwright": "1.65.1",
+    "typescript": "7.0.2"
   }
 }

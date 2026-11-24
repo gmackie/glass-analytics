@@ -556,9 +556,9 @@ function render(): void {
 
 async function start(): Promise<void> {
   // Re-assigning runs the setters, which apply the stored preferences to the page.
-  // biome-ignore lint/correctness/noSelfAssign: the setters have side effects
+  // oxlint-disable-next-line no-self-assign -- the setters have side effects
   prefs.showSql = prefs.showSql;
-  // biome-ignore lint/correctness/noSelfAssign: the setters have side effects
+  // oxlint-disable-next-line no-self-assign -- the setters have side effects
   prefs.theme = prefs.theme;
   takeKeyFromLink();
   if (!prefs.key) {
