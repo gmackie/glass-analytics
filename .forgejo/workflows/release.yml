@@ -1,0 +1,88 @@
+# Publishes dataflare-cli, dataflare-web and dataflare-node to npm from Forgejo (DATFLR-26).
+#
+# Upstream releases from .github/workflows/release.yml, but GitHub Actions is off on the mirror, so
+# no release has run since 0.8.4. Here versioning is a PR, not a CI push to main:
+#
+#   1. `pnpm version-packages` on a branch, merged as "Version packages (<version>)".
+#   2. This workflow, on that push to main, sees packages/cli at a version that isn't tagged yet:
+#      it checks, publishes with `pnpm release` (changeset publish) and pushes the tags.
+#
+# A push that still carries changesets publishes nothing and says to open the version PR. A
+# version that is already tagged was published by an earlier run and is skipped.
+#
+# Needs the NPM_TOKEN Forgejo secret: an npm automation token that can publish the three packages.
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: [forgegraph-ci, forgegraph-worker]
+    timeout-minutes: 30
+    steps:
+      # Keeps the token: this job pushes the release tags with git. Same unpinned checkout as ci.yml,
+      # resolved through Forgejo's actions mirror.
+      - uses: actions/checkout@v4 # zizmor: ignore[artipacked,unpinned-uses]
+        with:
+          fetch-depth: 0
+      - name: What to release
+        id: plan
+        run: |
+          version=$(node -p "require('./packages/cli/package.json').version")
+          pending=$(find .changeset -name '*.md' ! -name README.md | wc -l | tr -d ' ')
+          if [ "$pending" != 0 ]; then
+            echo "$pending changeset(s) not versioned yet: open a PR with \`pnpm version-packages\` to release them."
+            exit 0
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/dataflare-cli@$version" >/dev/null; then
+            echo "dataflare-cli@$version is already tagged: published by an earlier run."
+            exit 0
+          fi
+          echo "Releasing $version."
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      # Node and uv from their own distribution points, not the GitHub API (DATFLR-10).
+      - name: Toolchain
+        if: steps.plan.outputs.version
+        run: bash scripts/ci-toolchain.sh
+      - name: Install
+        if: steps.plan.outputs.version
+        run: |
+          corepack enable
+          pnpm config set store-dir "${RUNNER_TEMP:-/tmp}/pnpm-store"
+          pnpm install --frozen-lockfile
+      # Don't publish a version the checks would reject.
+      - name: Check
+        if: steps.plan.outputs.version
+        run: pnpm build && pnpm typecheck && pnpm test
+        env:
+          DATAFLARE_REQUIRE_PYTHON: "1"
+      - name: Publish
+        if: steps.plan.outputs.version
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NPM_TOKEN" ]; then
+            echo "The NPM_TOKEN Forgejo secret is not set; nothing was published." >&2
+            exit 1
+          fi
+          npmrc="${RUNNER_TEMP:-/tmp}/release.npmrc"
+          printf '//registry.npmjs.org/:_authToken=${NPM_TOKEN}\n' > "$npmrc"
+          NPM_CONFIG_USERCONFIG="$npmrc" pnpm release
+          rm -f "$npmrc"
+      - name: Push tags
+        if: steps.plan.outputs.version
+        env:
+          VERSION: ${{ steps.plan.outputs.version }}
+        run: |
+          git push origin --tags
+          git ls-remote --exit-code --tags origin "refs/tags/dataflare-cli@$VERSION"

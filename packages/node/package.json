@@ -1,6 +1,6 @@
 {
   "name": "dataflare-node",
-  "version": "0.8.4",
+  "version": "0.9.1",
   "description": "Dataflare server SDK: events, identify, groups, feature flags with local evaluation, and error capture. Runs on Node 18+, Bun, Deno and Cloudflare Workers.",
   "license": "MIT",
   "type": "module",
