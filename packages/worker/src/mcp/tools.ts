@@ -81,6 +81,15 @@ const ALL_TOOLS: ToolDefinition[] = [
     scope: 'read',
     run: (s, a) => s.sites(a),
   },
+  {
+    name: 'pageview_traffic',
+    title: 'Explore pageviews',
+    description:
+      'Get pageviews over time and paths ranked by views across all registered sites or one project. Pass an exact path to see contributing sites, then pass project and path for referrers. Use offset and limit to page through the ranking.',
+    input: inputs.traffic,
+    scope: 'read',
+    run: (s, a) => s.traffic(a),
+  },
   ...queryTools,
   {
     name: 'sql',

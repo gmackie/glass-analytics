@@ -61,7 +61,17 @@ const PAGES: Record<string, PageDef> = {
 const GROUPS: { label: string; pages: string[] }[] = [
   {
     label: 'Analytics',
-    pages: ['dashboards', 'reports', 'insights', 'revenue', 'users', 'groups', 'replays', 'errors'],
+    pages: [
+      'sites',
+      'dashboards',
+      'reports',
+      'insights',
+      'revenue',
+      'users',
+      'groups',
+      'replays',
+      'errors',
+    ],
   },
   { label: 'Release', pages: ['flags', 'experiments'] },
   { label: 'Data', pages: ['events', 'pipelines', 'sql', 'usage'] },
@@ -91,7 +101,7 @@ function projectSwitcher(route: Route): HTMLElement {
       h('span', { class: 'project-text' }, h('span', { class: 'project-name' }, project)),
     );
   }
-  const all = route.page === 'sites';
+  const all = route.page === 'sites' && !route.params.has('project');
   const trigger = selectMenu({
     value: all ? ALL_SITES : project,
     label: 'Project',
@@ -102,12 +112,14 @@ function projectSwitcher(route: Route): HTMLElement {
     width: 220,
     onChange: (value) => {
       if (value === ALL_SITES) {
-        go('sites', { project: null });
+        go('sites', { project: null, path: route.params.get('path') });
         return;
       }
       prefs.project = value;
-      // Leaving All sites opens the chosen site's reports.
-      go(all ? 'reports' : route.page, { project: value });
+      go(route.page, {
+        project: value,
+        path: route.page === 'sites' ? route.params.get('path') : null,
+      });
     },
     class: 'project-switch',
   });
@@ -135,7 +147,10 @@ function navLink(key: string, route: Route): HTMLElement {
       'a',
       {
         // All sites has no project in its URL; the other pages need one.
-        href: href(key, { project: route.params.get('project') ?? prefs.project ?? projects[0] }),
+        href: href(key, {
+          project:
+            key === 'sites' ? null : (route.params.get('project') ?? prefs.project ?? projects[0]),
+        }),
         class: active ? 'active' : '',
         'aria-current': active ? 'page' : null,
         title: page.label,
@@ -156,7 +171,10 @@ function sidebar(route: Route): HTMLElement {
       { class: 'sidebar-top' },
       h(
         'a',
-        { class: 'brand', href: href('reports') },
+        {
+          class: 'brand',
+          href: projects.length > 1 ? href('sites', { project: null }) : href('reports'),
+        },
         h('span', { class: 'mark', 'aria-hidden': 'true' }),
         h('span', { class: 'brand-name' }, 'Dataflare'),
       ),
@@ -269,6 +287,7 @@ function topBar(route: Route): HTMLElement {
     'div',
     { class: 'topbar' },
     crumbs(route),
+    projects.length > 1 ? h('div', { class: 'mobile-project' }, projectSwitcher(route)) : null,
     h('div', { class: 'topbar-actions' }, dateRangeControl(route, render), sql),
   );
 }
@@ -343,7 +362,12 @@ interface Command {
 function baseCommands(): Command[] {
   const pages = Object.entries(PAGES)
     .filter(([key]) => key !== 'web')
-    .map(([key, p]) => ({ label: p.label, group: 'Go to', icon: p.icon, run: () => go(key) }));
+    .map(([key, p]) => ({
+      label: p.label,
+      group: 'Go to',
+      icon: p.icon,
+      run: () => (key === 'sites' ? go(key, { project: null }) : go(key)),
+    }));
   return [
     ...pages,
     {
@@ -539,6 +563,9 @@ function openPalette(): void {
 
 function render(): void {
   const route = currentRoute();
+  const selected = route.params.get('project');
+  if (selected && projects.includes(selected) && selected !== prefs.project)
+    prefs.project = selected;
   const page = PAGES[route.page] ?? PAGES.reports!;
   const content = h('main', { class: 'content', id: 'content' });
   mount(
@@ -594,10 +621,6 @@ async function start(): Promise<void> {
   // With several sites, an empty URL lands on All sites; one site goes straight to its reports.
   if (projects.length > 1 && /^#?\/?$/.test(location.hash)) {
     go('sites', {}, false);
-    return;
-  }
-  if (currentRoute().page === 'sites' && projects.length <= 1) {
-    go('reports', {}, false);
     return;
   }
   if (currentRoute().page !== 'sites' && !currentRoute().params.get('project') && projects[0]) {

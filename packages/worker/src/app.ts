@@ -53,9 +53,9 @@ function withCors(response: Response): Response {
   return res;
 }
 
-/** The Dataflare mark, a pane with a green fill line. Keep in sync with site/public/favicon.svg. */
+/** The dashboard mark, also used on the sign-in screen and in the sidebar. */
 const FAVICON = `data:image/svg+xml,${encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset=".58" stop-color="#fff"/><stop offset=".58" stop-color="#cfe7df"/><stop offset=".78" stop-color="#cfe7df"/><stop offset=".78" stop-color="#2e7d6b"/></linearGradient></defs><rect x="2" y="2" width="28" height="28" rx="7" fill="url(#g)" stroke="#2e7d6b" stroke-width="2.5"/></svg>',
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#f6821f"/><path fill="#271608" d="M7 20h4v5H7zm7-6h4v11h-4zm7-7h4v18h-4z"/></svg>',
 )}`;
 
 function dashboardHtml(base: string): string {

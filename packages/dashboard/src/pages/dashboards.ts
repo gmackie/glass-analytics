@@ -618,12 +618,19 @@ export function dashboardsPage(route: Route): Node[] {
     pageHeader(
       'Dashboards',
       'Analyses side by side, with one date range and filters, sent to Slack or email on a schedule.',
-      h(
-        'button',
-        { type: 'button', class: 'primary', onclick: () => void newDashboard() },
-        icon('plus', 15),
-        'New dashboard',
-      ),
+      [
+        h(
+          'a',
+          { class: 'button small', href: href('sites', { project: project() }) },
+          'Pageview rankings',
+        ),
+        h(
+          'button',
+          { type: 'button', class: 'primary', onclick: () => void newDashboard() },
+          icon('plus', 15),
+          'New dashboard',
+        ),
+      ],
     ),
     later(dashboardList, 'Loading dashboards'),
   ];

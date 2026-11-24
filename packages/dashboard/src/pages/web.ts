@@ -738,9 +738,12 @@ export function webPage(route: Route): Node[] {
         ? promptStrip('health', 'Ask your coding agent', HEALTH_PROMPTS)
         : promptStrip('home', 'Ask your coding agent', HOME_PROMPTS);
   return [
-    pageHeader(
-      'Reports',
-      TAB_COPY[tab],
+    pageHeader('Reports', TAB_COPY[tab], [
+      h(
+        'a',
+        { class: 'button small', href: href('sites', { project: sc.project }) },
+        'Pageview rankings',
+      ),
       tabs(
         [
           { value: 'web', label: 'Web', icon: 'globe' },
@@ -750,7 +753,7 @@ export function webPage(route: Route): Node[] {
         tab,
         (next) => go(next === 'web' ? 'reports' : `reports/${next}`),
       ),
-    ),
+    ]),
     filterChips() ?? h('span', {}),
     prompts ?? h('span', {}),
     later(

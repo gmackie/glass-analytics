@@ -15,7 +15,7 @@ import { TOOLS } from './mcp/tools.ts';
 import type { GlassService } from './service.ts';
 import { actorFromRequest } from './student-mode.ts';
 
-const NUMERIC = new Set(['days', 'limit']);
+const NUMERIC = new Set(['days', 'limit', 'offset']);
 const BOOLEAN = new Set(['with_errors', 'compare', 'include_archived']);
 
 /** Query string → plain object, converting the few numeric/boolean parameters. */
@@ -151,6 +151,8 @@ export async function apiRouter(
           'Headline stats and movers (includes upgrade notice when outdated)',
         'GET /api/sites?from=-30d':
           'Every project side by side: visitors, pageviews and trend vs the previous period',
+        'GET /api/traffic?from=-30d':
+          'Pageviews and ranked paths across all sites. Pass project for one site or path for its contributors.',
         'POST /api/query': `Run an insight: { "kind": ${Object.keys(INSIGHTS)
           .map((k) => `"${k}"`)
           .join(' | ')}, ...spec }`,
@@ -541,6 +543,7 @@ export async function apiRouter(
   });
 
   r.get('/api/overview', async ({ url }) => json(await service.overview(params(url))));
+  r.get('/api/traffic', async ({ url }) => json(await service.traffic(params(url))));
   r.get('/api/sites', async ({ url }) => json(await service.sites(params(url))));
   r.post('/api/query', async () => {
     const { kind, ...spec } = await body();

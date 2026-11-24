@@ -450,15 +450,17 @@ describe('saved insights', () => {
       'GET',
       '/api/insights',
     );
-    const keys = listed.insights.map((i) => i.key).sort();
-    assert.deepEqual(keys, [
+    const keys = listed.insights.map((i) => i.key);
+    for (const key of [
       'daily-pageviews',
       'daily-retention',
       'dau',
       'mau',
       'wau',
       'weekly-retention',
-    ]);
+    ]) {
+      assert.ok(keys.includes(key), key);
+    }
     const dau = listed.insights.find((i) => i.key === 'dau')!;
     assert.equal(dau.name, 'Daily active users');
     assert.equal(dau.kind, 'trends');

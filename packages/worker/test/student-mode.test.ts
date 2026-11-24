@@ -211,6 +211,22 @@ describe('student mode: audit log', () => {
     assert.equal(rows("SELECT * FROM audit_log WHERE project = 'acme'").length, 0);
   });
 
+  it('audits fleet rankings and exact path reads at the requested scope', async () => {
+    const route = '/api/traffic?path=%2F';
+    await t.json('GET', route + '&project=acme', { key: READ });
+    const entries = () =>
+      rows("SELECT scope FROM audit_log WHERE project = 'kids' AND operation = 'GET /api/traffic'");
+    assert.equal(entries().length, 0);
+    await t.json('GET', route, { key: READ });
+    await t.json('GET', route + '&project=kids', { key: READ });
+    assert.deepEqual(
+      entries().map((e) => e.scope),
+      ['read', 'read'],
+    );
+    assert.equal((await t.call('GET', route + '&project=missing', { key: READ })).status, 404);
+    assert.equal((await t.call('GET', route + '&limit=-1', { key: READ })).status, 400);
+  });
+
   it('records SQL against every student project, whatever project it names', async () => {
     await t.json('POST', '/api/sql', {
       key: READ,

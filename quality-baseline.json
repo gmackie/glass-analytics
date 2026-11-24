@@ -3,14 +3,14 @@
   "coverage": {
     "tolerance": 0.1,
     "lines": {
-      "total": 55.49,
-      "cli": 82.25,
-      "core": 97.95,
+      "total": 58.24,
+      "cli": 82.64,
+      "core": 98.01,
       "dashboard": 0,
       "native": 99.14,
       "node": 95.85,
-      "web": 0,
-      "worker": 96.1
+      "web": 3.73,
+      "worker": 96.11
     }
   },
   "complexity": {
@@ -47,7 +47,6 @@
       "packages/dashboard/src/components/report-panels.ts:healthPanels": 38,
       "packages/dashboard/src/components/value-input.ts:valueInput.open.paint": 28,
       "packages/dashboard/src/components/value-input.ts:valueInput.open.rows": 17,
-      "packages/dashboard/src/main.ts:start": 16,
       "packages/dashboard/src/pages/data.ts:eventsPage.paint": 20,
       "packages/dashboard/src/pages/data.ts:sqlPage.run.paint": 20,
       "packages/dashboard/src/pages/flags.ts:flagsPage": 25,

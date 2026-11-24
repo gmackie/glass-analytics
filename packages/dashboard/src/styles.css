@@ -1,119 +1,50 @@
-/*
- * Dataflare dashboard styles.
- *
- * Palette: a cool clear field, ink, and the colours of glass itself. The accent
- * is the green of float glass seen edge-on; chart series use traditional bottle
- * glass colours (green, cobalt, amber, ruby). The sidebar is dark smoked glass
- * in both themes. System fonts only: the dashboard loads nothing from third
- * parties.
- *
- * Themes: light by default, dark under prefers-color-scheme, and either can be
- * pinned with <html data-theme="light|dark"> (sidebar theme button).
- */
-
+/* The dashboard uses Kumo's neutral surfaces and blue interaction color. */
 :root {
-  --field: #f4f6f5;
-  --surface: #ffffff;
-  --surface-2: #f8faf9;
-  --ink: #16201c;
-  --ink-2: #364540;
-  --muted: #64746d;
-  --hairline: #e2e8e5;
-  --hairline-strong: #cfd9d5;
-  --pane: #eaf3f0;
-  --pane-ink: #24453c;
-  --glass-green: #2a7a67;
-  --glass-green-soft: #d6ebe4;
-  --glass-cobalt: #3459c6;
-  --glass-amber: #b5761a;
-  --glass-ruby: #b23a49;
-  --glass-teal: #24879a;
-  --smoke: #7b8a84;
-  --good: #23785f;
-  --bad: #b23a49;
-  --warn: #a8700f;
-  --on-primary: #ffffff;
-  --rail: #101a17;
-  --rail-2: #16221e;
-  --rail-ink: #e2ebe7;
-  --rail-muted: #8a9c94;
-  --rail-line: rgb(255 255 255 / 0.07);
-  --rail-hover: rgb(255 255 255 / 0.06);
-  --rail-active: rgb(255 255 255 / 0.1);
-  --shadow-sm: 0 1px 2px rgb(16 26 22 / 0.05);
-  --shadow-md: 0 1px 2px rgb(16 26 22 / 0.04), 0 6px 18px rgb(16 26 22 / 0.06);
-  --shadow-lg: 0 24px 64px rgb(10 18 15 / 0.22), 0 2px 8px rgb(10 18 15 / 0.08);
-  --overlay: rgb(10 16 14 / 0.42);
+  color-scheme: light dark;
+  --field: light-dark(#fafafa, #111111);
+  --surface: light-dark(#fff, #1a1a1a);
+  --surface-2: light-dark(#f7f7f8, #212121);
+  --ink: light-dark(#171717, #fafafa);
+  --ink-2: light-dark(#404040, #d4d4d4);
+  --muted: light-dark(#616166, #a3a3a3);
+  --hairline: light-dark(#e5e5e5, #343434);
+  --hairline-strong: light-dark(#d0d0d3, #515151);
+  --pane: light-dark(#eff4ff, #202d44);
+  --pane-ink: light-dark(#20489c, #c4d9ff);
+  --accent: light-dark(#245cce, #85adff);
+  --accent-soft: light-dark(#e7efff, #223557);
+  --brand: #f6821f;
+  --series-violet: light-dark(#7954bd, #b998ff);
+  --series-amber: light-dark(#b36315, #ffb465);
+  --series-rose: light-dark(#bd456a, #ef91aa);
+  --series-cyan: light-dark(#167b89, #60c6d5);
+  --smoke: light-dark(#76767c, #a3a3a8);
+  --good: light-dark(#16704b, #84d1ac);
+  --bad: light-dark(#bc3546, #ff98a0);
+  --warn: light-dark(#9b5615, #ffc489);
+  --on-primary: light-dark(#fff, #101a30);
+  --rail: var(--surface);
+  --rail-2: var(--surface-2);
+  --rail-ink: var(--ink);
+  --rail-muted: var(--muted);
+  --rail-line: var(--hairline);
+  --rail-hover: var(--surface-2);
+  --rail-active: light-dark(#efeff1, #2a2a2c);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
+  --shadow-md: 0 2px 8px rgb(0 0 0 / 0.09);
+  --shadow-lg: 0 16px 48px rgb(0 0 0 / 0.16);
+  --overlay: rgb(0 0 0 / 0.48);
   --sk: color-mix(in srgb, var(--ink) 7%, transparent);
-  --radius: 12px;
-  --radius-sm: 8px;
-  --sans:
-    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+:root[data-theme="light"] {
   color-scheme: light;
 }
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --field: #0d1311;
-    --surface: #141c19;
-    --surface-2: #18211e;
-    --ink: #e6eeeb;
-    --ink-2: #c2cfca;
-    --muted: #8d9f98;
-    --hairline: #232f2b;
-    --hairline-strong: #2f3d38;
-    --pane: #1a2925;
-    --pane-ink: #b9dacf;
-    --glass-green: #5cb39d;
-    --glass-green-soft: #1f3d35;
-    --glass-cobalt: #7d9bf0;
-    --glass-amber: #e0a54f;
-    --glass-ruby: #e47a88;
-    --glass-teal: #5cc0cf;
-    --smoke: #93a39d;
-    --good: #5cb39d;
-    --bad: #e47a88;
-    --warn: #e0a54f;
-    --on-primary: #06201a;
-    --rail: #090e0c;
-    --rail-2: #0f1613;
-    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
-    --shadow-md: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px rgb(0 0 0 / 0.25);
-    --shadow-lg: 0 24px 64px rgb(0 0 0 / 0.55);
-    --overlay: rgb(0 0 0 / 0.55);
-    color-scheme: dark;
-  }
-}
-
 :root[data-theme="dark"] {
-  --field: #0d1311;
-  --surface: #141c19;
-  --surface-2: #18211e;
-  --ink: #e6eeeb;
-  --ink-2: #c2cfca;
-  --muted: #8d9f98;
-  --hairline: #232f2b;
-  --hairline-strong: #2f3d38;
-  --pane: #1a2925;
-  --pane-ink: #b9dacf;
-  --glass-green: #5cb39d;
-  --glass-green-soft: #1f3d35;
-  --glass-cobalt: #7d9bf0;
-  --glass-amber: #e0a54f;
-  --glass-ruby: #e47a88;
-  --glass-teal: #5cc0cf;
-  --smoke: #93a39d;
-  --good: #5cb39d;
-  --bad: #e47a88;
-  --warn: #e0a54f;
-  --on-primary: #06201a;
-  --rail: #090e0c;
-  --rail-2: #0f1613;
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
-  --shadow-md: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px rgb(0 0 0 / 0.25);
-  --shadow-lg: 0 24px 64px rgb(0 0 0 / 0.55);
-  --overlay: rgb(0 0 0 / 0.55);
   color-scheme: dark;
 }
 
@@ -133,7 +64,7 @@ body {
 }
 
 a {
-  color: var(--glass-green);
+  color: var(--accent);
   text-decoration: none;
 }
 
@@ -165,7 +96,7 @@ kbd {
 }
 
 :focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--glass-green) 70%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent);
   outline-offset: 2px;
   border-radius: 6px;
 }
@@ -230,6 +161,7 @@ kbd {
   gap: 6px;
   padding: 14px 12px 12px;
   background: var(--rail);
+  border-inline-end: 1px solid var(--rail-line);
   color: var(--rail-ink);
   overflow-y: auto;
   overflow-x: hidden;
@@ -258,16 +190,35 @@ kbd {
   text-decoration: none;
 }
 
-/* The mark: a pane of glass, seen edge-on, green at the edge. */
 .mark {
   flex: none;
-  width: 24px;
-  height: 24px;
+  display: inline-grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
   border-radius: 6px;
-  background: linear-gradient(135deg, rgb(255 255 255 / 0.92) 0 56%, #9fd6c6 56% 76%, #3a9a82 76%);
-  box-shadow:
-    inset 0 0 0 1.5px #3a9a82,
-    0 0 0 3px rgb(58 154 130 / 0.18);
+  background: var(--brand);
+}
+
+.mark::before {
+  content: "";
+  width: 57%;
+  height: 55%;
+  background: #271608;
+  clip-path: polygon(
+    0 65%,
+    24% 65%,
+    24% 100%,
+    38% 100%,
+    38% 33%,
+    62% 33%,
+    62% 100%,
+    76% 100%,
+    76% 0,
+    100% 0,
+    100% 100%,
+    0 100%
+  );
 }
 
 .mark.large {
@@ -325,7 +276,7 @@ kbd {
   grid-template-columns: 28px minmax(0, 1fr);
 }
 
-/* .select-trigger (later in the file) sets page ink; the rail is dark in both themes. */
+/* The shared menu trigger inherits the navigation colors. */
 .project-switch.select-trigger {
   color: var(--rail-ink);
 }
@@ -335,7 +286,7 @@ kbd {
 }
 
 button.project-switch:hover {
-  border-color: rgb(255 255 255 / 0.16);
+  border-color: var(--hairline-strong);
   background: var(--rail-2);
 }
 
@@ -370,8 +321,8 @@ button.project-switch:hover {
   width: 28px;
   height: 28px;
   border-radius: 7px;
-  background: linear-gradient(145deg, #3a9a82, #24687a);
-  color: #fff;
+  background: var(--accent-soft);
+  color: var(--pane-ink);
   font-weight: 700;
   font-size: 13px;
 }
@@ -402,7 +353,7 @@ button.project-switch:hover {
 .cmdk-trigger kbd {
   margin-left: auto;
   background: transparent;
-  border-color: rgb(255 255 255 / 0.14);
+  border-color: var(--rail-line);
   color: var(--rail-muted);
 }
 
@@ -450,12 +401,12 @@ button.project-switch:hover {
 }
 
 .sidebar li a.active {
-  color: #fff;
+  color: var(--rail-ink);
   background: var(--rail-active);
 }
 
 .sidebar li a.active .icon {
-  color: #7fd0b9;
+  color: var(--rail-ink);
 }
 
 .sidebar li a.active::before {
@@ -466,7 +417,7 @@ button.project-switch:hover {
   bottom: 8px;
   width: 3px;
   border-radius: 0 3px 3px 0;
-  background: #5cc3a6;
+  background: var(--brand);
 }
 
 .sidebar-foot {
@@ -569,9 +520,7 @@ button.project-switch:hover {
   min-height: 56px;
   padding: 10px 32px;
   border-bottom: 1px solid var(--hairline);
-  background: color-mix(in srgb, var(--field) 86%, transparent);
-  backdrop-filter: saturate(1.4) blur(12px);
-  -webkit-backdrop-filter: saturate(1.4) blur(12px);
+  background: var(--surface);
 }
 
 .crumbs {
@@ -600,7 +549,7 @@ button.project-switch:hover {
   border-radius: 8px;
   background: var(--surface);
   border: 1px solid var(--hairline);
-  color: var(--glass-green);
+  color: var(--accent);
   box-shadow: var(--shadow-sm);
 }
 
@@ -702,8 +651,8 @@ button.project-switch:hover {
 }
 
 .search-field:focus-within {
-  border-color: var(--glass-green);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--glass-green) 15%, transparent);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
 }
 
 .search-field input[type] {
@@ -755,8 +704,8 @@ button.project-switch:hover {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  background: color-mix(in srgb, var(--glass-green) 10%, transparent);
-  color: var(--glass-green);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
 }
 
 .panel-head h2 {
@@ -921,7 +870,7 @@ pre.sql {
 }
 
 .kpi.selected {
-  background: color-mix(in srgb, var(--glass-green) 6%, var(--surface));
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
 }
 
 .kpi.selected::after {
@@ -931,7 +880,7 @@ pre.sql {
   right: 0;
   top: 0;
   height: 2px;
-  background: var(--glass-green);
+  background: var(--accent);
 }
 
 .kpi dt {
@@ -991,7 +940,110 @@ pre.sql {
 }
 
 .project-mark.all {
-  background: linear-gradient(145deg, #6b7a8f, #3f4b5c);
+  background: var(--rail-active);
+  color: var(--rail-ink);
+}
+
+/* Traffic overview */
+.traffic-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+}
+.traffic-chart,
+.traffic-ranks {
+  min-width: 0;
+}
+.traffic-total {
+  display: block;
+  color: var(--ink);
+  font-size: clamp(34px, 4vw, 52px);
+  line-height: 1.1;
+  letter-spacing: -0.055em;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  margin: 0 0 20px;
+}
+.traffic-ranking {
+  width: 100%;
+}
+.traffic-ranking th,
+.traffic-ranking td {
+  padding: 6px;
+}
+.traffic-ranking td:first-child {
+  color: var(--muted);
+  width: 3ch;
+}
+.rank-link {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  max-width: 100%;
+}
+.rank-link code {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.rank-link .icon {
+  flex: none;
+}
+.traffic-share {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.traffic-share meter {
+  appearance: none;
+  width: 2.5rem;
+  height: 4px;
+  border: none;
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--hairline);
+}
+.traffic-share meter::-webkit-meter-bar {
+  background: var(--hairline);
+  border: 0;
+}
+.traffic-share meter::-webkit-meter-optimum-value {
+  background: var(--accent);
+}
+.traffic-share meter::-moz-meter-bar {
+  background: var(--accent);
+}
+.rank-pager {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  gap: 10px;
+  margin-top: 10px;
+}
+.mobile-project {
+  display: none;
+}
+@media (max-width: 1200px) {
+  .traffic-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+}
+@media (max-width: 720px) {
+  .topbar .mobile-project {
+    display: block;
+    min-width: 0;
+    max-width: 11rem;
+  }
+  .topbar .mobile-project .project-switch {
+    display: grid;
+  }
+  .topbar:has(.mobile-project) > .crumbs {
+    display: none;
+  }
+  .traffic-share meter {
+    display: none;
+  }
 }
 
 /* All sites */
@@ -1078,7 +1130,7 @@ pre.sql {
   position: absolute;
   inset: 0 auto 0 0;
   border-radius: inherit;
-  background: var(--glass-green);
+  background: var(--accent);
 }
 
 .kpi .meter {
@@ -1135,8 +1187,8 @@ pre.sql {
   width: 20px;
   height: 20px;
   border-radius: 6px;
-  background: color-mix(in srgb, var(--tag, var(--glass-green)) 16%, transparent);
-  color: var(--tag, var(--glass-green));
+  background: color-mix(in srgb, var(--tag, var(--accent)) 16%, transparent);
+  color: var(--tag, var(--accent));
   font-size: 11px;
   font-weight: 750;
 }
@@ -1362,14 +1414,14 @@ svg.sparkline {
 .bar-fill {
   position: absolute;
   inset: 2px auto 2px 0;
-  background: color-mix(in srgb, var(--glass-green) 13%, transparent);
+  background: color-mix(in srgb, var(--accent) 13%, transparent);
   border-radius: 6px;
   z-index: 0;
   transition: width 0.3s ease;
 }
 
 .bar-row:hover .bar-fill {
-  background: color-mix(in srgb, var(--glass-green) 20%, transparent);
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
 .bar-label {
@@ -1390,7 +1442,7 @@ svg.sparkline {
 
 a.bar-label:hover {
   text-decoration: none;
-  color: var(--glass-green);
+  color: var(--accent);
 }
 
 .bar-deco {
@@ -1418,8 +1470,8 @@ a.bar-label:hover {
   width: 16px;
   height: 16px;
   border-radius: 4px;
-  background: color-mix(in srgb, var(--glass-cobalt) 14%, transparent);
-  color: var(--glass-cobalt);
+  background: color-mix(in srgb, var(--series-violet) 14%, transparent);
+  color: var(--series-violet);
   font-size: 10px;
   font-weight: 700;
 }
@@ -1431,7 +1483,7 @@ a.bar-label:hover {
   padding: 4px 2px;
   border: 0;
   background: transparent;
-  color: var(--glass-green);
+  color: var(--accent);
   font: inherit;
   font-size: 13px;
   font-weight: 600;
@@ -1484,7 +1536,7 @@ a.bar-label:hover {
   width: 22px;
   height: 22px;
   border-radius: 999px;
-  background: var(--glass-green-soft);
+  background: var(--accent-soft);
   color: var(--pane-ink);
   font-size: 11.5px;
   font-weight: 750;
@@ -1525,8 +1577,8 @@ a.bar-label:hover {
   min-height: 0;
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--glass-green) 85%, #fff 15%),
-    var(--glass-green)
+    color-mix(in srgb, var(--accent) 85%, #fff 15%),
+    var(--accent)
   );
   transition: height 0.35s ease;
 }
@@ -1639,7 +1691,7 @@ a.bar-label:hover {
 .funnel-bd-conv-bar {
   position: absolute;
   inset: 0 auto 0 0;
-  background: var(--glass-green);
+  background: var(--accent);
   border-radius: inherit;
   max-width: 100%;
 }
@@ -1659,7 +1711,7 @@ table.retention td {
 
 table.retention td.heat {
   border-radius: 5px;
-  background: color-mix(in srgb, var(--glass-green) calc(var(--heat) * 0.9%), var(--surface-2));
+  background: color-mix(in srgb, var(--accent) calc(var(--heat) * 0.9%), var(--surface-2));
   font-variant-numeric: tabular-nums;
   font-size: 12.5px;
 }
@@ -1840,7 +1892,7 @@ td input {
   display: inline-block;
   padding: 1px 8px;
   border-radius: 6px;
-  background: color-mix(in srgb, var(--glass-green) 10%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
   color: var(--pane-ink);
   font-family: var(--mono);
   font-size: 12px;
@@ -1849,8 +1901,8 @@ td input {
 }
 
 .event-pill.system {
-  background: color-mix(in srgb, var(--glass-cobalt) 10%, transparent);
-  color: var(--glass-cobalt);
+  background: color-mix(in srgb, var(--series-violet) 10%, transparent);
+  color: var(--series-violet);
 }
 
 .value-pill {
@@ -1869,7 +1921,7 @@ td input {
 }
 
 .event-link:hover .event-pill {
-  outline: 1px solid color-mix(in srgb, var(--glass-green) 40%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
 .undocumented {
@@ -1900,7 +1952,7 @@ td input {
   position: absolute;
   inset: 0 auto 0 0;
   border-radius: inherit;
-  background: var(--glass-green);
+  background: var(--accent);
   opacity: 0.75;
 }
 
@@ -1946,8 +1998,8 @@ button:disabled {
 }
 
 .primary {
-  background: var(--glass-green);
-  border-color: color-mix(in srgb, var(--glass-green) 80%, #000);
+  background: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 80%, #000);
   color: var(--on-primary);
   box-shadow:
     0 1px 2px rgb(0 0 0 / 0.12),
@@ -1955,8 +2007,8 @@ button:disabled {
 }
 
 .primary:hover {
-  background: color-mix(in srgb, var(--glass-green) 90%, #000);
-  border-color: color-mix(in srgb, var(--glass-green) 70%, #000);
+  background: color-mix(in srgb, var(--accent) 90%, #000);
+  border-color: color-mix(in srgb, var(--accent) 70%, #000);
   color: var(--on-primary);
 }
 
@@ -2013,8 +2065,8 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: var(--glass-green);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--glass-green) 15%, transparent);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
 }
 
 select {
@@ -2071,8 +2123,8 @@ textarea.prose {
 }
 
 .select-trigger.open {
-  border-color: var(--glass-green);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--glass-green) 15%, transparent);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
 }
 
 .select-value {
@@ -2084,7 +2136,7 @@ textarea.prose {
   width: 6px;
   height: 6px;
   border-radius: 999px;
-  background: var(--glass-cobalt);
+  background: var(--series-violet);
 }
 
 /* Switch. */
@@ -2130,7 +2182,7 @@ textarea.prose {
 }
 
 .toggle input:checked + .toggle-track {
-  background: var(--glass-green);
+  background: var(--accent);
 }
 
 .toggle input:checked + .toggle-track .toggle-thumb {
@@ -2138,7 +2190,7 @@ textarea.prose {
 }
 
 .toggle input:focus-visible + .toggle-track {
-  outline: 2px solid color-mix(in srgb, var(--glass-green) 70%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent);
   outline-offset: 2px;
 }
 
@@ -2158,7 +2210,7 @@ textarea.prose {
 
 .range input {
   flex: 1;
-  accent-color: var(--glass-green);
+  accent-color: var(--accent);
 }
 
 .stack {
@@ -2235,7 +2287,7 @@ textarea.prose {
 }
 
 .tab.active .icon {
-  color: var(--glass-green);
+  color: var(--accent);
 }
 
 .tabs-small {
@@ -2269,7 +2321,7 @@ textarea.prose {
   font-weight: 550;
   padding: 3px 10px;
   border-radius: 999px;
-  background: var(--glass-green-soft);
+  background: var(--accent-soft);
   color: var(--pane-ink);
   border-color: transparent;
   box-shadow: none;
@@ -2334,12 +2386,12 @@ textarea.prose {
 }
 
 .status-shipped {
-  background: color-mix(in srgb, var(--glass-cobalt) 13%, transparent);
-  color: var(--glass-cobalt);
+  background: color-mix(in srgb, var(--series-violet) 13%, transparent);
+  color: var(--series-violet);
 }
 
 .status-shipped .status-dot {
-  background: var(--glass-cobalt);
+  background: var(--series-violet);
 }
 
 @keyframes pulse {
@@ -2401,8 +2453,8 @@ textarea.prose {
   height: 46px;
   margin-bottom: 6px;
   border-radius: 14px;
-  background: color-mix(in srgb, var(--glass-green) 11%, transparent);
-  color: var(--glass-green);
+  background: color-mix(in srgb, var(--accent) 11%, transparent);
+  color: var(--accent);
 }
 
 :is(.panel, .modal) .state.empty:last-child {
@@ -2540,8 +2592,8 @@ textarea.prose {
   margin: 0 0 16px;
   padding: 10px 14px;
   border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--glass-amber) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--glass-amber) 25%, transparent);
+  background: color-mix(in srgb, var(--series-amber) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--series-amber) 25%, transparent);
   color: var(--ink);
 }
 
@@ -2567,8 +2619,8 @@ textarea.prose {
   gap: 12px;
   margin: 12px 32px 0;
   padding: 9px 14px;
-  background: color-mix(in srgb, var(--glass-amber) 12%, var(--surface));
-  border: 1px solid color-mix(in srgb, var(--glass-amber) 35%, transparent);
+  background: color-mix(in srgb, var(--series-amber) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--series-amber) 35%, transparent);
   border-radius: 10px;
   font-size: 13.5px;
 }
@@ -2588,12 +2640,12 @@ textarea.prose {
 }
 
 .demo-banner {
-  background: color-mix(in srgb, var(--glass-green) 9%, var(--surface));
-  border-color: color-mix(in srgb, var(--glass-green) 30%, transparent);
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .demo-banner > .icon {
-  color: var(--glass-green);
+  color: var(--accent);
 }
 
 .summary {
@@ -2611,7 +2663,7 @@ textarea.prose {
 
 .summary > .icon {
   margin-top: 2px;
-  color: var(--glass-green);
+  color: var(--accent);
 }
 
 .toast {
@@ -2699,12 +2751,12 @@ textarea.prose {
 .menu-item:hover,
 .menu-item:focus-visible,
 .menu-item.active {
-  background: color-mix(in srgb, var(--glass-green) 9%, transparent);
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
   outline: none;
 }
 
 .menu-item.selected {
-  color: var(--glass-green);
+  color: var(--accent);
   font-weight: 600;
 }
 
@@ -2740,8 +2792,8 @@ textarea.prose {
   width: 34px;
   height: 34px;
   border-radius: 9px;
-  background: color-mix(in srgb, var(--glass-green) 10%, transparent);
-  color: var(--glass-green);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
 }
 
 .menu-rich-text {
@@ -2919,7 +2971,7 @@ input.palette-input:focus {
 
 .insight-card:hover {
   text-decoration: none;
-  border-color: color-mix(in srgb, var(--glass-green) 50%, var(--hairline));
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--hairline));
   box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
@@ -2965,24 +3017,24 @@ input.palette-input:focus {
   border-radius: 999px;
   font-size: 11.5px;
   font-weight: 650;
-  background: color-mix(in srgb, var(--kind, var(--glass-green)) 12%, transparent);
-  color: var(--kind, var(--glass-green));
+  background: color-mix(in srgb, var(--kind, var(--accent)) 12%, transparent);
+  color: var(--kind, var(--accent));
 }
 
 .kind-trends {
-  --kind: var(--glass-green);
+  --kind: var(--accent);
 }
 
 .kind-funnel {
-  --kind: var(--glass-cobalt);
+  --kind: var(--series-violet);
 }
 
 .kind-retention {
-  --kind: var(--glass-amber);
+  --kind: var(--series-amber);
 }
 
 .kind-paths {
-  --kind: var(--glass-teal);
+  --kind: var(--series-cyan);
 }
 
 .card-path {
@@ -3019,7 +3071,7 @@ input.palette-input:focus {
   cursor: pointer;
 }
 .sankey-node:focus-visible {
-  outline: 2px solid var(--glass-green);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 .sankey-node.other {
@@ -3083,7 +3135,7 @@ input.palette-input:focus {
 .sankey-list-bar {
   position: absolute;
   inset: 2px auto 2px 0;
-  background: color-mix(in srgb, var(--glass-teal) 14%, transparent);
+  background: color-mix(in srgb, var(--series-cyan) 14%, transparent);
   border-radius: var(--radius-sm);
 }
 .sankey-list-label {
@@ -3116,7 +3168,7 @@ input.palette-input:focus {
 .top-path-bar {
   position: absolute;
   inset: 2px auto 2px 0;
-  background: color-mix(in srgb, var(--glass-teal) 10%, transparent);
+  background: color-mix(in srgb, var(--series-cyan) 10%, transparent);
   border-radius: var(--radius-sm);
 }
 .top-path-steps {
@@ -3179,7 +3231,7 @@ input.palette-input:focus {
 .mini-funnel span {
   flex: 1;
   border-radius: 4px 4px 2px 2px;
-  background: var(--glass-cobalt);
+  background: var(--series-violet);
   opacity: 0.8;
 }
 
@@ -3356,7 +3408,7 @@ input.palette-input:focus {
 }
 
 .person-cell:hover .person-id {
-  color: var(--glass-green);
+  color: var(--accent);
 }
 
 .person-text {
@@ -3660,7 +3712,7 @@ input.palette-input:focus {
   align-items: center;
   gap: 8px;
   padding: 0 6px;
-  color: var(--glass-green);
+  color: var(--accent);
 }
 
 .schema-head strong {
@@ -3692,7 +3744,7 @@ input.palette-input:focus {
 }
 
 .schema-col:hover {
-  background: color-mix(in srgb, var(--glass-green) 8%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 
 .schema-col code {
@@ -3720,8 +3772,8 @@ input.palette-input:focus {
 }
 
 .code-field:focus-within {
-  border-color: var(--glass-green);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--glass-green) 15%, transparent);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
 }
 
 .code-field.invalid {
@@ -3772,7 +3824,7 @@ textarea.code-input:focus {
 }
 
 textarea.code-input::selection {
-  background: color-mix(in srgb, var(--glass-cobalt) 25%, transparent);
+  background: color-mix(in srgb, var(--series-violet) 25%, transparent);
   color: transparent;
 }
 
@@ -3819,11 +3871,11 @@ textarea.code-input::selection {
 }
 
 .t-key {
-  color: var(--glass-cobalt);
+  color: var(--series-violet);
 }
 
 .t-lit {
-  color: var(--glass-amber);
+  color: var(--series-amber);
 }
 
 .t-punct {
@@ -3835,7 +3887,7 @@ textarea.code-input::selection {
 }
 
 .t-match {
-  background: color-mix(in srgb, var(--glass-green) 22%, transparent);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
   border-radius: 2px;
 }
 
@@ -3906,16 +3958,16 @@ textarea.code-input::selection {
 }
 
 .t-kw {
-  color: var(--glass-cobalt);
+  color: var(--series-violet);
   font-weight: 600;
 }
 
 .t-str {
-  color: var(--glass-green);
+  color: var(--accent);
 }
 
 .t-num {
-  color: var(--glass-amber);
+  color: var(--series-amber);
 }
 
 .t-com {
@@ -3953,7 +4005,7 @@ ul.plain {
   position: relative;
   background: var(--pane);
   color: var(--pane-ink);
-  border: 1px solid color-mix(in srgb, var(--glass-green) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
   border-radius: 10px;
   padding: 10px 12px;
   margin: 8px 0 14px;
@@ -3992,7 +4044,7 @@ ul.plain {
   width: 22px;
   height: 22px;
   border-radius: 999px;
-  background: var(--glass-green);
+  background: var(--accent);
   color: #fff;
   padding-left: 1px;
 }
@@ -4052,8 +4104,8 @@ ul.plain {
 }
 
 .signal-chip.on {
-  background: var(--glass-green-soft);
-  border-color: color-mix(in srgb, var(--glass-green) 45%, transparent);
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
   color: var(--pane-ink);
 }
 
@@ -4073,7 +4125,7 @@ ul.plain {
 }
 
 button.active {
-  color: var(--glass-green);
+  color: var(--accent);
 }
 
 .replay-filters {
@@ -4357,7 +4409,7 @@ button.active {
 }
 
 .scrubber:focus-visible .scrub-track {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--glass-green) 25%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
 .scrub-track {
@@ -4371,7 +4423,7 @@ button.active {
   position: absolute;
   inset: 0 auto 0 0;
   border-radius: inherit;
-  background: var(--glass-green);
+  background: var(--accent);
   pointer-events: none;
 }
 
@@ -4408,11 +4460,11 @@ button.active {
 .marker.event {
   height: 8px;
   width: 3px;
-  background: var(--glass-cobalt);
+  background: var(--series-violet);
 }
 
 .marker.page {
-  background: var(--glass-cobalt);
+  background: var(--series-violet);
 }
 
 .marker.warn {
@@ -4425,7 +4477,7 @@ button.active {
 }
 
 .marker.note {
-  background: var(--glass-green);
+  background: var(--accent);
   height: 16px;
   width: 6px;
   border-radius: 3px;
@@ -4465,12 +4517,12 @@ button.active {
   padding: 0;
   border-radius: 999px;
   border: 0;
-  background: var(--glass-green);
+  background: var(--accent);
   color: var(--on-primary);
 }
 
 .play-button:hover {
-  background: color-mix(in srgb, var(--glass-green) 88%, var(--ink));
+  background: color-mix(in srgb, var(--accent) 88%, var(--ink));
 }
 
 .player-time {
@@ -4521,7 +4573,7 @@ button.active {
 }
 
 .activity-views .tab.active {
-  box-shadow: inset 0 -2px 0 var(--glass-green);
+  box-shadow: inset 0 -2px 0 var(--accent);
   background: transparent;
 }
 
@@ -4570,8 +4622,8 @@ button.active {
 }
 
 .activity-item.current {
-  background: color-mix(in srgb, var(--glass-green) 10%, transparent);
-  border-left-color: var(--glass-green);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-left-color: var(--accent);
 }
 
 .activity-item.warn .activity-icon {
@@ -4584,7 +4636,7 @@ button.active {
 }
 
 .activity-item.note {
-  background: color-mix(in srgb, var(--glass-green) 6%, transparent);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
 }
 
 .activity-item.kind-idle {
@@ -4605,7 +4657,7 @@ button.active {
 }
 
 .activity-time:hover {
-  color: var(--glass-green);
+  color: var(--accent);
   background: transparent;
 }
 
@@ -4727,13 +4779,7 @@ pre.transcript {
   justify-items: center;
   gap: 16px;
   padding: 24px 16px;
-  background:
-    radial-gradient(
-      1200px 600px at 50% -10%,
-      color-mix(in srgb, var(--glass-green) 14%, transparent),
-      transparent 70%
-    ),
-    var(--field);
+  background: var(--field);
 }
 
 .key-card {
@@ -4741,8 +4787,8 @@ pre.transcript {
   padding: 28px;
   background: var(--surface);
   border: 1px solid var(--hairline);
-  border-radius: 18px;
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
 }
 
 .key-brand {
@@ -4974,7 +5020,7 @@ pre.transcript {
 
 .picker-trigger:hover,
 .picker.open .picker-trigger {
-  border-color: var(--glass-green);
+  border-color: var(--accent);
 }
 
 .picker-trigger.empty .picker-trigger-value {
@@ -5057,11 +5103,11 @@ pre.transcript {
 
 .picker-item:hover,
 .picker-item.active {
-  background: color-mix(in srgb, var(--glass-green) 10%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
 .picker-item.selected {
-  background: color-mix(in srgb, var(--glass-green) 16%, transparent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .picker-item-name {
@@ -5257,7 +5303,7 @@ pre.transcript {
 }
 
 .value-trigger:focus-visible {
-  outline: 2px solid var(--glass-green);
+  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
@@ -5275,7 +5321,7 @@ pre.transcript {
   max-width: 100%;
   padding: 1px 2px 1px 8px;
   border-radius: 999px;
-  background: var(--glass-green-soft);
+  background: var(--accent-soft);
   color: var(--pane-ink);
   font-family: var(--mono);
   font-size: 12.5px;
@@ -5332,8 +5378,8 @@ pre.transcript {
 }
 
 .value-check.on {
-  background: var(--glass-green);
-  border-color: var(--glass-green);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 .value-foot {
@@ -5384,9 +5430,9 @@ pre.transcript {
 .prompt-strip {
   margin: 0 0 16px;
   padding: 12px 14px 14px;
-  border: 1px solid color-mix(in srgb, var(--glass-green) 25%, var(--hairline));
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--hairline));
   border-radius: var(--radius);
-  background: color-mix(in srgb, var(--glass-green) 5%, var(--surface));
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface));
 }
 
 .prompt-strip > header {
@@ -5424,7 +5470,7 @@ pre.transcript {
 
 .prompt-icon {
   grid-row: span 2;
-  color: var(--glass-green);
+  color: var(--accent);
   padding-top: 2px;
 }
 
@@ -5449,7 +5495,7 @@ pre.transcript {
 }
 
 .agent-item .menu-icon {
-  color: var(--glass-green);
+  color: var(--accent);
 }
 
 /* ── Key events ────────────────────────────────────────── */
@@ -5479,11 +5525,11 @@ a.kpi.key-event:hover {
 
 .kpi.key-event.conversion dt .icon,
 .kpi.key-event.overall dt .icon {
-  color: var(--glass-green);
+  color: var(--accent);
 }
 
 .kpi.key-event.important dt .icon {
-  color: var(--glass-amber);
+  color: var(--series-amber);
 }
 
 .key-events-empty {
@@ -5525,13 +5571,13 @@ a.kpi.key-event:hover {
 
 .role-toggle.conversion {
   color: var(--pane-ink);
-  background: var(--glass-green-soft);
+  background: var(--accent-soft);
   border: 1px solid transparent;
 }
 
 .role-toggle.important {
-  color: var(--glass-amber);
-  background: color-mix(in srgb, var(--glass-amber) 12%, transparent);
+  color: var(--series-amber);
+  background: color-mix(in srgb, var(--series-amber) 12%, transparent);
   border: 1px solid transparent;
 }
 
@@ -5548,7 +5594,7 @@ a.kpi.key-event:hover {
   max-width: 280px;
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, var(--glass-green) 12%, transparent) var(--w),
+    color-mix(in srgb, var(--accent) 12%, transparent) var(--w),
     transparent var(--w)
   );
 }
@@ -5637,7 +5683,7 @@ a.kpi.key-event:hover {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--glass-green);
+  background: var(--accent);
 }
 
 .usage-meter.high .meter-fill {
@@ -6263,14 +6309,14 @@ input.tiny {
 }
 
 .chart .annotation-line {
-  stroke: var(--glass-amber);
+  stroke: var(--series-amber);
   stroke-width: 1;
   stroke-dasharray: 3 3;
   pointer-events: none;
 }
 
 .chart .annotation-dot {
-  fill: var(--glass-amber);
+  fill: var(--series-amber);
   stroke: var(--surface);
   stroke-width: 2;
   cursor: help;
@@ -6291,7 +6337,7 @@ input.tiny {
 .note-icon {
   display: inline-flex;
   flex: none;
-  color: var(--glass-amber);
+  color: var(--series-amber);
 }
 
 .chart-notes {
@@ -6331,7 +6377,7 @@ input.tiny {
 }
 
 .chip-toggle[aria-pressed="true"] {
-  background: var(--glass-green-soft);
+  background: var(--accent-soft);
   border-color: transparent;
   color: var(--pane-ink);
 }
@@ -6445,8 +6491,8 @@ input.tiny {
   border-radius: 999px;
   background: linear-gradient(
     to right,
-    color-mix(in srgb, var(--glass-green) 12%, var(--surface-2)),
-    var(--glass-green)
+    color-mix(in srgb, var(--accent) 12%, var(--surface-2)),
+    var(--accent)
   );
 }
 
@@ -6465,7 +6511,7 @@ input.tiny {
 }
 
 .cell-button:focus-visible {
-  outline: 2px solid var(--glass-green);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -6521,8 +6567,8 @@ input.tiny {
   line-height: 16px;
   text-transform: uppercase;
   vertical-align: 1px;
-  color: var(--glass-amber);
-  background: color-mix(in srgb, var(--glass-amber) 14%, transparent);
+  color: var(--series-amber);
+  background: color-mix(in srgb, var(--series-amber) 14%, transparent);
 }
 
 .stage-banner {
@@ -6531,9 +6577,9 @@ input.tiny {
   gap: 10px;
   margin-bottom: 16px;
   padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, var(--glass-amber) 35%, var(--hairline));
+  border: 1px solid color-mix(in srgb, var(--series-amber) 35%, var(--hairline));
   border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--glass-amber) 7%, var(--surface));
+  background: color-mix(in srgb, var(--series-amber) 7%, var(--surface));
   font-size: 13px;
 }
 
@@ -6593,7 +6639,7 @@ input.tiny {
   line-height: 18px;
   text-align: center;
   color: var(--pane-ink);
-  background: var(--glass-green-soft);
+  background: var(--accent-soft);
 }
 
 .fold-chips {
@@ -6624,7 +6670,7 @@ input.tiny {
   border-radius: 999px;
   font-size: 12px;
   color: var(--pane-ink);
-  background: var(--glass-green-soft);
+  background: var(--accent-soft);
 }
 
 .setting-chip .icon-button {
@@ -6648,12 +6694,12 @@ input.tiny {
 }
 
 .query-card.drop-target {
-  border-color: var(--glass-green);
+  border-color: var(--accent);
 }
 
 .query-card.highlighted {
-  border-color: var(--glass-cobalt);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--glass-cobalt) 14%, transparent);
+  border-color: var(--series-violet);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--series-violet) 14%, transparent);
 }
 
 .needs-attention {
@@ -6764,7 +6810,7 @@ input.tiny {
 }
 
 .formula-hints li.active {
-  background: var(--glass-green-soft);
+  background: var(--accent-soft);
 }
 
 .formula-preview {
@@ -6789,26 +6835,26 @@ input.tiny {
 }
 
 .t-s0 {
-  --tag: var(--glass-green);
+  --tag: var(--accent);
 }
 .t-s1 {
-  --tag: var(--glass-cobalt);
+  --tag: var(--series-violet);
 }
 .t-s2 {
-  --tag: var(--glass-amber);
+  --tag: var(--series-amber);
 }
 .t-s3 {
-  --tag: var(--glass-ruby);
+  --tag: var(--series-rose);
 }
 .t-s4 {
-  --tag: var(--glass-teal);
+  --tag: var(--series-cyan);
 }
 .t-s5 {
   --tag: var(--smoke);
 }
 
 .t-fn {
-  color: var(--glass-teal);
+  color: var(--series-cyan);
 }
 
 .t-op {
@@ -6873,10 +6919,10 @@ input.tiny {
   box-shadow: var(--shadow-sm);
 }
 .template-icon {
-  color: var(--glass-green);
+  color: var(--accent);
 }
 .template-uses {
-  color: var(--glass-green);
+  color: var(--accent);
 }
 .dashboard-filters {
   flex-wrap: wrap;
@@ -6923,7 +6969,7 @@ input.tiny {
   opacity: 0.5;
 }
 .tile.drop {
-  outline: 2px dashed var(--glass-green);
+  outline: 2px dashed var(--accent);
   outline-offset: 2px;
 }
 .tile-head {
@@ -6980,7 +7026,7 @@ input.tiny {
 .tile-funnel-bar {
   position: absolute;
   inset: 0 auto 0 0;
-  background: color-mix(in srgb, var(--glass-cobalt) 14%, transparent);
+  background: color-mix(in srgb, var(--series-violet) 14%, transparent);
   border-radius: var(--radius-sm);
 }
 .tile-funnel-label,
