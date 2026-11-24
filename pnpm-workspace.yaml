@@ -2,8 +2,17 @@ packages:
   - packages/*
   - site
 
-ignoredBuiltDependencies:
-  - esbuild
+allowBuilds:
+  # pnpm 10 ran no dependency build scripts here; both ship their binaries as optional
+  # platform packages, so their postinstall checks are not needed.
+  esbuild: false
+  workerd: false
+
+minimumReleaseAge: 5760
+trustPolicy: no-downgrade
+trustPolicyIgnoreAfter: 525600
+strictDepBuilds: true
+blockExoticSubdeps: true
 
 # Dependencies only @stryker-mutator/core (dev) pulls in, pinned past their advisories:
 # minimatch GHSA-g3hv-75wg-m249; qs (via typed-rest-client) GHSA-q8mj-m7cp-5q26,

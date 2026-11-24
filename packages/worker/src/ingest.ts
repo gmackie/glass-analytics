@@ -453,7 +453,7 @@ function groupsOf(e: WireEvent): Record<string, string> {
 }
 
 function validGroupKey(key: string): boolean {
-  // biome-ignore lint/suspicious/noControlCharactersInRegex: rejecting control characters is the point
+  // oxlint-disable-next-line no-control-regex -- rejecting control characters is the point
   return key.length > 0 && key.length <= 200 && !/[\u0000-\u001f]/.test(key);
 }
 

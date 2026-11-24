@@ -406,7 +406,7 @@ function scrubCustom(data: { tag?: unknown; payload?: unknown }): unknown | null
 export interface ReplayEventLike {
   type: number;
   timestamp: number;
-  // biome-ignore lint/suspicious/noExplicitAny: rrweb payloads are heterogeneous
+  // oxlint-disable-next-line no-explicit-any -- rrweb payloads are heterogeneous
   data?: any;
 }
 
@@ -456,7 +456,7 @@ function scrubIncremental(event: ReplayEventLike): ReplayEventLike {
   return event;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: rrweb payloads are heterogeneous
+// oxlint-disable-next-line no-explicit-any -- rrweb payloads are heterogeneous
 function scrubMutation(data: any): unknown {
   return {
     ...data,

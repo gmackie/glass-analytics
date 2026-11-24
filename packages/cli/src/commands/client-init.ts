@@ -189,7 +189,9 @@ async function readWrangler(root: string): Promise<WranglerInfo | undefined> {
     pagesOutput: config.pages_build_output_dir
       ? relative(root, config.pages_build_output_dir) || '.'
       : undefined,
-    durableObjects: config.durable_objects?.bindings?.map((b) => b.name) ?? [],
+    // wrangler 4.164 types its config through @cloudflare/workers-utils, a dev dependency of
+    // wrangler that isn't installed, so `config` reads as `any` here.
+    durableObjects: config.durable_objects?.bindings?.map((b: { name: string }) => b.name) ?? [],
   };
 }
 

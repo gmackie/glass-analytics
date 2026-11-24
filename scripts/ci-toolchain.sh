@@ -16,8 +16,8 @@
 # It adds both to $GITHUB_PATH for later steps. Bump a version by updating its URL and digest.
 set -euo pipefail
 
-NODE_VERSION=22.23.4
-NODE_SHA256=1805bcd35e6815559bd2eb97db438d3fdb0eb3a5e6a977b7c1badca76337e9ce
+NODE_VERSION=26.13.1
+NODE_SHA256=5c063e46bab0fbc1c17cc445d7ff129cbdcd0471be6ed83b6ab864f8143bc864
 UV_VERSION=0.13.7
 UV_WHEEL_URL=https://files.pythonhosted.org/packages/b9/93/0e053a2ca4523ee9825ccbedeb7121470d0a188933f11688b6d90d7f5c08/uv-0.13.7-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 UV_SHA256=2c9bdc4a872b60a93c5f26c0791089ea11585a4f9d3b3c017d78eb8487505e25

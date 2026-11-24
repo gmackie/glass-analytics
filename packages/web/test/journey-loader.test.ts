@@ -13,12 +13,12 @@ interface Loaded {
     track: (event: string, props?: Record<string, unknown>) => void;
     identify: (id: unknown, props?: Record<string, unknown>) => void;
     reset: () => void;
-    // biome-ignore lint/suspicious/noExplicitAny: objects from the vm sandbox are untyped
+    // oxlint-disable-next-line no-explicit-any -- objects from the vm sandbox are untyped
     _internal: Record<string, any>;
   };
   appended: { src: string; fire: () => void }[];
   calls: unknown[][];
-  // biome-ignore lint/suspicious/noExplicitAny: objects from the vm sandbox are untyped
+  // oxlint-disable-next-line no-explicit-any -- objects from the vm sandbox are untyped
   initOptions: Record<string, any> | null;
   location: URL;
   navigate: (path: string) => void;
@@ -36,9 +36,9 @@ function load(
   const location = new URL(`https://app.example.com${path}`);
   const appended: Loaded['appended'] = [];
   const calls: unknown[][] = [];
-  // biome-ignore lint/suspicious/noExplicitAny: objects from the vm sandbox are untyped
+  // oxlint-disable-next-line no-explicit-any -- objects from the vm sandbox are untyped
   let initOptions: Record<string, any> | null = null;
-  // biome-ignore lint/suspicious/noExplicitAny: objects from the vm sandbox are untyped
+  // oxlint-disable-next-line no-explicit-any -- objects from the vm sandbox are untyped
   const window: Record<string, any> = { doNotTrack: null };
   const document = {
     currentScript: { dataset: { enabled: opts.enabled ?? 'true' } },
@@ -58,7 +58,7 @@ function load(
     },
   };
   window.glass = {
-    // biome-ignore lint/suspicious/noExplicitAny: objects from the vm sandbox are untyped
+    // oxlint-disable-next-line no-explicit-any -- objects from the vm sandbox are untyped
     init(o: Record<string, any>) {
       initOptions = o;
     },

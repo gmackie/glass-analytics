@@ -45,7 +45,7 @@ const MAX_REQUESTS = 500;
 interface RecordedEvent {
   type: number;
   timestamp: number;
-  // biome-ignore lint/suspicious/noExplicitAny: rrweb payloads are heterogeneous
+  // oxlint-disable-next-line no-explicit-any -- rrweb payloads are heterogeneous
   data?: any;
 }
 

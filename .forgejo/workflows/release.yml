@@ -57,7 +57,7 @@ jobs:
       - name: Install
         if: steps.plan.outputs.version
         run: |
-          corepack enable
+          npm i -g pnpm@12.21.0
           pnpm config set store-dir "${RUNNER_TEMP:-/tmp}/pnpm-store"
           pnpm install --frozen-lockfile
       # Don't publish a version the checks would reject.
