@@ -504,7 +504,7 @@ function stripePanel(status: StripeStatus): HTMLElement {
     h(
       'p',
       { class: 'muted small' },
-      'Backfill history: npx dataflare-cli stripe import --api-key rk_…',
+      'Backfill history: npx @gmacko/dataflare-cli stripe import --api-key rk_…',
     ),
   );
   form.addEventListener('submit', async (e) => {

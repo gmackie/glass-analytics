@@ -26,7 +26,7 @@ async function demoRequest<T>(method: string, url: URL, body?: unknown): Promise
     throw new ApiError(
       403,
       'The demo is read-only.',
-      'Install Dataflare with `npx dataflare-cli init` to save insights, flags and experiments.',
+      'Install Dataflare with `npx @gmacko/dataflare-cli init` to save insights, flags and experiments.',
     );
   const path = url.pathname.slice(config.base.length) + url.search;
   const name = fixtureName(method, path, body === undefined ? null : JSON.stringify(body));

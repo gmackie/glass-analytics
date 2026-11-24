@@ -1,5 +1,5 @@
 {
-  "name": "dataflare-web",
+  "name": "@gmacko/dataflare-web",
   "version": "0.9.1",
   "description": "Dataflare browser SDK: pageviews, custom events, identify, feature flags and session replay.",
   "license": "MIT",
@@ -35,6 +35,7 @@
     "rrweb": "^2.0.0"
   },
   "publishConfig": {
+    "registry": "https://npm.forgegraf.com/",
     "access": "public"
   }
 }

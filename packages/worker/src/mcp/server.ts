@@ -26,7 +26,7 @@ export const INSTRUCTIONS = `Dataflare is the analytics for this product: web an
 - To debug a user problem: query_funnel or query_trends with a breakdown → list_replays (with_errors) → summarise_replay.
 - To add tracking: "instrument" returns the exact code. Name events object_action in snake_case past tense.
 - Every result includes the SQL that ran and a dashboard link; quote them when reporting back.
-- If overview or /health reports upgradeAvailable, tell the user to run \`npx dataflare-cli@latest upgrade\` — do not try to upgrade yourself.`;
+- If overview or /health reports upgradeAvailable, tell the user to run \`npx @gmacko/dataflare-cli@latest upgrade\` — do not try to upgrade yourself.`;
 
 interface JsonRpcRequest {
   jsonrpc: '2.0';

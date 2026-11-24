@@ -97,7 +97,7 @@ importers:
       '@dataflare/dashboard':
         specifier: workspace:*
         version: link:../dashboard
-      dataflare-web:
+      '@gmacko/dataflare-web':
         specifier: workspace:*
         version: link:../web
       rrweb:

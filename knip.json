@@ -20,7 +20,7 @@
     },
     "packages/worker": {
       "entry": ["src/index.ts", "test/**/*.test.ts"],
-      "ignoreDependencies": ["@dataflare/dashboard", "dataflare-web", "rrweb"]
+      "ignoreDependencies": ["@dataflare/dashboard", "@gmacko/dataflare-web", "rrweb"]
     },
     "packages/cli": {
       "entry": ["src/index.ts", "test/**/*.test.ts"],

@@ -38,7 +38,7 @@ const browserCapture = (event: string, props?: Record<string, unknown>) =>
   `window.glass?.capture(${JSON.stringify(event)}${props && Object.keys(props).length ? `, ${JSON.stringify(props)}` : ''});`;
 
 const moduleCapture = (event: string, props?: Record<string, unknown>) =>
-  `import { glass } from 'dataflare-web';\n\nglass.capture(${JSON.stringify(event)}${props && Object.keys(props).length ? `, ${JSON.stringify(props)}` : ''});`;
+  `import { glass } from '@gmacko/dataflare-web';\n\nglass.capture(${JSON.stringify(event)}${props && Object.keys(props).length ? `, ${JSON.stringify(props)}` : ''});`;
 
 export const FRAMEWORKS: Record<
   Framework,
@@ -95,8 +95,8 @@ export const FRAMEWORKS: Record<
   vite: {
     name: 'Vite (React, Vue, Svelte, Solid…)',
     snippet: (o) => ({
-      file: 'src/main.ts (or main.tsx) — after `npm install dataflare-web`',
-      code: `import { glass } from 'dataflare-web';\n\nglass.init({ host: '${o.host}', project: '${o.project}' });`,
+      file: 'src/main.ts (or main.tsx) — after `npm install @gmacko/dataflare-web`',
+      code: `import { glass } from '@gmacko/dataflare-web';\n\nglass.init({ host: '${o.host}', project: '${o.project}' });`,
       capture: moduleCapture,
     }),
   },

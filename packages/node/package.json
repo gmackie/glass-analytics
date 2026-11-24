@@ -1,5 +1,5 @@
 {
-  "name": "dataflare-node",
+  "name": "@gmacko/dataflare-node",
   "version": "0.9.1",
   "description": "Dataflare server SDK: events, identify, groups, feature flags with local evaluation, and error capture. Runs on Node 18+, Bun, Deno and Cloudflare Workers.",
   "license": "MIT",
@@ -36,6 +36,7 @@
     "@dataflare/core": "workspace:*"
   },
   "publishConfig": {
+    "registry": "https://npm.forgegraf.com/",
     "access": "public"
   }
 }

@@ -2,6 +2,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { detectFramework, FRAMEWORKS, type Framework } from '@dataflare/core/instrument';
+import { upsertNpmrc } from '../agent-files.ts';
 import { call } from '../client.ts';
 import { workerClientSource } from '../client-files.ts';
 import {
@@ -85,6 +86,8 @@ export async function clientInit(
       mkdirSync(dirname(join(root, path)), { recursive: true });
       writeFileSync(join(root, path), content);
     }
+    // The CLI it points agents at is @gmacko/dataflare-cli on the ForgeGraph registry (DATFLR-27).
+    upsertNpmrc(join(root, '.npmrc'));
   }
   report(plan, kept, registration, Boolean(options.dryRun), Boolean(options.json));
 }

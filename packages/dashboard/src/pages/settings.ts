@@ -133,7 +133,11 @@ export function settingsPage(): Node[] {
                   'p',
                   { class: 'notice' },
                   `Dataflare ${health.latest} is available. Run `,
-                  h('code', {}, health.upgradeCommand ?? 'npx dataflare-cli@latest upgrade'),
+                  h(
+                    'code',
+                    {},
+                    health.upgradeCommand ?? 'npx @gmacko/dataflare-cli@latest upgrade',
+                  ),
                   ` in your project.`,
                 )
               : null,
@@ -232,7 +236,7 @@ export function keyScreen(onDone: () => void): HTMLElement {
         h('code', {}, 'dataflare init'),
         ' created. Print it again any time:',
       ),
-      codeBlock('npx dataflare-cli key'),
+      codeBlock('npx @gmacko/dataflare-cli key'),
       form,
       h(
         'p',

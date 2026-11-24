@@ -4,7 +4,7 @@
  * Flags are evaluated on the server so targeting rules (which may mention
  * person properties) are never shipped to browsers. Backends can evaluate
  * locally instead with the definitions from `GET /api/flags/definitions`
- * (server key), which is what dataflare-node does.
+ * (server key), which is what @gmacko/dataflare-node does.
  */
 
 import type { EvaluationContext } from '@dataflare/core/filters';
