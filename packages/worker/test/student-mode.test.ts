@@ -196,7 +196,10 @@ describe('student mode: audit log', () => {
     await t.json('GET', '/api/overview?project=acme', { key: READ });
     await t.call('GET', '/api/persons?project=kids', {
       key: READ,
-      headers: { 'Cf-Access-Authenticated-User-Email': 'teacher-admin@district.test' },
+      access: {
+        aud: 'district',
+        getIdentity: async () => ({ email: 'teacher-admin@district.test' }),
+      },
     });
     const { entries } = await t.json<{
       entries: { operation: string; scope: string; actor: string; surface: string }[];

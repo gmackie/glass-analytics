@@ -8,12 +8,12 @@ import { type StagedFeature, stagePrefix } from '@dataflare/core/stages';
 import { GLASS_VERSION } from '@dataflare/core/version';
 import { z } from 'zod/v4';
 import { authenticate, type Scope } from './auth.ts';
-import type { Env } from './env.ts';
+import type { Env, WorkerAccess } from './env.ts';
 import { HttpError, json, Router, readJson } from './http.ts';
 import { handleImport } from './ingest.ts';
 import { TOOLS } from './mcp/tools.ts';
 import type { GlassService } from './service.ts';
-import { actorFromRequest } from './student-mode.ts';
+import { type AuditActor, keyActor } from './student-mode.ts';
 
 const NUMERIC = new Set(['days', 'limit', 'offset']);
 const BOOLEAN = new Set(['with_errors', 'compare', 'include_archived']);
@@ -53,7 +53,7 @@ function withStages(endpoints: Record<string, string>): Record<string, string> {
 }
 
 /** The key's scope, or an error that says what's wrong with the request's key. */
-async function authorize(request: Request, env: Env): Promise<Scope> {
+async function authorize(request: Request, env: Env, path: string): Promise<Scope> {
   if (!env.GLASS_ADMIN_KEY)
     throw new HttpError(
       503,
@@ -67,7 +67,6 @@ async function authorize(request: Request, env: Env): Promise<Scope> {
       'Missing or invalid API key',
       'Send "Authorization: Bearer <key>". Keys are in .glass/credentials.json; run `dataflare key`.',
     );
-  const path = new URL(request.url).pathname.replace(/^\/_glass/, '');
   if (scope === 'server' && !SERVER_PATHS.some((re) => re.test(path)))
     throw new HttpError(
       403,
@@ -102,14 +101,33 @@ function withEtag(req: Request, defs: { etag: string }): Response {
   return json(defs, { headers: { ETag: defs.etag, 'Cache-Control': 'no-cache' } });
 }
 
+/** The session email is supplied only by the Access-protected dashboard route. */
+type ApiCaller = { dashboardEmail: string } | { access?: WorkerAccess };
+
+async function apiActor(
+  request: Request,
+  env: Env,
+  path: string,
+  caller: ApiCaller,
+): Promise<AuditActor> {
+  const operation = `${request.method} ${path}`;
+  if ('dashboardEmail' in caller)
+    return { actor: caller.dashboardEmail, scope: 'admin', surface: 'dashboard', operation };
+  return keyActor(caller.access, await authorize(request, env, path), 'api', operation);
+}
+
 export async function apiRouter(
   service: GlassService,
   env: Env,
   request: Request,
-  now = Date.now(),
+  path: string,
+  caller: ApiCaller,
+  now: number,
 ): Promise<Router> {
-  const scope = await authorize(request, env);
-  service.actor = actorLabel(request, scope);
+  const actor = await apiActor(request, env, path, caller);
+  const scope = actor.scope;
+  service.actor = actor.surface === 'dashboard' ? actor.actor : actorLabel(request, scope);
+  service.setActor({ ...actor, detail: new URL(request.url).search.slice(1) });
   const admin = () => {
     if (scope !== 'admin') throw new HttpError(403, 'This action needs the admin key');
   };
@@ -123,16 +141,6 @@ export async function apiRouter(
       );
   };
   const body = () => readJson<Record<string, unknown>>(request);
-  const url = new URL(request.url);
-  service.setActor({
-    ...actorFromRequest(
-      request,
-      scope,
-      'api',
-      `${request.method} ${url.pathname.replace(/^\/_glass/, '')}`,
-    ),
-    detail: url.search.slice(1),
-  });
   const r = new Router();
 
   r.get('/api', () =>

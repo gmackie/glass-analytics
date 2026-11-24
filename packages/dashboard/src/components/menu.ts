@@ -243,6 +243,7 @@ export function modal(o: ModalOptions): () => void {
     overlay.remove();
     document.removeEventListener('keydown', onKey);
     window.removeEventListener('hashchange', close);
+    window.removeEventListener('glass:unauthorized', close);
     o.onClose?.();
   }
   overlay.addEventListener('mousedown', (e) => {
@@ -250,6 +251,7 @@ export function modal(o: ModalOptions): () => void {
   });
   document.addEventListener('keydown', onKey);
   window.addEventListener('hashchange', close, { once: true });
+  window.addEventListener('glass:unauthorized', close, { once: true });
   document.body.appendChild(overlay);
   requestAnimationFrame(() =>
     dialog.querySelector<HTMLElement>('input, textarea, button.primary')?.focus(),

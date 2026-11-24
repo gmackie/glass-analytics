@@ -20,6 +20,7 @@ import type {
   PipelineStream,
   R2Bucket,
   R2ObjectBody,
+  WorkerAccess,
 } from '../src/env.ts';
 import { clearProjectCache } from '../src/projects.ts';
 import { clearPolicyCache } from '../src/student-mode.ts';
@@ -224,7 +225,12 @@ export interface TestApp {
   call(
     method: string,
     path: string,
-    options?: { body?: unknown; key?: string | null; headers?: Record<string, string> },
+    options?: {
+      body?: unknown;
+      key?: string | null;
+      headers?: Record<string, string>;
+      access?: WorkerAccess;
+    },
   ): Promise<Response>;
   json<T = Record<string, unknown>>(
     method: string,
@@ -275,6 +281,7 @@ export function testApp(
         body: body as BodyInit | undefined,
       }),
       env,
+      { access: o.access },
     );
   };
   return {

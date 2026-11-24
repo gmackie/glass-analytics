@@ -10,6 +10,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync } from 'node:fs';
 import { after, before, describe, it } from 'node:test';
 import { type Browser, type BrowserContext, chromium } from 'playwright';
+import { sha256Hex } from '../packages/core/src/hash.ts';
 import { wire } from '../packages/worker/test/harness.ts';
 import { type DevServer, startDevServer } from '../packages/worker/test/server.ts';
 import { assertRendersFrames } from './render-check.ts';
@@ -284,6 +285,79 @@ describe('Dataflare end to end', { timeout: 120_000 }, () => {
     assert.doesNotMatch(page.url(), /dev-admin-key/);
     assert.equal(await page.evaluate(() => localStorage.getItem('glass:key')), 'dev-admin-key');
     await fresh.close();
+  });
+
+  it('opens and renews an Access dashboard deep link without storing or sending a key', async (t) => {
+    const identity = { aud: 'observe', getIdentity: async () => ({ email: 'owner@example.test' }) };
+    const observe = await startDevServer({
+      port: 0,
+      demoPort: 0,
+      memory: true,
+      access: () => identity,
+    });
+    t.after(() => observe.close());
+    observe.env.GLASS_ACCESS_AUD = identity.aud;
+    observe.env.GLASS_ACCESS_ADMIN_EMAIL_SHA256 = await sha256Hex('owner@example.test');
+    const fresh = await browser.newContext({ userAgent: UA });
+    t.after(() => fresh.close());
+    const page = await fresh.newPage();
+    const requests: { path: string; bearer?: string }[] = [];
+    page.on('request', (req) =>
+      requests.push({ path: new URL(req.url()).pathname, bearer: req.headers().authorization }),
+    );
+    const base = observe.glassUrl + '/_glass/app';
+    await page.goto(base + '#/settings?from=-7d');
+    const signOut = page.getByRole('link', { name: 'Sign out of Cloudflare Access' });
+    await signOut.waitFor();
+    assert.equal(await signOut.getAttribute('href'), '/cdn-cgi/access/logout');
+    assert.match(page.url(), /#\/settings\?from=-7d&project=demo$/);
+    assert.equal(await page.getByLabel('API key', { exact: true }).count(), 0);
+    assert.equal(await page.evaluate(() => localStorage.getItem('glass:key')), null);
+    await page.evaluate(() => localStorage.setItem('glass:key', 'old-installed-key'));
+    await page.reload();
+    await signOut.waitFor();
+    assert.equal(await page.evaluate(() => localStorage.getItem('glass:key')), null);
+    await page.keyboard.press('/');
+    await page.getByRole('dialog', { name: 'Command palette' }).waitFor();
+    await page.keyboard.press('Escape');
+    const created = await page.evaluate(async () => {
+      const response = await fetch('/_glass/app/api/cohorts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          project: 'demo',
+          key: 'qa',
+          name: 'QA',
+          static: true,
+          ids: ['tester'],
+        }),
+      });
+      return response.status;
+    });
+    assert.equal(created, 201);
+    await page.goto(base + '#/users?project=demo&tab=cohorts');
+    await page.getByRole('button', { name: 'People', exact: true }).click();
+    const download = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Download CSV' }).click();
+    assert.equal((await download).suggestedFilename(), 'cohort-qa.csv');
+    await page.getByRole('button', { name: 'Done' }).click();
+    // Access intercepts the next API fetch with a redirect to its login page.
+    await page.route(
+      '**/app/api/flags?**',
+      (route) => route.fulfill({ status: 302, headers: { Location: '/cdn-cgi/access/login' } }),
+      { times: 1 },
+    );
+    await page.goto(base + '#/flags?project=demo&from=-7d');
+    await page.getByRole('button', { name: 'Sign in with Cloudflare Access' }).click();
+    await page.locator('.shell.page-flags').waitFor();
+    assert.match(page.url(), /#\/flags\?project=demo&from=-7d$/);
+    assert.ok(requests.some((r) => r.path === '/_glass/app/api/projects'));
+    assert.ok(requests.some((r) => r.path === '/_glass/app/api/cohorts/qa/members'));
+    assert.ok(requests.every((r) => !r.bearer && !r.path.startsWith('/_glass/api')));
+    await page.goto(base + '#key=obsolete-key');
+    await page.waitForURL((url) => !url.hash.includes('obsolete-key'));
+    assert.doesNotMatch(page.url(), /obsolete-key/);
+    assert.equal(await page.evaluate(() => localStorage.getItem('glass:key')), null);
   });
 
   it('records a short visit to a page bigger than a beacon', async () => {

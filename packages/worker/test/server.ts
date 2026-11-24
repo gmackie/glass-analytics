@@ -15,7 +15,7 @@ import { join } from 'node:path';
 import { Readable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
 import { createApp } from '../src/app.ts';
-import type { Assets, Env } from '../src/env.ts';
+import type { Assets, Env, WorkerAccess } from '../src/env.ts';
 import { createProject } from '../src/projects.ts';
 import { DirectoryR2, MemoryR2, SqliteD1 } from './harness.ts';
 
@@ -82,6 +82,8 @@ export async function startDevServer(
     dataDir?: string;
     /** The SDK and dashboard bundles to serve; the built ones by default. Tests that only call the API pass `TEST_ASSETS`, so they run before `pnpm build` (as CI does). */
     assets?: Assets;
+    /** Simulate the runtime's Access context for a dashboard browser test. */
+    access?: () => WorkerAccess | undefined;
   } = {},
 ): Promise<DevServer> {
   const dataDir = options.dataDir ?? join(repo, '.glass-dev');
@@ -97,7 +99,12 @@ export async function startDevServer(
 
   const glass = createServer(async (req, res) => {
     try {
-      await send(res, await app.fetch(await toRequest(req, `http://${req.headers.host}`), env));
+      await send(
+        res,
+        await app.fetch(await toRequest(req, `http://${req.headers.host}`), env, {
+          access: options.access?.(),
+        }),
+      );
     } catch (err) {
       console.error('[dev server]', err);
       res.statusCode = 500;

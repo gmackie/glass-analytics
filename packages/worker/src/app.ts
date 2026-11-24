@@ -3,7 +3,7 @@
  *
  *   /e /r /f          ingest events, replay chunks, flag evaluation (public)
  *   /s.js /replay.js  the browser SDK and replay recorder
- *   /app              the dashboard
+ *   /app              the dashboard (and /app/api/* for Access sessions)
  *   /api/*            JSON API (API key)
  *   /mcp              MCP server (API key)
  *   /llms.txt         agent instructions for this deployment
@@ -15,10 +15,10 @@
 
 import { trimTrailingSlashes } from '@dataflare/core/url';
 import { apiRouter } from './api.ts';
-import { requireScope } from './auth.ts';
+import { dashboardAdmin, dashboardUsesAccess, requireScope } from './auth.ts';
 import { isHourlyTick, runMaintenance } from './cron.ts';
 import { consumeDeliveries, type DeliveryMessage } from './destinations.ts';
-import type { Assets, Env, MessageBatch } from './env.ts';
+import type { Assets, Env, MessageBatch, WorkerAccess } from './env.ts';
 import { registerExtensions } from './extensions.ts';
 import { handleFlagEvaluation } from './flags.ts';
 import { CORS_HEADERS, errorResponse, HttpError, json } from './http.ts';
@@ -32,7 +32,7 @@ import { GlassService } from './service.ts';
 import { D1Store } from './stores/d1.ts';
 import { LakeStore } from './stores/lake.ts';
 import type { EventStore } from './stores/types.ts';
-import { actorFromRequest } from './student-mode.ts';
+import { keyActor } from './student-mode.ts';
 
 export const MOUNT_PREFIX = '/_glass';
 
@@ -58,13 +58,13 @@ const FAVICON = `data:image/svg+xml,${encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#f6821f"/><path fill="#271608" d="M7 20h4v5H7zm7-6h4v11h-4zm7-7h4v18h-4z"/></svg>',
 )}`;
 
-function dashboardHtml(base: string): string {
+function dashboardHtml(base: string, access: boolean): string {
   return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="glass-base" content="${base}">
+<meta name="glass-base" content="${base}">${access ? '\n<meta name="glass-auth" content="access">' : ''}
 <title>Dataflare</title>
 <link rel="icon" href="${FAVICON}">
 <link rel="stylesheet" href="${base}/app/app.css">
@@ -83,6 +83,7 @@ const DASHBOARD_CSP =
 interface RequestContext {
   request: Request;
   env: Env;
+  access?: WorkerAccess;
   url: URL;
   /** "/_glass" when mounted under the site's own domain, else "". */
   prefix: string;
@@ -100,6 +101,7 @@ function requestContext(
   env: Env,
   options: AppOptions,
   makeStore: (env: Env) => EventStore,
+  access?: WorkerAccess,
 ): RequestContext {
   const url = new URL(request.url);
   const mounted = url.pathname === MOUNT_PREFIX || url.pathname.startsWith(`${MOUNT_PREFIX}/`);
@@ -111,6 +113,7 @@ function requestContext(
   return {
     request,
     env,
+    access,
     url,
     prefix,
     path: url.pathname.slice(prefix.length) || '/',
@@ -141,7 +144,24 @@ const html = (body: string) =>
     },
   });
 
+const dashboardShell = (c: RequestContext) =>
+  html(dashboardHtml(c.prefix, dashboardUsesAccess(c.env)));
+
+const DASHBOARD_ROUTES: Record<string, (c: RequestContext) => Response> = {
+  '/app': dashboardShell,
+  '/app/': dashboardShell,
+  '/app/app.js': (c) =>
+    new Response(c.options.assets.dashboardJs, {
+      headers: { 'Content-Type': 'text/javascript; charset=utf-8', 'Cache-Control': 'no-cache' },
+    }),
+  '/app/app.css': (c) =>
+    new Response(c.options.assets.dashboardCss, {
+      headers: { 'Content-Type': 'text/css; charset=utf-8', 'Cache-Control': 'no-cache' },
+    }),
+};
+
 const ROUTES: Record<string, Route> = {
+  ...DASHBOARD_ROUTES,
   '/': (c) => Response.redirect(`${c.url.origin}${c.prefix}/app`, 302),
   '/health': async (c) => withCors(json(await c.service.health())),
   '/e': post(async (c) => {
@@ -159,21 +179,11 @@ const ROUTES: Record<string, Route> = {
     new Response(llmsTxt(c.base, c.store.kind), {
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },
     }),
-  '/app': (c) => html(dashboardHtml(c.prefix)),
-  '/app/': (c) => html(dashboardHtml(c.prefix)),
-  '/app/app.js': (c) =>
-    new Response(c.options.assets.dashboardJs, {
-      headers: { 'Content-Type': 'text/javascript; charset=utf-8', 'Cache-Control': 'no-cache' },
-    }),
-  '/app/app.css': (c) =>
-    new Response(c.options.assets.dashboardCss, {
-      headers: { 'Content-Type': 'text/css; charset=utf-8', 'Cache-Control': 'no-cache' },
-    }),
   '/mcp': async (c) => {
     const scope = await requireScope(c.request, c.env, 'read');
     const actorName = c.request.headers.get('X-Glass-Actor')?.slice(0, 60);
     c.service.actor = actorName ? `${actorName} (MCP, ${scope} key)` : `MCP, ${scope} key`;
-    c.service.setActor(actorFromRequest(c.request, scope, 'mcp', 'mcp'));
+    c.service.setActor(await keyActor(c.access, scope, 'mcp', 'mcp'));
     return withCors(await handleMcp(c.request, c.service, scope));
   },
 };
@@ -225,25 +235,73 @@ async function publicLinks(c: RequestContext): Promise<Response | null> {
   );
 }
 
+async function handleApi(
+  c: RequestContext,
+  path: string,
+  dashboardEmail?: string,
+): Promise<Response | null> {
+  if (path !== '/api' && !path.startsWith('/api/')) return null;
+  const caller = dashboardEmail === undefined ? { access: c.access } : { dashboardEmail };
+  const router = await apiRouter(c.service, c.env, c.request, path, caller, c.now);
+  return router.handle(c.request, c.url, path);
+}
+
 /** Stripe webhooks (authenticated by their signature, not an API key), then the API. */
 async function stripeOrApi(c: RequestContext): Promise<Response | null> {
   const stripe = /^\/hooks\/stripe\/([A-Za-z0-9_-]{1,64})\/?$/.exec(c.path);
   if (stripe && c.request.method === 'POST')
     return json(await handleStripeWebhook(c.request, c.env, c.store, stripe[1]!, c.base, c.now));
-  if (c.path !== '/api' && !c.path.startsWith('/api/')) return null;
-  const router = await apiRouter(c.service, c.env, c.request, c.now);
-  const response = await router.handle(c.request, c.url, c.path);
+  const response = await handleApi(c, c.path);
   return response ? withCors(response) : null;
+}
+
+async function accessDashboard(c: RequestContext): Promise<Response> {
+  const canonical = new URL(c.base);
+  if (canonical.origin !== c.url.origin) {
+    if (c.request.method === 'GET' && (c.path === '/app' || c.path === '/app/'))
+      return Response.redirect(canonical.origin + c.url.pathname + c.url.search, 302);
+    throw new HttpError(403, 'Open the dashboard on its protected hostname', canonical.origin);
+  }
+  const email = await dashboardAdmin(c.env, c.access);
+  if (
+    c.request.method !== 'GET' &&
+    c.request.method !== 'HEAD' &&
+    c.request.headers.get('Origin') !== c.url.origin
+  )
+    throw new HttpError(403, 'Dashboard writes require a same-origin request');
+  if (Object.hasOwn(DASHBOARD_ROUTES, c.path)) {
+    if (c.request.method !== 'GET' && c.request.method !== 'HEAD')
+      throw new HttpError(405, 'Use GET to open the dashboard');
+    return DASHBOARD_ROUTES[c.path]!(c);
+  }
+  const response = await handleApi(c, c.path.slice('/app'.length), email);
+  if (response) return response;
+  throw new HttpError(404, 'Unknown dashboard route');
+}
+
+async function privateDashboardResponse(c: RequestContext): Promise<Response> {
+  const response = await accessDashboard(c).catch(errorResponse);
+  const result = new Response(response.body, response);
+  result.headers.set('Cache-Control', 'private, no-store');
+  const csp = result.headers.get('Content-Security-Policy');
+  if (csp) result.headers.set('Content-Security-Policy', csp + "; frame-ancestors 'self'");
+  return result;
 }
 
 export function createApp(options: AppOptions) {
   registerExtensions();
   const makeStore = options.createStore ?? createStore;
 
-  async function fetch(request: Request, env: Env): Promise<Response> {
+  async function fetch(
+    request: Request,
+    env: Env,
+    ctx?: { access?: WorkerAccess },
+  ): Promise<Response> {
+    const c = requestContext(request, env, options, makeStore, ctx?.access);
+    if (dashboardUsesAccess(env) && (c.path === '/app' || c.path.startsWith('/app/')))
+      return privateDashboardResponse(c);
     if (request.method === 'OPTIONS')
       return new Response(null, { status: 204, headers: CORS_HEADERS });
-    const c = requestContext(request, env, options, makeStore);
     try {
       const route = Object.hasOwn(ROUTES, c.path) ? ROUTES[c.path] : undefined;
       const routed = (await route?.(c)) ?? (await publicLinks(c)) ?? (await stripeOrApi(c));
