@@ -4,35 +4,66 @@
  */
 
 import { createInterface } from 'node:readline/promises';
+import { Writable } from 'node:stream';
 import { UsageError } from './config.ts';
 
 export const interactive = () =>
   Boolean(process.stdin.isTTY && process.stdout.isTTY && !process.env.CI);
 
+/** Where a prompt reads and writes; the terminal unless a test supplies its own. */
+export interface PromptIO {
+  input: NodeJS.ReadableStream;
+  output: NodeJS.WritableStream;
+  isInteractive: () => boolean;
+}
+
+const terminal: PromptIO = {
+  input: process.stdin,
+  output: process.stdout,
+  isInteractive: interactive,
+};
+
+/**
+ * The output readline writes to: everything goes through until `muted` is set,
+ * after which nothing does, so a secret's keystrokes are not echoed. This
+ * replaces patching readline's private `_writeToOutput`, which Node 24 turned
+ * into a symbol (`rl._writeToOutput` is undefined there, and `.bind` threw).
+ */
+class MutableOutput extends Writable {
+  muted = false;
+  readonly target: NodeJS.WritableStream;
+  constructor(target: NodeJS.WritableStream) {
+    super();
+    this.target = target;
+  }
+  override _write(chunk: Buffer | string, encoding: BufferEncoding, done: () => void) {
+    if (!this.muted)
+      this.target.write(typeof chunk === 'string' ? Buffer.from(chunk, encoding) : chunk);
+    done();
+  }
+}
+
 export async function ask(
   question: string,
   options: { flag: string; secret?: boolean; default?: string },
+  io: PromptIO = terminal,
 ): Promise<string> {
-  if (!interactive()) {
+  if (!io.isInteractive()) {
     if (options.default !== undefined) return options.default;
     throw new UsageError(
       `Missing ${options.flag}.`,
       `Pass ${options.flag} (this terminal is not interactive).`,
     );
   }
-  const rl = createInterface({ input: process.stdin, output: process.stdout, terminal: true });
-  if (options.secret) {
-    // Mask typed characters.
-    const write = (rl as unknown as { _writeToOutput: (s: string) => void })._writeToOutput.bind(
-      rl,
-    );
-    (rl as unknown as { _writeToOutput: (s: string) => void })._writeToOutput = (s: string) =>
-      write(s.startsWith(question) ? s : '*');
-  }
+  const output = new MutableOutput(io.output);
+  const rl = createInterface({ input: io.input, output, terminal: true });
   const suffix = options.default ? ` (${options.default})` : '';
-  const answer = (await rl.question(`${question}${suffix}: `)).trim();
+  const pending = rl.question(`${question}${suffix}: `);
+  // The prompt has been written; hide what is typed after it.
+  if (options.secret) output.muted = true;
+  const answer = (await pending).trim();
   rl.close();
-  if (options.secret) process.stdout.write('\n');
+  if (options.secret) io.output.write('\n');
   return answer || options.default || '';
 }
 
