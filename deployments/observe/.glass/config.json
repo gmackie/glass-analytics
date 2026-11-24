@@ -8,6 +8,10 @@
     "name": "dataflare-observe",
     "id": "5bdf79c2-33b1-4edb-a5b3-393295e778b8"
   },
+  "queues": {
+    "deliveries": "dataflare-observe-deliveries",
+    "dlq": "dataflare-observe-deliveries-dlq"
+  },
   "replay": null,
   "lake": {
     "bucket": "dataflare-observe-data",
@@ -24,5 +28,5 @@
   "route": null,
   "retentionDays": 365,
   "eu": false,
-  "version": "0.8.0"
+  "version": "0.9.1"
 }

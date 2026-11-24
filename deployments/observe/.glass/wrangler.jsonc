@@ -21,9 +21,11 @@
     "CF_ACCOUNT_ID": "c07a7e704db1808e1fff91bed2b1cd49",
     "GLASS_RETENTION_DAYS": "365"
   },
+  // Every five minutes, as `dataflare init` sets it: scheduled flag changes, alerts and exports;
+  // hourly housekeeping runs on one tick an hour (DATFLR-30).
   "triggers": {
     "crons": [
-      "17 * * * *"
+      "*/5 * * * *"
     ]
   },
   "observability": {
@@ -38,5 +40,23 @@
       "binding": "IDENTITIES_STREAM",
       "stream": "fcf827f3d3e74ae0be8bbd789ffea53e"
     }
-  ]
+  ],
+  // Destination delivery (0.9). The queues were created by `dataflare init` on 2026-11-24 (DATFLR-30).
+  "queues": {
+    "producers": [
+      {
+        "binding": "DELIVERIES",
+        "queue": "dataflare-observe-deliveries"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "dataflare-observe-deliveries",
+        "max_batch_size": 25,
+        "max_batch_timeout": 5,
+        "max_retries": 8,
+        "dead_letter_queue": "dataflare-observe-deliveries-dlq"
+      }
+    ]
+  }
 }
