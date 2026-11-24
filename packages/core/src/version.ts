@@ -5,8 +5,16 @@
  */
 export const GLASS_VERSION = '0.9.1';
 
+/**
+ * This fork publishes its packages as @gmacko/dataflare-* on the private ForgeGraph registry, so
+ * its versions never mix with upstream's dataflare-* on npm (DATFLR-27). A project reaches them
+ * through this scope line in its .npmrc, which `dataflare init` and `client-init` add.
+ */
+export const PACKAGE_REGISTRY = 'https://npm.forgegraf.com/';
+export const NPMRC_SCOPE_LINE = `@gmacko:registry=${PACKAGE_REGISTRY}`;
+
 /** Canonical command to bring a deployment up to date. */
-export const UPGRADE_COMMAND = 'npx dataflare-cli@latest upgrade';
+export const UPGRADE_COMMAND = 'npx @gmacko/dataflare-cli@latest upgrade';
 
 /** Parse a dotted version like "1.2.3" (pre-release suffixes ignored). */
 export function parseSemver(version: string): [number, number, number] | null {

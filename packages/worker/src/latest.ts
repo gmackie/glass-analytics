@@ -1,11 +1,11 @@
 /**
- * Look up the newest published Dataflare CLI version on npm so /health and the
+ * Look up the newest published Dataflare CLI version (@gmacko/dataflare-cli on npm.forgegraf.com, DATFLR-27) so /health and the
  * dashboard can tell operators (and agents) when to run `dataflare upgrade`.
  *
  * Failures are silent: an unreachable registry must never break health checks.
  */
 
-const NPM_LATEST = 'https://registry.npmjs.org/dataflare-cli/latest';
+const NPM_LATEST = 'https://npm.forgegraf.com/@gmacko%2fdataflare-cli/latest';
 const CACHE_MS = 60 * 60 * 1000;
 
 type Fetcher = (input: string, init?: RequestInit) => Promise<Response>;

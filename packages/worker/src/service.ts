@@ -4509,7 +4509,7 @@ WHERE project = ${d.str(project)} AND session_id = ${d.str(row.session_id)} AND 
       sourcemaps: maps,
       summary: maps.length
         ? `${maps.length} source maps across ${releases.length} release${releases.length === 1 ? '' : 's'} (latest ${releases[0]}).`
-        : 'No source maps uploaded. Upload them with `npx dataflare-cli sourcemaps upload <dir> --release <version>`.',
+        : 'No source maps uploaded. Upload them with `npx @gmacko/dataflare-cli sourcemaps upload <dir> --release <version>`.',
     };
   }
 
@@ -4772,7 +4772,7 @@ WHERE project = ${d.str(project)} AND session_id = ${d.str(row.session_id)} AND 
     return {
       project: ctx.project,
       ...status,
-      summary: `Stripe is connected. In Stripe, the webhook endpoint ${status.webhookUrl} should send: ${status.events.join(', ')}. Backfill history with \`npx dataflare-cli stripe import --api-key rk_…\`.`,
+      summary: `Stripe is connected. In Stripe, the webhook endpoint ${status.webhookUrl} should send: ${status.events.join(', ')}. Backfill history with \`npx @gmacko/dataflare-cli stripe import --api-key rk_…\`.`,
     };
   }
 

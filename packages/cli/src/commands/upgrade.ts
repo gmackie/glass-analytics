@@ -115,7 +115,7 @@ export async function upgrade(options: UpgradeOptions, deps: UpgradeDeps = {}): 
   if (!config)
     throw new UsageError(
       'No Dataflare deployment in this project.',
-      'Run `npx dataflare-cli init` first.',
+      'Run `npx @gmacko/dataflare-cli init` first.',
     );
   if (options.retentionDays !== undefined) {
     if (!Number.isInteger(options.retentionDays) || options.retentionDays < 0)
@@ -130,7 +130,7 @@ export async function upgrade(options: UpgradeOptions, deps: UpgradeDeps = {}): 
   if (!credentials && !ci)
     throw new UsageError(
       'No .glass/credentials.json in this project.',
-      'Run `npx dataflare-cli init` again to restore keys, or deploy from CI (`dataflare upgrade --ci`), which leaves Worker secrets as they are.',
+      'Run `npx @gmacko/dataflare-cli init` again to restore keys, or deploy from CI (`dataflare upgrade --ci`), which leaves Worker secrets as they are.',
     );
   const dir = glassDir(root);
   const bundle = deps.bundleDir ?? workerBundleDir();
@@ -144,7 +144,7 @@ export async function upgrade(options: UpgradeOptions, deps: UpgradeDeps = {}): 
   if (deployed && isNewerThan(deployed, GLASS_VERSION) && !options.allowDowngrade) {
     throw new UsageError(
       `This deployment runs Dataflare ${deployed}, which is newer than this CLI (${GLASS_VERSION}). Nothing was changed.`,
-      `Run \`${UPGRADE_COMMAND}\` (or npx dataflare-cli@${deployed} or later). --allow-downgrade forces the older Worker.`,
+      `Run \`${UPGRADE_COMMAND}\` (or npx @gmacko/dataflare-cli@${deployed} or later). --allow-downgrade forces the older Worker.`,
     );
   }
   const from = config.version;
@@ -309,7 +309,7 @@ export function ci(
   if (!loadConfig(root))
     throw new UsageError(
       'No Dataflare deployment in this project.',
-      'Run `npx dataflare-cli init` first.',
+      'Run `npx @gmacko/dataflare-cli init` first.',
     );
   const result = writeCiWorkflow(root, { branch: options.branch, secret: options.secret });
   const next = ciNextSteps(result);

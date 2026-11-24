@@ -1,9 +1,9 @@
 /**
  * The `glass` CLI.
  *
- *   npx dataflare-cli init              deploy into your Cloudflare account
- *   npx dataflare-cli query web         ask questions from the terminal
- *   npx dataflare-cli mcp               stdio MCP server for coding agents
+ *   npx @gmacko/dataflare-cli init              deploy into your Cloudflare account
+ *   npx @gmacko/dataflare-cli query web         ask questions from the terminal
+ *   npx @gmacko/dataflare-cli mcp               stdio MCP server for coding agents
  *
  * Every command accepts --json for machine-readable output.
  */

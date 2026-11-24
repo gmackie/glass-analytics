@@ -14,8 +14,8 @@
   },
   "devDependencies": {
     "@dataflare/dashboard": "workspace:*",
-    "dataflare-web": "workspace:*",
     "rrweb": "^2.0.0",
-    "wrangler": "^4.165.0"
+    "wrangler": "^4.165.0",
+    "@gmacko/dataflare-web": "workspace:*"
   }
 }

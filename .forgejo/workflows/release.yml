@@ -1,7 +1,9 @@
-# Publishes dataflare-cli, dataflare-web and dataflare-node to npm from Forgejo (DATFLR-26).
+# Publishes @gmacko/dataflare-cli, -web and -node to the ForgeGraph registry (npm.forgegraf.com)
+# from Forgejo (DATFLR-26, DATFLR-27).
 #
-# Upstream releases from .github/workflows/release.yml, but GitHub Actions is off on the mirror, so
-# no release has run since 0.8.4. Here versioning is a PR, not a CI push to main:
+# The unscoped dataflare-* names on npmjs belong to upstream; this fork never publishes there. Each
+# package's publishConfig.registry is npm.forgegraf.com, and the Publish step refuses to run if any
+# of them points elsewhere. Versioning is a PR, not a CI push to main:
 #
 #   1. `pnpm version-packages` on a branch, merged as "Version packages (<version>)".
 #   2. This workflow, on that push to main, sees packages/cli at a version that isn't tagged yet:
@@ -10,7 +12,7 @@
 # A push that still carries changesets publishes nothing and says to open the version PR. A
 # version that is already tagged was published by an earlier run and is skipped.
 #
-# Needs the NPM_TOKEN Forgejo secret: an npm automation token that can publish the three packages.
+# Needs the FG_REGISTRY_TOKEN Forgejo secret (`forge registry token create`).
 name: Release
 
 on:
@@ -44,8 +46,8 @@ jobs:
             echo "$pending changeset(s) not versioned yet: open a PR with \`pnpm version-packages\` to release them."
             exit 0
           fi
-          if git ls-remote --exit-code --tags origin "refs/tags/dataflare-cli@$version" >/dev/null; then
-            echo "dataflare-cli@$version is already tagged: published by an earlier run."
+          if git ls-remote --exit-code --tags origin "refs/tags/@gmacko/dataflare-cli@$version" >/dev/null; then
+            echo "@gmacko/dataflare-cli@$version is already tagged: published by an earlier run."
             exit 0
           fi
           echo "Releasing $version."
@@ -69,14 +71,22 @@ jobs:
       - name: Publish
         if: steps.plan.outputs.version
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          FG_REGISTRY_TOKEN: ${{ secrets.FG_REGISTRY_TOKEN }}
         run: |
-          if [ -z "$NPM_TOKEN" ]; then
-            echo "The NPM_TOKEN Forgejo secret is not set; nothing was published." >&2
+          if [ -z "$FG_REGISTRY_TOKEN" ]; then
+            echo "The FG_REGISTRY_TOKEN Forgejo secret is not set; nothing was published." >&2
             exit 1
           fi
+          for pkg in packages/cli packages/web packages/node; do
+            node -e '
+              const p = require(`./${process.argv[1]}/package.json`);
+              if (!p.name.startsWith("@gmacko/") || p.publishConfig?.registry !== "https://npm.forgegraf.com/") {
+                console.error(`${p.name} must be @gmacko/* with publishConfig.registry https://npm.forgegraf.com/`);
+                process.exit(1);
+              }' "$pkg"
+          done
           npmrc="${RUNNER_TEMP:-/tmp}/release.npmrc"
-          printf '//registry.npmjs.org/:_authToken=${NPM_TOKEN}\n' > "$npmrc"
+          printf '//npm.forgegraf.com/:_authToken=${FG_REGISTRY_TOKEN}\n@gmacko:registry=https://npm.forgegraf.com/\n' > "$npmrc"
           NPM_CONFIG_USERCONFIG="$npmrc" pnpm release
           rm -f "$npmrc"
       - name: Push tags
@@ -85,4 +95,4 @@ jobs:
           VERSION: ${{ steps.plan.outputs.version }}
         run: |
           git push origin --tags
-          git ls-remote --exit-code --tags origin "refs/tags/dataflare-cli@$VERSION"
+          git ls-remote --exit-code --tags origin "refs/tags/@gmacko/dataflare-cli@$VERSION"

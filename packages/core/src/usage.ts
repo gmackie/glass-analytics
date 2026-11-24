@@ -346,7 +346,7 @@ function recommend(
       detail: `D1 is projected at ${round(m.d1Gb, 1)} GB and ${millions(m.rowsWritten)} rows written a month. The lake store keeps events as Iceberg tables on R2 (about $0.015/GB-month) and takes event writes out of D1.`,
       impact: 'D1 writes and storage drop to the replay index and settings',
       prompt:
-        'Switch this Dataflare deployment to the lake store: run `npx dataflare-cli@latest init --lake` in the project with .glass/, commit .glass/ and push so the Dataflare workflow deploys it. Then confirm events arrive with `npx dataflare-cli status` and that the dashboard Reports load.',
+        'Switch this Dataflare deployment to the lake store: run `npx @gmacko/dataflare-cli@latest init --lake` in the project with .glass/, commit .glass/ and push so the Dataflare workflow deploys it. Then confirm events arrive with `npx @gmacko/dataflare-cli status` and that the dashboard Reports load.',
     });
   }
   if (input.store === 'd1' && input.retentionDays === null && (m.d1Gb > 1 || m.events > 5e6)) {
@@ -357,7 +357,7 @@ function recommend(
         'Events are kept forever. Keeping 13 months covers year-on-year comparisons and stops D1 growing without bound.',
       impact: 'D1 storage stops growing after 13 months',
       prompt:
-        'Set event retention for this Dataflare deployment to 400 days: run `npx dataflare-cli@latest upgrade --retention-days 400`, commit .glass/ and push so the Dataflare workflow deploys it.',
+        'Set event retention for this Dataflare deployment to 400 days: run `npx @gmacko/dataflare-cli@latest upgrade --retention-days 400`, commit .glass/ and push so the Dataflare workflow deploys it.',
     });
   }
   const total = input.topEvents.reduce((n, e) => n + e.count, 0) || 1;

@@ -4,7 +4,7 @@
  * exactly that version whenever `.glass/` changes on the default branch.
  *
  * Upgrading is then a normal code change:
- *   1. `npx dataflare-cli@latest upgrade` on a laptop stages the new
+ *   1. `npx @gmacko/dataflare-cli@latest upgrade` on a laptop stages the new
  *      Worker, migrations and version into `.glass/` (no deploy).
  *   2. Commit and push (or open a PR). The workflow migrates and deploys.
  *
@@ -77,7 +77,7 @@ function lakeJob(secret: string): string {
       - name: Erase queued people and apply retention in the lake
         run: |
           version="$(node -p "require('./.glass/config.json').version")"
-          npx -y "dataflare-cli@\${version}" lake maintain
+          npx -y "@gmacko/dataflare-cli@\${version}" lake maintain
         env:
           CLOUDFLARE_API_TOKEN: \${{ secrets.${secret} }}
 `;
@@ -87,7 +87,7 @@ export function ciWorkflow(o: Required<CiOptions> & { lake?: boolean }): string 
   return `${MARKER} Deploys the Dataflare analytics Worker from .glass/.
 #
 # The version is pinned in .glass/config.json. To upgrade:
-#   npx dataflare-cli@latest upgrade   # stages the new Worker into .glass/
+#   npx @gmacko/dataflare-cli@latest upgrade   # stages the new Worker into .glass/
 #   git commit .glass && git push            # this workflow migrates and deploys it
 #
 # Needs repository secret ${o.secret}: a Cloudflare API token with
@@ -119,7 +119,7 @@ jobs:
       - name: Deploy the Dataflare version pinned in .glass/config.json
         run: |
           version="$(node -p "require('./.glass/config.json').version")"
-          npx -y "dataflare-cli@\${version}" upgrade --ci
+          npx -y "@gmacko/dataflare-cli@\${version}" upgrade --ci
         env:
           CLOUDFLARE_API_TOKEN: \${{ secrets.${o.secret} }}
 ${o.lake ? lakeJob(o.secret) : ''}`;
@@ -155,7 +155,7 @@ export function ciNextSteps(o: { branch: string; secret: string }): string[] {
   return [
     `Add repository secret ${o.secret} (a Cloudflare API token; same scopes as init): gh secret set ${o.secret}`,
     `Commit .glass/ (not credentials.json, which is git-ignored) and ${CI_WORKFLOW_PATH}, then push to ${o.branch}.`,
-    'Upgrade later with `npx dataflare-cli@latest upgrade`: it stages the new version into .glass/ without deploying. Commit and push; the workflow deploys it.',
+    'Upgrade later with `npx @gmacko/dataflare-cli@latest upgrade`: it stages the new version into .glass/ without deploying. Commit and push; the workflow deploys it.',
     'Do not deploy Dataflare from a laptop once this workflow exists. `dataflare upgrade --local` overrides that for emergencies only.',
   ];
 }

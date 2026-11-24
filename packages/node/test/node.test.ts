@@ -1,5 +1,5 @@
 /**
- * dataflare-node against the real Worker (on SQLite): events, identify, groups,
+ * @gmacko/dataflare-node against the real Worker (on SQLite): events, identify, groups,
  * imports, exceptions, and flags evaluated locally — checked against the
  * Worker's own /f for the same users.
  */

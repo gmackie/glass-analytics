@@ -1,13 +1,13 @@
 /**
- * dataflare-node — the Dataflare server SDK.
+ * @gmacko/dataflare-node — the Dataflare server SDK.
  *
  * ```ts
- * import { Dataflare } from 'dataflare-node';
+ * import { Dataflare } from '@gmacko/dataflare-node';
  *
  * const dataflare = new Dataflare({
  *   host: 'https://glass.acme.workers.dev',
  *   project: 'acme',
- *   serverKey: process.env.DATAFLARE_SERVER_KEY, // `npx dataflare-cli key --server`
+ *   serverKey: process.env.DATAFLARE_SERVER_KEY, // `npx @gmacko/dataflare-cli key --server`
  * });
  *
  * dataflare.capture({ distinctId: user.id, event: 'invoice_paid', properties: { amount: 49 } });
@@ -40,7 +40,7 @@ export interface DataflareOptions {
   /** Project id. */
   project: string;
   /**
-   * The server key (`npx dataflare-cli key --server`). Enables local flag evaluation, imports
+   * The server key (`npx @gmacko/dataflare-cli key --server`). Enables local flag evaluation, imports
    * with historical timestamps, and trusted context (country, browser) on events. Optional:
    * without it events still send and flags are evaluated by the Worker.
    */
@@ -281,7 +281,7 @@ export class Dataflare {
    */
   async import(events: CaptureInput[]): Promise<{ accepted: number; dropped: number }> {
     if (!this.serverKey)
-      throw new Error('import() needs the server key (npx dataflare-cli key --server)');
+      throw new Error('import() needs the server key (npx @gmacko/dataflare-cli key --server)');
     let accepted = 0;
     let dropped = 0;
     const wire = events.map((input) => ({
@@ -324,7 +324,7 @@ export class Dataflare {
       method: 'POST',
       headers: {
         'Content-Type': auth ? 'application/json' : 'text/plain',
-        'User-Agent': `dataflare-node/${GLASS_VERSION}`,
+        'User-Agent': `@gmacko/dataflare-node/${GLASS_VERSION}`,
         ...(auth && this.serverKey ? { Authorization: `Bearer ${this.serverKey}` } : {}),
       },
       body: JSON.stringify(body),
