@@ -1,7 +1,8 @@
 /** Tracked pageviews over time and the paths, sites or referrers behind them. */
 import { SYSTEM_EVENTS } from '../events.ts';
+import type { Dialect } from '../sql/dialect.ts';
 import { bucketExpr, num, text } from '../sql/source.ts';
-import { bucketsBetween, type Interval, iso, resolveRange } from '../time.ts';
+import { bucketsBetween, type Interval, iso, resolveRange, type TimeRange } from '../time.ts';
 import { type QueryContext, type ResultBase, zoneOf } from './types.ts';
 import { defaultInterval } from './web.ts';
 
@@ -21,6 +22,12 @@ export interface TrafficResult extends ResultBase {
   dimension: 'path' | 'project' | 'referrer_host';
   ranking: { value: string; pageviews: number }[];
   hasMore: boolean;
+}
+
+/** Shared scope for pageviews and visits, including only registered projects. */
+export function trafficSource(d: Dialect, projects: string[], range: TimeRange): string {
+  return `FROM ${d.table('events')} WHERE project IN (${projects.map((p) => d.str(p)).join(', ')})
+    AND ts_ms >= ${d.num(Math.floor(range.from))} AND ts_ms < ${d.num(Math.ceil(range.to))}`;
 }
 
 /** Aggregate before limiting so a common path across many small sites ranks correctly. */
@@ -52,14 +59,8 @@ export async function runTraffic(
   };
   if (!projects.length) return result;
 
-  const conditions = [
-    `project IN (${projects.map((p) => d.str(p)).join(', ')})`,
-    `event = ${d.str(SYSTEM_EVENTS.pageview)}`,
-    `ts_ms >= ${d.num(Math.floor(range.from))}`,
-    `ts_ms < ${d.num(Math.ceil(range.to))}`,
-  ];
-  if (spec.path !== undefined) conditions.push(`path = ${d.str(spec.path)}`);
-  const source = `FROM ${d.table('events')} WHERE ${conditions.join(' AND ')}`;
+  const pathFilter = spec.path === undefined ? '' : ` AND path = ${d.str(spec.path)}`;
+  const source = `${trafficSource(d, projects, range)} AND event = ${d.str(SYSTEM_EVENTS.pageview)}${pathFilter}`;
   const bucket = bucketExpr(d, 'ts_ms', interval, zone);
   const seriesSql = `SELECT ${bucket} AS bucket, COUNT(*) AS pageviews ${source} GROUP BY ${bucket} ORDER BY bucket`;
   // Missing paths still count in the total. An empty referrer is direct traffic.

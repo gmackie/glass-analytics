@@ -38,6 +38,7 @@ import { HttpError, readJson } from './http.ts';
 import { getProject, type Project } from './projects.ts';
 import type { EventStore } from './stores/types.ts';
 import { getPolicy } from './student-mode.ts';
+import { recordFilteredPageviews } from './traffic-collection.ts';
 
 const MAX_EVENTS = 200;
 const MAX_IMPORT_EVENTS = 1000;
@@ -117,8 +118,17 @@ export async function handleIngest(
     throw new HttpError(403, `Origin ${info.origin} is not allowed for project "${project.id}"`);
   }
   // Server-side senders often have no user agent; only browsers that look like bots are dropped.
-  if (info.userAgent && isBot(info.userAgent))
+  if (info.userAgent && isBot(info.userAgent)) {
+    const views = batch
+      .events!.slice(0, MAX_EVENTS)
+      .filter(isWellFormed)
+      .filter((e) => e.event === SYSTEM_EVENTS.pageview);
+    const skew = typeof batch.sent_at === 'number' ? now - batch.sent_at : 0;
+    await recordFilteredPageviews(env, project.id, views, (e) =>
+      eventTime(e, { now, skew, trusted: false }),
+    );
     return { accepted: 0, dropped: batch.events!.length };
+  }
   return ingestBatch(batch as WireBatch, project, info, env, store, now, { trusted: false, base });
 }
 
@@ -274,7 +284,7 @@ const str = (v: unknown, max = 500): string =>
  * was offline can send a week's backlog; older timestamps are clock errors. Imports keep theirs:
  * that is what an import is for.
  */
-function eventTime(e: WireEvent, ctx: RowContext): number {
+function eventTime(e: WireEvent, ctx: Pick<RowContext, 'now' | 'skew' | 'trusted'>): number {
   const corrected = Math.round(e.ts + ctx.skew);
   const earliest = ctx.trusted ? corrected : Math.max(ctx.now - MAX_PAST_MS, corrected);
   return Math.min(ctx.now + 60_000, earliest);
@@ -345,6 +355,8 @@ async function toRows(events: WireEvent[], ctx: RowContext): Promise<StoredEvent
   const propsOf = await personProperties(ctx, [...new Set(personOf.values())]);
   const groupPropsOf = await groupProperties(ctx, withIds, types);
   const ua = parseUserAgent(ctx.info.userAgent);
+  const browserVisit =
+    !ctx.trusted && !!ua.browser && ua.browser !== 'Other' && ua.browser !== 'Bot';
   return withIds.map(({ e, ts, distinct, user, session, groups }) => {
     const person = personOf.get(`${distinct}\u0000${user ?? ''}`)!;
     const known = Object.fromEntries(Object.entries(groups).filter(([type]) => types.has(type)));
@@ -360,7 +372,12 @@ async function toRows(events: WireEvent[], ctx: RowContext): Promise<StoredEvent
       ...pageColumns(e),
       ...placeAndDevice(e, ctx, ua),
       flags: JSON.stringify(e.flags && typeof e.flags === 'object' ? e.flags : {}),
-      props: boundedProps(e.props, known, groupPropsOf),
+      props: boundedProps(
+        e.props,
+        known,
+        groupPropsOf,
+        browserVisit && e.event === SYSTEM_EVENTS.pageview,
+      ),
       person_props: propsOf.get(person) ?? '{}',
       lib: ctx.lib,
       received_ms: ctx.now,
@@ -408,6 +425,7 @@ export function boundedProps(
   value: unknown,
   groups: Record<string, string> = {},
   groupProps: Map<string, Record<string, unknown>> = new Map(),
+  browserPageview = false,
 ): string {
   const props: Record<string, unknown> =
     value && typeof value === 'object' && !Array.isArray(value)
@@ -416,7 +434,9 @@ export function boundedProps(
   // Group fields are rebuilt below from what was validated.
   delete props.$groups;
   delete props.$group_props;
+  delete props.$traffic_class;
   truncate(props);
+  if (browserPageview) props.$traffic_class = 'likely_human';
   if (Object.keys(groups).length > 0) {
     props.$groups = groups;
     const snapshot = groupSnapshot(groups, groupProps);

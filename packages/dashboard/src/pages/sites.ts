@@ -18,6 +18,7 @@ import { h } from '../dom.ts';
 import { ago, change, count } from '../format.ts';
 import { go, href, type Route, scope } from '../state.ts';
 import { trafficPanels } from './traffic.ts';
+import { trafficBreakdownPanels } from './traffic-breakdown.ts';
 
 type Sort = 'traffic' | 'change';
 
@@ -181,6 +182,7 @@ export function sitesPage(route: Route): Node[] {
     return [
       pageHeader('All sites', 'Pageviews across every registered site.'),
       trafficPanels(route),
+      trafficBreakdownPanels(null),
       siteActivity(route),
     ];
   }
@@ -197,6 +199,11 @@ export function sitesPage(route: Route): Node[] {
   if (project) actions.push(trafficLink('Site dashboards', 'dashboards', { project }));
   const description = path
     ? `Pageviews for this path · ${project ?? 'All sites'}`
-    : 'Pageviews and paths for this site.';
-  return [pageHeader(path ?? project!, description, actions), trafficPanels(route)];
+    : 'Pageviews, sessions and top paths for this site.';
+  const content: Node[] = [
+    pageHeader(path ?? project!, description, actions),
+    trafficPanels(route),
+  ];
+  if (!path) content.push(trafficBreakdownPanels(project));
+  return content;
 }

@@ -45,9 +45,10 @@ const sliceColor = (i: number) =>
 
 /** A donut of totals, the largest slices first, with the rest as "Other". */
 export function pieChart(
-  items: { label: string; value: number }[],
+  items: { label: string; value: number; color?: string }[],
   fmt: (n: number) => string = count,
   maxSlices = 9,
+  showZeros = false,
 ): HTMLElement {
   const sorted = items.filter((x) => x.value > 0).sort((a, b) => b.value - a.value);
   const shown =
@@ -56,10 +57,12 @@ export function pieChart(
           ...sorted.slice(0, maxSlices - 1),
           {
             label: 'Other',
+            color: undefined,
             value: sorted.slice(maxSlices - 1).reduce((n, x) => n + x.value, 0),
           },
         ]
       : sorted;
+  const legend = showZeros ? [...shown, ...items.filter((x) => x.value === 0)] : shown;
   const total = shown.reduce((n, x) => n + x.value, 0);
   if (!total) return h('p', { class: 'muted' }, 'Nothing to share out: every total is zero.');
   const R = 90;
@@ -80,7 +83,7 @@ export function pieChart(
         : `M${pt(R, a0)} A${R},${R} 0 ${large} 1 ${pt(R, a1)} L${pt(r, a1)} A${r},${r} 0 ${large} 0 ${pt(r, a0)} Z`;
     return s(
       'path',
-      { d, fill: sliceColor(i), class: 'pie-slice', 'fill-rule': 'evenodd' },
+      { d, fill: x.color ?? sliceColor(i), class: 'pie-slice', 'fill-rule': 'evenodd' },
       s('title', {}, `${x.label}: ${fmt(x.value)} (${percent(x.value / total, 1)})`),
     );
   });
@@ -102,11 +105,11 @@ export function pieChart(
     h(
       'ul',
       { class: 'pie-legend' },
-      shown.map((x, i) =>
+      legend.map((x, i) =>
         h(
           'li',
           {},
-          h('span', { class: 'swatch', style: `background:${sliceColor(i)}` }),
+          h('span', { class: 'swatch', style: `background:${x.color ?? sliceColor(i)}` }),
           h('span', { class: 'pie-label' }, x.label),
           h('span', { class: 'num' }, fmt(x.value)),
           h('span', { class: 'num muted' }, percent(x.value / total, 1)),

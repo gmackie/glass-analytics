@@ -111,13 +111,18 @@ async function frequentTasks(
 type MinorsPolicies = Awaited<ReturnType<typeof minorsProjects>>;
 
 /** Delete events older than `cutoff` (in one project, when given), in slices within run limits. */
-async function deleteEventsBefore(env: Env, cutoff: number, project?: string): Promise<number> {
+async function deleteEventsBefore(
+  env: Env,
+  cutoff: number,
+  project?: string,
+  table: 'events' | 'filtered_pageviews' = 'events',
+): Promise<number> {
   const scope = project === undefined ? '' : 'project = ? AND ';
   const binds = project === undefined ? [cutoff] : [project, cutoff];
   let events = 0;
   for (let i = 0; i < 20; i++) {
     const res = await env.DB.prepare(
-      `DELETE FROM events WHERE rowid IN (SELECT rowid FROM events WHERE ${scope}ts_ms < ? LIMIT 5000)`,
+      `DELETE FROM ${table} WHERE rowid IN (SELECT rowid FROM ${table} WHERE ${scope}ts_ms < ? LIMIT 5000)`,
     )
       .bind(...binds)
       .run();
@@ -155,8 +160,18 @@ async function expireEvents(
   now: number,
   minors: MinorsPolicies,
 ): Promise<number> {
-  if (store.kind !== 'd1') return 0;
   const days = Number(env.GLASS_RETENTION_DAYS);
+  if (days > 0) await deleteEventsBefore(env, now - days * DAY_MS, undefined, 'filtered_pageviews');
+  for (const { project, policy } of minors) {
+    if (policy.retention_days)
+      await deleteEventsBefore(
+        env,
+        now - policy.retention_days * DAY_MS,
+        project,
+        'filtered_pageviews',
+      );
+  }
+  if (store.kind !== 'd1') return 0;
   const events = days > 0 ? await deleteEventsBefore(env, now - days * DAY_MS) : 0;
   return events + (await expireMinors(env, minors, now));
 }

@@ -622,7 +622,7 @@ export function dashboardsPage(route: Route): Node[] {
         h(
           'a',
           { class: 'button small', href: href('sites', { project: project() }) },
-          'Pageview rankings',
+          'Traffic overview',
         ),
         h(
           'button',

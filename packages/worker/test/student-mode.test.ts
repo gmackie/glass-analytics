@@ -230,6 +230,19 @@ describe('student mode: audit log', () => {
     assert.equal((await t.call('GET', route + '&limit=-1', { key: READ })).status, 400);
   });
 
+  it('audits fleet and scoped traffic breakdowns for student projects', async () => {
+    for (const query of ['?project=acme', '', '?project=kids']) {
+      await t.json('GET', '/api/traffic/breakdown' + query, { key: READ });
+    }
+    const reads = rows(
+      "SELECT scope FROM audit_log WHERE project = 'kids' AND operation = 'GET /api/traffic/breakdown'",
+    );
+    assert.deepEqual(
+      reads.map((e) => e.scope),
+      ['read', 'read'],
+    );
+  });
+
   it('records SQL against every student project, whatever project it names', async () => {
     await t.json('POST', '/api/sql', {
       key: READ,
@@ -294,12 +307,19 @@ describe('student mode: policy and retention', () => {
       { project: 'kids', headers: IP },
     );
     await t.ingest([wire('$pageview')], { project: 'acme' });
+    for (const project of ['kids', 'acme']) {
+      await t.ingest([wire('$pageview')], { project, headers: { 'User-Agent': 'ExampleBot' } });
+    }
     // Forty days later, past the project's 30 days but with no deployment-wide retention.
     await runMaintenance(t.env, new D1Store(t.db), Date.now() + 40 * 86_400_000);
     assert.equal(rows("SELECT * FROM events WHERE project = 'kids'").length, 0);
     assert.equal(rows("SELECT * FROM persons WHERE project = 'kids'").length, 0);
     assert.equal(rows("SELECT * FROM identities WHERE project = 'kids'").length, 0);
     assert.equal(rows("SELECT * FROM events WHERE project = 'acme'").length, 1);
+    assert.deepEqual(
+      rows('SELECT project FROM filtered_pageviews').map((r) => r.project),
+      ['acme'],
+    );
   });
 
   it('turns off cleanly', async () => {

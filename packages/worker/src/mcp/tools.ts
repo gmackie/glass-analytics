@@ -90,6 +90,15 @@ const ALL_TOOLS: ToolDefinition[] = [
     scope: 'read',
     run: (s, a) => s.traffic(a),
   },
+  {
+    name: 'traffic_breakdown',
+    title: 'Traffic breakdown',
+    description:
+      'Compare hourly pageviews, device mix, likely human, detected bot and unclassified pageviews, and session duration across registered sites or one project. Fleet hours use UTC, site hours use the project time zone. Filtered bots are measured from collectionStarted.',
+    input: inputs.trafficBreakdown,
+    scope: 'read',
+    run: (s, a) => s.trafficBreakdown(a),
+  },
   ...queryTools,
   {
     name: 'sql',
