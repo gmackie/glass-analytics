@@ -2,6 +2,10 @@
 
 **All sites** shows tracked pageviews across the projects on this Dataflare install. Pick a date range and select a path to see its contributing sites. Select a site to see that path’s referrers, or choose **Explore sessions** for the full visits that included it. Selecting a site in the project switcher shows its own path ranking. The rankings count every `$pageview`, including repeat views, and combine identical stored paths across sites. Pageviews with no recorded path count toward the total.
 
+The same date range controls the traffic charts on **All sites** and on each site. Hourly counts use UTC for the fleet and the project’s reporting time zone for a single site. Devices are grouped by tracked pageviews. **Average session duration** measures the span of pageviews and page leaves inside the period for visits with a pageview. A single timestamp contributes zero seconds. Each session carries equal weight across the fleet. Open **Compare sessions by site** to see the underlying counts and averages.
+
+**Human and bot traffic** counts pageviews submitted to this installation. Public submissions from recognized browsers are labeled likely human. The collector counts detected bot pageviews separately and drops them before analytics, sessions and path rankings. It keeps only the project, timestamp and a salted digest of the event ID to deduplicate retries. Historical pageviews, imports and unfamiliar clients are unclassified. The chart shows when collection began.
+
 Each project starts with an editable **Website overview** dashboard for visitors, pageviews, sources, countries and journeys. Existing projects get it on their first visit to Dashboards after upgrading. You can rename or delete it.
 
 A dashboard puts saved analyses side by side, with one date range and one set of filters for all of them, and can be sent to Slack, Discord, Teams, a webhook or email on a schedule.

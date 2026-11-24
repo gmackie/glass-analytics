@@ -55,6 +55,7 @@ import { runRevenue } from '@dataflare/core/insights/revenue';
 import { experimentOptions, metricSchema } from '@dataflare/core/insights/schemas';
 import { runSites } from '@dataflare/core/insights/sites';
 import { runTraffic } from '@dataflare/core/insights/traffic';
+import { runTrafficBreakdown } from '@dataflare/core/insights/traffic-breakdown';
 import type { QueryContext, ResultBase } from '@dataflare/core/insights/types';
 import { runWeb } from '@dataflare/core/insights/web';
 import {
@@ -219,6 +220,7 @@ import {
   recordAudit,
   savePolicy,
 } from './student-mode.ts';
+import { filteredPageviews } from './traffic-collection.ts';
 import {
   deleteTransformation,
   hashSalt,
@@ -471,6 +473,12 @@ const BOARD_INPUTS = {
   capabilities: z.object({ project }),
 };
 
+const trafficScope = z.object({
+  project: z.string().min(1).optional().describe('One site. Omit for all registered sites.'),
+  from: reportRange.from,
+  to: reportRange.to,
+});
+
 export const inputs = {
   overview: z.object({
     project,
@@ -484,10 +492,8 @@ export const inputs = {
       .describe('Start, e.g. "-30d". Default -30d.'),
     to: z.union([z.string(), z.number()]).optional(),
   }),
-  traffic: z.object({
-    project: z.string().min(1).optional().describe('One site. Omit for all registered sites.'),
-    from: reportRange.from,
-    to: reportRange.to,
+  trafficBreakdown: trafficScope,
+  traffic: trafficScope.extend({
     path: z
       .string()
       .min(1)
@@ -1973,19 +1979,33 @@ GROUP BY event ORDER BY cur DESC, event ASC LIMIT 50`;
     };
   }
 
+  private async trafficScope(project?: string) {
+    if (project) {
+      const ctx = await this.context(project);
+      return { projects: [ctx.project], ctx };
+    }
+    await this.auditAll();
+    return {
+      projects: (await listProjects(this.env.DB)).map((p) => p.id),
+      ctx: { dialect: this.store.dialect, execute: (sql: string) => this.store.query(sql) },
+    };
+  }
+
+  async trafficBreakdown(input: unknown) {
+    const spec = inputs.trafficBreakdown.parse(input);
+    const { projects, ctx } = await this.trafficScope(spec.project);
+    const range = resolveRange(spec.from, spec.to);
+    const filtered = await filteredPageviews(this.env.DB, projects, range);
+    return {
+      ...(await runTrafficBreakdown(range, projects, ctx, filtered)),
+      dashboard: this.link('sites', spec),
+    };
+  }
+
   async traffic(input: unknown) {
     const spec = inputs.traffic.parse(input);
-    const ctx = spec.project ? await this.context(spec.project) : undefined;
-    if (!ctx) await this.auditAll();
-    const projects = ctx?.project ?? (await listProjects(this.env.DB)).map((p) => p.id);
-    const result = await runTraffic(
-      spec,
-      projects,
-      ctx ?? {
-        dialect: this.store.dialect,
-        execute: (sql) => this.store.query(sql),
-      },
-    );
+    const { projects, ctx } = await this.trafficScope(spec.project);
+    const result = await runTraffic(spec, spec.project ?? projects, ctx);
     return {
       ...result,
       dashboard: this.link('sites', {

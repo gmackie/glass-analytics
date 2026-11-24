@@ -965,6 +965,35 @@ pre.sql {
   font-variant-numeric: tabular-nums;
   margin: 0 0 20px;
 }
+.traffic-breakdown .pie {
+  gap: 16px 24px;
+}
+.traffic-breakdown .pie-chart {
+  width: 148px;
+  height: 148px;
+}
+.traffic-breakdown .pie-legend {
+  min-width: min(100%, 190px);
+}
+.traffic-detail {
+  margin-top: 12px;
+}
+.traffic-detail summary {
+  color: var(--accent);
+  cursor: pointer;
+  width: fit-content;
+}
+.session-average {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.session-average strong {
+  font-size: 30px;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
 .traffic-ranking {
   width: 100%;
 }

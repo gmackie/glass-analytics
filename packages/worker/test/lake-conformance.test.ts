@@ -245,6 +245,8 @@ const READS: [string, string, unknown?][] = [
   ['GET', '/api/overview?from=-7d'],
   ['GET', '/api/sites?from=-7d'],
   ['GET', '/api/traffic?from=-7d&limit=1&offset=1'],
+  ['GET', '/api/traffic/breakdown?from=-7d'],
+  ['GET', '/api/traffic/breakdown?from=-7d&project=acme'],
   ['GET', '/api/traffic?from=-7d&path=%2F'],
   ['GET', '/api/traffic?from=-7d&project=acme&path=%2F'],
   ['POST', '/api/query', { kind: 'web', from: '-7d' }],
@@ -709,6 +711,7 @@ function conformance(name: string, split: boolean) {
       for (const app of [d1, lake]) {
         // Group types are cached per isolate by project; these two apps share one isolate and project.
         clearGroupTypeCache();
+        app.db.sqlite.exec('UPDATE traffic_collection SET started_ms = 1');
         await app.json('POST', '/api/projects', { body: { id: 'acme' } });
         // Purchases are revenue (and subscription payments, for MRR).
         await app.json('PATCH', '/api/settings', {

@@ -439,14 +439,19 @@ describe('Dataflare end to end', { timeout: 120_000 }, () => {
     ];
     for (const project of ['demo', 'help-center']) {
       const events = paths.flatMap((path, i) =>
-        Array.from({ length: paths.length - i }, (_, j) =>
-          wire('$pageview', {
+        Array.from({ length: paths.length - i }, (_, j) => {
+          const ts = Date.now() - (1 + ((i + j) % 6)) * 86400000 - ((i * 3 + j) % 14) * 3600000;
+          const visit = {
             url: `https://example.test${path}`,
             distinct_id: `reader-${j}`,
-            referrer: 'https://search.example/',
-            ts: Date.now() - (1 + ((i + j) % 6)) * 86400000,
-          }),
-        ),
+            session_id: `visit-${i}-${j}`,
+            context: { device: ['desktop', 'mobile', 'tablet'][j % 3] },
+          };
+          return [
+            wire('$pageview', { ...visit, ts, referrer: 'https://search.example/' }),
+            wire('$pageleave', { ...visit, ts: ts + (j % 5) * 85000 }),
+          ];
+        }).flat(),
       );
       await api('POST', '/api/import', { project, events });
     }
@@ -459,6 +464,37 @@ describe('Dataflare end to end', { timeout: 120_000 }, () => {
       await page.locator('.traffic-total').innerText(),
       total.pageviews.toLocaleString(),
     );
+    const breakdown = page.locator('.traffic-breakdown');
+    await breakdown.getByRole('heading', { name: 'Pageviews by hour' }).waitFor();
+    assert.equal(await breakdown.locator('.pie-chart').count(), 2);
+    await breakdown.getByText('Hourly counts', { exact: true }).click();
+    const counts = breakdown
+      .getByRole('table')
+      .getByRole('row')
+      .filter({ hasText: /\d\d:00/ });
+    assert.equal(await counts.count(), 24);
+    const hourly = await counts.locator('td:last-child').allTextContents();
+    assert.equal(
+      hourly.reduce((sum, value) => sum + Number(value.replaceAll(',', '')), 0),
+      total.pageviews,
+    );
+    await breakdown.getByText('Hourly counts', { exact: true }).click();
+    await breakdown.getByText('Compare sessions by site').click();
+    await breakdown.getByRole('link', { name: 'help-center', exact: true }).click();
+    await page.getByRole('heading', { name: 'help-center', exact: true }).waitFor();
+    await breakdown.getByRole('heading', { name: 'Human and bot traffic' }).waitFor();
+    assert.equal(await breakdown.getByRole('img', { name: /Unclassified 100%/ }).count(), 1);
+    assert.equal(await breakdown.getByText('Compare sessions by site').count(), 0);
+    assert.ok((await breakdown.locator('.session-average').innerText()).includes('session'));
+    await page.locator('.page-actions').getByRole('link', { name: 'All sites' }).click();
+    await page.getByRole('heading', { name: 'All sites', exact: true }).waitFor();
+    await breakdown.getByText('Compare sessions by site').waitFor();
+    await breakdown.getByRole('heading', { name: 'Devices' }).waitFor();
+    await breakdown.screenshot({
+      path: SHOTS + 'dashboard-traffic-breakdown.png',
+      animations: 'disabled',
+    });
+    await page.getByRole('heading', { name: 'All sites', exact: true }).scrollIntoViewIfNeeded();
     await page.screenshot({ path: SHOTS + 'dashboard-traffic.png', animations: 'disabled' });
     await page.getByRole('link', { name: 'Next', exact: true }).click();
     await page.locator('.traffic-ranking td').filter({ hasText: /^11$/ }).first().waitFor();
@@ -468,6 +504,7 @@ describe('Dataflare end to end', { timeout: 120_000 }, () => {
       .getByRole('link', { name: '/pricing', exact: true })
       .click();
     await page.getByRole('heading', { name: 'Contributing sites' }).waitFor();
+    assert.equal(await breakdown.count(), 0);
     await page.locator('.traffic-ranking').getByRole('link', { name: 'demo', exact: true }).click();
     await page.getByRole('heading', { name: 'Referrers' }).waitFor();
     const getParams = () => new URLSearchParams(new URL(page.url()).hash.split('?')[1]);
@@ -494,13 +531,20 @@ describe('Dataflare end to end', { timeout: 120_000 }, () => {
     await page.locator('.dashboard-card').filter({ hasText: 'Website overview' }).click();
     await page.getByRole('heading', { name: 'Website overview' }).waitFor();
     await page.goBack();
-    await page.getByRole('link', { name: 'Pageview rankings' }).click();
+    await page.getByRole('link', { name: 'Traffic overview' }).click();
     await page.getByRole('heading', { name: 'Most viewed paths' }).waitFor();
     assert.equal(getParams().get('project'), 'quiet-site');
+    await breakdown.getByText('No sessions with a pageview in this period.').waitFor();
+    await breakdown.getByText('No device data in this period.').waitFor();
     await page.locator('.page-actions').getByRole('link', { name: 'All sites' }).click();
     await page.locator('.sites-table').waitFor();
     assert.equal(getParams().get('project'), null);
     await page.locator('.traffic-total').waitFor();
+    await breakdown.locator('.pie-chart').first().waitFor();
+    assert.equal(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+      true,
+    );
     await page.screenshot({ path: SHOTS + 'dashboard-traffic-mobile.png', animations: 'disabled' });
     await page.close();
   });

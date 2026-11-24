@@ -742,7 +742,7 @@ export function webPage(route: Route): Node[] {
       h(
         'a',
         { class: 'button small', href: href('sites', { project: sc.project }) },
-        'Pageview rankings',
+        'Traffic overview',
       ),
       tabs(
         [

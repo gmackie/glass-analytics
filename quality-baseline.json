@@ -5,12 +5,12 @@
     "lines": {
       "total": 58.26,
       "cli": 82.64,
-      "core": 98.01,
+      "core": 98.03,
       "dashboard": 0,
       "native": 99.14,
       "node": 95.85,
       "web": 3.73,
-      "worker": 96.16
+      "worker": 96.2
     }
   },
   "complexity": {

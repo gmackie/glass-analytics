@@ -161,6 +161,8 @@ export async function apiRouter(
           'Every project side by side: visitors, pageviews and trend vs the previous period',
         'GET /api/traffic?from=-30d':
           'Pageviews and ranked paths across all sites. Pass project for one site or path for its contributors.',
+        'GET /api/traffic/breakdown?from=-30d':
+          'Pageviews by hour, device and visitor type, plus observed session duration across all sites or one project.',
         'POST /api/query': `Run an insight: { "kind": ${Object.keys(INSIGHTS)
           .map((k) => `"${k}"`)
           .join(' | ')}, ...spec }`,
@@ -552,6 +554,9 @@ export async function apiRouter(
 
   r.get('/api/overview', async ({ url }) => json(await service.overview(params(url))));
   r.get('/api/traffic', async ({ url }) => json(await service.traffic(params(url))));
+  r.get('/api/traffic/breakdown', async ({ url }) =>
+    json(await service.trafficBreakdown(params(url))),
+  );
   r.get('/api/sites', async ({ url }) => json(await service.sites(params(url))));
   r.post('/api/query', async () => {
     const { kind, ...spec } = await body();
