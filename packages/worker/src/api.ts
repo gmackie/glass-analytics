@@ -558,6 +558,9 @@ export async function apiRouter(
   r.get('/api/traffic/breakdown', async ({ url }) =>
     json(await service.trafficBreakdown(params(url))),
   );
+  r.get('/api/instrumentation', async ({ url }) =>
+    json(await service.instrumentationCoverage(params(url))),
+  );
   r.get('/api/sites', async ({ url }) => json(await service.sites(params(url))));
   r.post('/api/query', async () => {
     const { kind, ...spec } = await body();

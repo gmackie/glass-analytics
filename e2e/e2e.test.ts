@@ -504,6 +504,13 @@ describe('Dataflare end to end', { timeout: 120_000 }, () => {
     await page.emulateMedia({ colorScheme: 'light' });
     await page.goto(`${server.glassUrl}/app#/sites?from=-7d`);
     await page.locator('.sites-table a', { hasText: 'quiet-site' }).waitFor();
+    await page.getByRole('link', { name: 'Product instrumentation' }).click();
+    await page.getByRole('heading', { name: 'Fleet instrumentation' }).waitFor();
+    await page.getByRole('link', { name: 'quiet-site', exact: true }).click();
+    await page.getByRole('heading', { name: 'quiet-site', exact: true }).waitFor();
+    await page.getByText(/No observed traffic/).waitFor();
+    await page.getByRole('link', { name: 'Fleet coverage' }).click();
+    await page.getByRole('link', { name: 'All sites', exact: true }).last().click();
     const total = await api<{ pageviews: number }>('GET', '/api/traffic?from=-7d');
     assert.equal(
       await page.locator('.traffic-total').innerText(),
