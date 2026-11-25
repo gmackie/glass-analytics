@@ -1,4 +1,4 @@
-import type { runCoverage } from '@dataflare/core/insights/coverage';
+import type { coverageTotals, runCoverage } from '@dataflare/core/insights/coverage';
 import { api } from '../api.ts';
 import { later, panel, table } from '../components/ui.ts';
 import { h } from '../dom.ts';
@@ -21,7 +21,10 @@ export function coveragePanel(project: string | null) {
   return later(
     async () => {
       const { from, to } = scope();
-      const { projects } = await api.get<{ projects: Projects }>('/api/instrumentation', {
+      const { projects, totals } = await api.get<{
+        projects: Projects;
+        totals: ReturnType<typeof coverageTotals>;
+      }>('/api/instrumentation', {
         project,
         from,
         to,
@@ -49,15 +52,11 @@ export function coveragePanel(project: string | null) {
             ]),
           ),
         ]);
-      const active = projects.filter((p) => p.events.some((e) => e.count));
-      const custom = active.filter((p) =>
-        p.events.some((e) => e.count && !e.event.startsWith('$')),
-      );
       return panel('Product instrumentation', [
         h(
           'p',
           {},
-          `${projects.length} registered · ${active.length} active · ${custom.length} with custom events · ${active.length - custom.length} system only`,
+          `${totals.registered} registered · ${totals.active} active · ${totals.custom} with custom events · ${totals.systemOnly} system only · ${totals.quiet} quiet`,
         ),
         table(
           ['Project', 'Observed evidence', 'Marked signals', 'Saved funnel steps'],

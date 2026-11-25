@@ -78,3 +78,17 @@ export async function runCoverage(
     };
   });
 }
+
+export function coverageTotals(projects: Awaited<ReturnType<typeof runCoverage>>) {
+  const active = projects.filter((p) => p.events.some((e) => e.count > 0));
+  const custom = active.filter((p) =>
+    p.events.some((e) => e.count > 0 && e.kind !== 'System event'),
+  );
+  return {
+    registered: projects.length,
+    active: active.length,
+    custom: custom.length,
+    systemOnly: active.length - custom.length,
+    quiet: projects.length - active.length,
+  };
+}

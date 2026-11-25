@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { it } from 'node:test';
-import { runCoverage } from '../src/insights/coverage.ts';
+import { coverageTotals, runCoverage } from '../src/insights/coverage.ts';
 import { context, createDb, insert } from './helpers.ts';
 
 it('reconciles the registry, observed events, role definitions and quiet funnel steps', async () => {
@@ -23,6 +23,13 @@ it('reconciles the registry, observed events, role definitions and quiet funnel 
   const result = await runCoverage({}, projects, definitions, context(db), [
     { project: 'quiet', event: 'created', name: 'Main journey' },
   ]);
+  assert.deepEqual(coverageTotals(result), {
+    registered: 5,
+    active: 4,
+    custom: 3,
+    systemOnly: 1,
+    quiet: 1,
+  });
   assert.deepEqual(
     result.map((p) => p.status),
     [

@@ -277,6 +277,29 @@ describe('Dataflare end to end', { timeout: 120_000 }, () => {
     await page.close();
   });
 
+  it('configures activation from project events and opens the same cohort in Funnels', async () => {
+    const page = await context.newPage();
+    await page.goto(server.glassUrl + '/app#/insights?project=demo&from=-1d');
+    const activation = page
+      .locator('section.panel')
+      .filter({ has: page.getByRole('heading', { name: 'Signup to activation', exact: true }) });
+    await activation.getByText('Activation mapping unavailable.', { exact: false }).waitFor();
+    await activation.getByText('Configure activation steps').click();
+    await activation.getByLabel('Completed signup').selectOption('signup_completed');
+    await activation.getByLabel('First value-producing action').selectOption('plan_selected');
+    await activation.getByRole('button', { name: 'Save mapping' }).click();
+    await activation.getByText('No activations observed', { exact: false }).waitFor();
+    await activation.getByRole('link', { name: 'Inspect underlying funnel' }).click();
+    await page.locator('.funnel').waitFor();
+    assert.equal(
+      new URLSearchParams(new URL(page.url()).hash.split('?')[1]).get('project'),
+      'demo',
+    );
+    await page.goto(server.glassUrl + '/app#/insights?project=demo&from=2020-01-01&to=2020-01-02');
+    await activation.getByText('No signups in this cohort.', { exact: false }).waitFor();
+    await page.close();
+  });
+
   it('signs in from a #key= link and wipes the key from the URL', async () => {
     const fresh = await browser.newContext({ userAgent: UA });
     const page = await fresh.newPage();
@@ -482,7 +505,9 @@ describe('Dataflare end to end', { timeout: 120_000 }, () => {
     await page.goto(`${server.glassUrl}/app#/sites?from=-7d`);
     await page.locator('.sites-table a', { hasText: 'quiet-site' }).waitFor();
     await page.getByRole('link', { name: 'Product instrumentation' }).click();
+    await page.getByRole('heading', { name: 'Fleet instrumentation' }).waitFor();
     await page.getByRole('link', { name: 'quiet-site', exact: true }).click();
+    await page.getByRole('heading', { name: 'quiet-site', exact: true }).waitFor();
     await page.getByText(/No observed traffic/).waitFor();
     await page.getByRole('link', { name: 'Fleet coverage' }).click();
     await page.getByRole('link', { name: 'All sites', exact: true }).last().click();

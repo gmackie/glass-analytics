@@ -39,7 +39,12 @@ import {
   actorSelection,
   aggregationOf,
 } from '@dataflare/core/insights/actors';
-import { type Definition, type FunnelStep, runCoverage } from '@dataflare/core/insights/coverage';
+import {
+  coverageTotals,
+  type Definition,
+  type FunnelStep,
+  runCoverage,
+} from '@dataflare/core/insights/coverage';
 import { issueCounts, issueDetail, issueSeries } from '@dataflare/core/insights/errors';
 import { planExperiment, runExperiment } from '@dataflare/core/insights/experiment';
 import { suggestPathRules } from '@dataflare/core/insights/paths';
@@ -2012,7 +2017,8 @@ GROUP BY event ORDER BY cur DESC, event ASC LIMIT 50`;
       statement.all<Definition>(),
       funnels.all<FunnelStep>(),
     ]);
-    return { projects: await runCoverage(spec, projects, definitions.results, ctx, steps.results) };
+    const rows = await runCoverage(spec, projects, definitions.results, ctx, steps.results);
+    return { projects: rows, totals: coverageTotals(rows) };
   }
 
   async product(input: unknown) {

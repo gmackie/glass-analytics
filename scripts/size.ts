@@ -32,7 +32,8 @@ const BUDGETS: Record<string, number> = {
   // 620: user paths (the compiler, the dashboard's Sankey and rail), +5 KB.
   // 670: dashboards, scheduled reports and alerts (the PNG renderer and its Inter glyph atlas,
   // about 12 KB; notices, email, schedules) and the larger dashboard it serves.
-  'packages/worker/dist/worker.js': 672,
+  // Includes the embedded signup-to-activation and instrumentation coverage views.
+  'packages/worker/dist/worker.js': 673,
   'packages/cli/dist/glass.js': 42, // import, sourcemaps and stripe commands
 };
 
