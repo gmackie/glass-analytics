@@ -15,6 +15,7 @@ import type { RetentionResult } from '@dataflare/core/insights/retention';
 import type { TrendsResult } from '@dataflare/core/insights/trends';
 import { resolveRange } from '@dataflare/core/time';
 import { api } from '../api.ts';
+import { activation } from '../components/activation.ts';
 import { chartOptionsButton } from '../components/chart-options.ts';
 import { type Annotation, periodReached, sparkline } from '../components/charts.ts';
 import { previousRange } from '../components/date-range.ts';
@@ -419,16 +420,22 @@ function listView(route: Route): Node[] {
     later(
       async () => {
         const r = await api.get<{ insights: SavedInsight[] }>('/api/insights', { project });
+        const cohort = project ? activation(project, r.insights) : null;
         if (r.insights.length === 0) {
-          return empty(
-            'Build a trends, funnel, retention or paths chart, then save it here so you and your agents can reopen it.',
-            newMenu('Create your first analysis'),
-            { icon: 'insights', title: 'No saved analyses yet' },
+          return h(
+            'div',
+            { class: 'stack' },
+            cohort,
+            empty(
+              'Build a trends, funnel, retention or paths chart, then save it here so you and your agents can reopen it.',
+              newMenu('Create your first analysis'),
+              { icon: 'insights', title: 'No saved analyses yet' },
+            ),
           );
         }
         all = r.insights;
         paint();
-        return grid;
+        return h('div', { class: 'stack' }, cohort, grid);
       },
       'Loading analyses',
       'cards',
