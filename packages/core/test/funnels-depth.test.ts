@@ -8,7 +8,7 @@ import { describe, it } from 'node:test';
 import { runFunnelCorrelation, scoreCorrelation } from '../src/insights/correlation.ts';
 import { compileFunnelActors, runFunnel } from '../src/insights/funnel.ts';
 import { funnelCorrelationSpec, funnelSpec } from '../src/insights/schemas.ts';
-import { context, createDb, DAY, insert, NOW, type TestEvent } from './helpers.ts';
+import { context, createDb, DAY, insert, link, NOW, type TestEvent } from './helpers.ts';
 
 const H = 3_600_000;
 const T = NOW - 5 * DAY; // a moment well inside "-7d"
@@ -32,6 +32,31 @@ describe('funnel counting', () => {
     insert(db, [at('p', 'a', 0), at('p', 'a', 2 * DAY), at('p', 'b', 2 * DAY + H)]);
     const res = await runFunnel(spec({ steps: steps('a', 'b'), window: '1d' }), context(db));
     assert.deepEqual(counts(res), [1, 1]);
+  });
+
+  it('counts linked people in the signup project and permits activation after the cohort closes', async () => {
+    const db = createDb();
+    link(db, 'browser', 'account');
+    link(db, 'browser', 'another-account', 'other-app');
+    insert(db, [
+      at('browser', 'signup', 0),
+      at('device', 'project_created', 3 * H, { user_id: 'account' }),
+      at('late', 'signup', 2 * H),
+      at('late', 'project_created', 3 * H),
+      at('second', 'signup', H),
+      at('second', 'project_created', H / 2),
+      at('second', 'project_created', 3 * H, { project: 'other-app' }),
+    ]);
+    const result = await runFunnel(
+      spec({
+        steps: steps('signup', 'project_created'),
+        from: new Date(T).toISOString(),
+        to: new Date(T + 2 * H).toISOString(),
+        window: '1d',
+      }),
+      context(db),
+    );
+    assert.deepEqual(counts(result), [2, 1]);
   });
 
   it('strict order needs each step to be the very next event', async () => {
