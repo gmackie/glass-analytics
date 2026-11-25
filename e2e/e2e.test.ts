@@ -421,6 +421,28 @@ describe('Dataflare end to end', { timeout: 120_000 }, () => {
     });
     assert.ok(sql.rows[0]!.n >= 1, "the replay joins the visit's events");
   });
+  it('shows unconfigured and measured-zero product actions and links their details', async () => {
+    await api('POST', '/api/projects', { id: 'product-test' });
+    const page = await context.newPage();
+    await page.goto(`${server.glassUrl}/app#/product?project=product-test&from=-7d`);
+    await page.getByText('No marked custom actions.', { exact: false }).waitFor();
+    await api('PUT', '/api/events/play/role', { project: 'product-test', role: 'important' });
+    await page.reload();
+    const row = page.getByRole('row').filter({ hasText: 'play' });
+    await row.waitFor();
+    assert.deepEqual(await row.locator('td').allTextContents(), [
+      'play',
+      'important',
+      '0',
+      '0',
+      '—',
+      '0',
+      '—',
+    ]);
+    await row.getByRole('link').click();
+    assert.match(page.url(), /events\/play.*project=product-test.*from=-7d/);
+    await page.close();
+  });
   it('drills from fleet pageviews into one path and site while retaining the date range', async () => {
     await api('POST', '/api/projects', { id: 'quiet-site' });
     await api('POST', '/api/projects', { id: 'help-center' });

@@ -552,6 +552,7 @@ export async function apiRouter(
     return json(await service.auditLog({ ...params(url), project: p.id }));
   });
 
+  r.get('/api/product', async ({ url }) => json(await service.product(params(url))));
   r.get('/api/overview', async ({ url }) => json(await service.overview(params(url))));
   r.get('/api/traffic', async ({ url }) => json(await service.traffic(params(url))));
   r.get('/api/traffic/breakdown', async ({ url }) =>

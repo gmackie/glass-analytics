@@ -43,6 +43,7 @@ import { type Definition, type FunnelStep, runCoverage } from '@dataflare/core/i
 import { issueCounts, issueDetail, issueSeries } from '@dataflare/core/insights/errors';
 import { planExperiment, runExperiment } from '@dataflare/core/insights/experiment';
 import { suggestPathRules } from '@dataflare/core/insights/paths';
+import { runProduct } from '@dataflare/core/insights/product';
 import {
   type EventRole,
   type KeyEvent,
@@ -493,6 +494,7 @@ export const inputs = {
       .describe('Start, e.g. "-30d". Default -30d.'),
     to: z.union([z.string(), z.number()]).optional(),
   }),
+  product: z.object({ project, from: reportRange.from, to: reportRange.to }),
   trafficBreakdown: trafficScope,
   traffic: trafficScope.extend({
     path: z
@@ -2011,6 +2013,16 @@ GROUP BY event ORDER BY cur DESC, event ASC LIMIT 50`;
       funnels.all<FunnelStep>(),
     ]);
     return { projects: await runCoverage(spec, projects, definitions.results, ctx, steps.results) };
+  }
+
+  async product(input: unknown) {
+    const spec = inputs.product.parse(input);
+    const ctx = await this.context(spec.project);
+    return runProduct(
+      resolveRange(spec.from ?? '-30d', spec.to),
+      await this.keyEvents(ctx.project),
+      ctx,
+    );
   }
 
   async trafficBreakdown(input: unknown) {
