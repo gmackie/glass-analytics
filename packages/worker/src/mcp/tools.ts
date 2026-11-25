@@ -99,6 +99,15 @@ const ALL_TOOLS: ToolDefinition[] = [
     scope: 'read',
     run: (s, a) => s.trafficBreakdown(a),
   },
+  {
+    name: 'product_adoption',
+    title: 'Product adoption',
+    description:
+      'Rank marked custom actions by adopters for one project and date range. Repeat share counts adopters returning on another project-local date.',
+    input: inputs.product,
+    scope: 'read',
+    run: (s, a) => s.product(a),
+  },
   ...queryTools,
   {
     name: 'sql',
