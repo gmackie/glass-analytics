@@ -39,6 +39,7 @@ import {
   actorSelection,
   aggregationOf,
 } from '@dataflare/core/insights/actors';
+import { type Definition, type FunnelStep, runCoverage } from '@dataflare/core/insights/coverage';
 import { issueCounts, issueDetail, issueSeries } from '@dataflare/core/insights/errors';
 import { planExperiment, runExperiment } from '@dataflare/core/insights/experiment';
 import { suggestPathRules } from '@dataflare/core/insights/paths';
@@ -1989,6 +1990,27 @@ GROUP BY event ORDER BY cur DESC, event ASC LIMIT 50`;
       projects: (await listProjects(this.env.DB)).map((p) => p.id),
       ctx: { dialect: this.store.dialect, execute: (sql: string) => this.store.query(sql) },
     };
+  }
+
+  async instrumentationCoverage(input: unknown) {
+    const spec = trafficScope.parse(input);
+    const { projects, ctx } = await this.trafficScope(spec.project);
+    const statement = spec.project
+      ? this.env.DB.prepare(
+          'SELECT project,event,role,description FROM event_definitions WHERE project = ?',
+        ).bind(spec.project)
+      : this.env.DB.prepare('SELECT project,event,role,description FROM event_definitions');
+    const sql = `SELECT DISTINCT insights.project, insights.name, json_extract(step.value, '$.event') AS event
+      FROM insights, json_each(insights.spec, '$.steps') AS step
+      WHERE insights.kind = 'funnel' AND json_type(step.value, '$.event') = 'text'`;
+    const funnels = spec.project
+      ? this.env.DB.prepare(sql + ' AND insights.project = ?').bind(spec.project)
+      : this.env.DB.prepare(sql);
+    const [definitions, steps] = await Promise.all([
+      statement.all<Definition>(),
+      funnels.all<FunnelStep>(),
+    ]);
+    return { projects: await runCoverage(spec, projects, definitions.results, ctx, steps.results) };
   }
 
   async trafficBreakdown(input: unknown) {

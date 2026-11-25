@@ -73,6 +73,15 @@ const ALL_TOOLS: ToolDefinition[] = [
     run: (s, a) => s.overview(a),
   },
   {
+    name: 'instrumentation_coverage',
+    title: 'Instrumentation coverage',
+    description:
+      'Inspect observed events and configured roles for all registered projects or one app in a time range.',
+    input: inputs.trafficBreakdown,
+    scope: 'read',
+    run: (s, a) => s.instrumentationCoverage(a),
+  },
+  {
     name: 'compare_sites',
     title: 'Compare sites',
     description:

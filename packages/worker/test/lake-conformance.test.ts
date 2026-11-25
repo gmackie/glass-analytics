@@ -244,6 +244,8 @@ const READS: [string, string, unknown?][] = [
   ['GET', '/api/issues?from=-7d&order=users&filters=[{"property":"browser","value":"Chrome"}]'],
   ['GET', '/api/overview?from=-7d'],
   ['GET', '/api/sites?from=-7d'],
+  ['GET', '/api/instrumentation?from=-7d'],
+  ['GET', '/api/instrumentation?from=-7d&project=acme'],
   ['GET', '/api/traffic?from=-7d&limit=1&offset=1'],
   ['GET', '/api/traffic/breakdown?from=-7d'],
   ['GET', '/api/traffic/breakdown?from=-7d&project=acme'],

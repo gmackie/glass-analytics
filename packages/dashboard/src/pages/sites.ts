@@ -17,6 +17,7 @@ import { empty, later, pageHeader, panel, table, tabs } from '../components/ui.t
 import { h } from '../dom.ts';
 import { ago, change, count } from '../format.ts';
 import { go, href, type Route, scope } from '../state.ts';
+import { coveragePanel } from './coverage.ts';
 import { trafficPanels } from './traffic.ts';
 import { trafficBreakdownPanels } from './traffic-breakdown.ts';
 
@@ -178,9 +179,21 @@ function trafficLink(label: string, page: string, params: Record<string, string 
 export function sitesPage(route: Route): Node[] {
   const project = route.params.get('project');
   const path = route.params.get('path');
+  if (route.params.get('view') === 'instrumentation') {
+    return [
+      pageHeader(project ?? 'Fleet instrumentation', 'Event evidence for the selected period.', [
+        project
+          ? trafficLink('Fleet coverage', 'sites', { project: null, view: 'instrumentation' })
+          : trafficLink('All sites', 'sites', { project: null }),
+      ]),
+      coveragePanel(project),
+    ];
+  }
   if (!project && !path) {
     return [
-      pageHeader('All sites', 'Pageviews across every registered site.'),
+      pageHeader('All sites', 'Pageviews across every registered site.', [
+        trafficLink('Product instrumentation', 'sites', { project: null, view: 'instrumentation' }),
+      ]),
       trafficPanels(route),
       trafficBreakdownPanels(null),
       siteActivity(route),
