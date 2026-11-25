@@ -21,6 +21,7 @@ import { groupsPage } from './pages/groups.ts';
 import { insightsPage } from './pages/insights.ts';
 import { peoplePage } from './pages/people.ts';
 import { pipelinesPage } from './pages/pipelines.ts';
+import { productPage } from './pages/product.ts';
 import { replaysPage } from './pages/replays.ts';
 import { revenuePage } from './pages/revenue.ts';
 import { accessSignIn, keyScreen, settingsPage } from './pages/settings.ts';
@@ -43,6 +44,7 @@ const PAGES: Record<string, PageDef> = {
   // Old #/web bookmarks land on Reports.
   web: { label: 'Reports', icon: 'reports', render: webPage },
   dashboards: { label: 'Dashboards', icon: 'dashboard', render: dashboardsPage },
+  product: { label: 'Product analytics', icon: 'insights', render: productPage },
   insights: { label: 'Insights', icon: 'insights', render: insightsPage },
   users: { label: 'People', icon: 'users', render: peoplePage },
   groups: { label: 'Groups', icon: 'layers', render: groupsPage },
@@ -65,6 +67,7 @@ const GROUPS: { label: string; pages: string[] }[] = [
       'sites',
       'dashboards',
       'reports',
+      'product',
       'insights',
       'revenue',
       'users',

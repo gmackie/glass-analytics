@@ -244,6 +244,7 @@ const READS: [string, string, unknown?][] = [
   ['GET', '/api/issues?from=-7d&order=users&filters=[{"property":"browser","value":"Chrome"}]'],
   ['GET', '/api/overview?from=-7d'],
   ['GET', '/api/sites?from=-7d'],
+  ['GET', '/api/product?from=-7d&project=acme'],
   ['GET', '/api/traffic?from=-7d&limit=1&offset=1'],
   ['GET', '/api/traffic/breakdown?from=-7d'],
   ['GET', '/api/traffic/breakdown?from=-7d&project=acme'],
@@ -713,6 +714,9 @@ function conformance(name: string, split: boolean) {
         clearGroupTypeCache();
         app.db.sqlite.exec('UPDATE traffic_collection SET started_ms = 1');
         await app.json('POST', '/api/projects', { body: { id: 'acme' } });
+        await app.json('PUT', '/api/events/purchase/role', {
+          body: { project: 'acme', role: 'conversion' },
+        });
         // Purchases are revenue (and subscription payments, for MRR).
         await app.json('PATCH', '/api/settings', {
           body: {
