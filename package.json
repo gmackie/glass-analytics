@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "node scripts/build.ts",
-    "typecheck": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json && pnpm --filter @dataflare/mobile typecheck",
     "test": "node --test \"packages/*/test/**/*.test.ts\" \"scripts/**/*.test.ts\"",
     "test:e2e": "node scripts/build.ts && node --test \"e2e/*.test.ts\"",
     "quality": "node scripts/quality.ts check",

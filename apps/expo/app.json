@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "Dataflare",
+    "slug": "dataflare-mobile",
+    "scheme": "dataflare-mobile",
+    "version": "0.1.0",
+    "platforms": ["ios"],
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "com.gmacko.dataflaremobile",
+      "supportsTablet": true,
+      "requireFullScreen": false
+    },
+    "plugins": ["expo-router", "expo-secure-store", "./plugins/with-ios-pod-deployment-target.cjs"],
+    "updates": {
+      "enabled": false
+    }
+  }
+}

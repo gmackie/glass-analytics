@@ -20,6 +20,9 @@
     "**/.stryker-tmp",
     ".github/workflows/glass.yml",
     "site/public/demo",
-    "packages/dashboard/src/components/world-paths.ts"
+    "packages/dashboard/src/components/world-paths.ts",
+    "apps/expo/ios",
+    "apps/expo/android",
+    "apps/expo/.expo"
   ]
 }
