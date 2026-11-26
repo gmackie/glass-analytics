@@ -13,69 +13,44 @@ jobs:
   ci:
     runs-on: [forgegraph-ci, forgegraph-worker]
     timeout-minutes: 30
-    defaults:
-      run:
-        shell: bash
     steps:
-      - uses: actions/checkout@v4
+      - id: checkout
+        uses: actions/checkout@v4
       # Node and uv from their own distribution points, not the GitHub API (DATFLR-10).
-      - name: Toolchain
-        id: toolchain
-        run: |
-          exec > >(tee /tmp/dataflare-ci-toolchain.txt) 2>&1
-          bash scripts/ci-toolchain.sh
-      - name: Install
-        id: install
+      - id: toolchain
+        name: Toolchain
+        run: bash scripts/ci-toolchain.sh
+      - id: install
+        name: Install
         # The runner's default pnpm store lands inside the checkout, where `biome check .` is the
         # format check and would scan its index files; keep it outside.
         run: |
-          exec > >(tee /tmp/dataflare-ci-install.txt) 2>&1
           npm i -g pnpm@12.21.0
           pnpm config set store-dir "${RUNNER_TEMP:-/tmp}/pnpm-store"
           pnpm install --frozen-lockfile
       # Upstream's `pnpm check` (DATFLR-17): typecheck, lint, knip, tests, then the coverage and
       # complexity ratchet. `pnpm quality` runs the tests itself, with coverage.
-      - name: pnpm typecheck
-        id: typecheck
-        run: |
-          exec > >(tee /tmp/dataflare-ci-typecheck.txt) 2>&1
-          pnpm typecheck
-      - name: pnpm lint
-        id: lint
-        run: |
-          exec > >(tee /tmp/dataflare-ci-lint.txt) 2>&1
-          pnpm lint
-      - name: pnpm format:check
-        id: format
-        run: |
-          exec > >(tee /tmp/dataflare-ci-format.txt) 2>&1
-          pnpm format:check
-      - name: pnpm knip
-        id: knip
-        run: |
-          exec > >(tee /tmp/dataflare-ci-knip.txt) 2>&1
-          pnpm knip
-      - name: pnpm quality
-        id: quality
-        run: |
-          exec > >(tee /tmp/dataflare-ci-quality.txt) 2>&1
-          pnpm quality
-      - name: pnpm build
-        id: build
-        run: |
-          exec > >(tee /tmp/dataflare-ci-build.txt) 2>&1
-          pnpm build
-      - name: Check deployment configs
-        id: deployments
-        run: |
-          exec > >(tee /tmp/dataflare-ci-deployments.txt) 2>&1
-          node scripts/check-deployments.ts
+      - id: typecheck
+        run: pnpm typecheck
+      - id: lint
+        run: pnpm lint
+      - id: format
+        run: pnpm format:check
+      - id: knip
+        run: pnpm knip
+      - id: quality
+        run: pnpm quality
+      - id: build
+        run: pnpm build
+      - id: deployments
+        name: Check deployment configs
+        run: node scripts/check-deployments.ts
 
       - name: Report to ForgeGraph
         if: always()
         env:
           FG_CI_TOKEN: ${{ secrets.FORGEGRAPH_TOKEN }}
-          FG_STEP_RESULTS: toolchain=${{ steps.toolchain.outcome }} install=${{ steps.install.outcome }} typecheck=${{ steps.typecheck.outcome }} lint=${{ steps.lint.outcome }} format=${{ steps.format.outcome }} knip=${{ steps.knip.outcome }} quality=${{ steps.quality.outcome }} build=${{ steps.build.outcome }} deployments=${{ steps.deployments.outcome }}
+          FG_STEPS: ${{ toJSON(steps) }}
           FG_STATUS: ${{ job.status }}
           FG_SHA: ${{ github.sha }}
           FG_BRANCH: ${{ github.head_ref || github.ref_name }}
@@ -84,19 +59,12 @@ jobs:
           FG_SERVER: ${{ github.server_url }}
         run: |
           python3 - <<'PYREPORT'
-          import json, os, pathlib, re, subprocess
+          import json, os, subprocess
           owner, repo = os.environ['FG_REPOSITORY'].split('/')
           payload = dict(owner=owner, repo=repo, sha=os.environ['FG_SHA'], branch=os.environ['FG_BRANCH'], status=os.environ['FG_STATUS'], runId=os.environ['FG_RUN'], runUrl=f"{os.environ['FG_SERVER']}/{owner}/{repo}/actions/runs/{os.environ['FG_RUN']}", workflowName='CI')
-          if os.environ['FG_STATUS'] != 'success':
-              results = dict(item.split('=', 1) for item in os.environ['FG_STEP_RESULTS'].split())
-              lines = [f"{step}: {state}" for step, state in results.items()]
-              for step, state in results.items():
-                  path = pathlib.Path(f"/tmp/dataflare-ci-{step}.txt")
-                  if state != 'failure' or not path.exists():
-                      continue
-                  output = re.sub(r'\x1b\[[0-9;]*[a-zA-Z]', '', path.read_text(errors='replace'))
-                  lines.extend(line[:350] for line in output.splitlines()[-45:]
-                               if not re.search(r'token|password|authorization|secret|https?://[^/ ]+@', line, re.I))
-              payload['logTail'] = '\n'.join(lines)[-6000:]
+          if os.environ['FG_STATUS'] == 'failure':
+              outcomes = json.loads(os.environ['FG_STEPS'])
+              failed = [name for name, step in outcomes.items() if step.get('outcome') == 'failure']
+              payload['logTail'] = 'Failed CI steps: ' + ', '.join(failed)
           subprocess.run(['curl', '--fail-with-body', '--max-time', '30', '-sS', '-X', 'POST', 'https://forgegraf.com/api/fg/ci/report', '-H', 'Authorization: Bearer ' + os.environ['FG_CI_TOKEN'], '-H', 'Content-Type: application/json', '--data-binary', '@-'], input=json.dumps(payload), text=True, check=True)
           PYREPORT
