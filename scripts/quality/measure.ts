@@ -144,6 +144,7 @@ function runTests(root: string, lcov: string, quiet: boolean): void {
     '--test-reporter=lcov',
     `--test-reporter-destination=${lcov}`,
     TESTS,
+    'scripts/**/*.test.ts',
   ];
   const run = spawnSync(process.execPath, args, {
     cwd: root,

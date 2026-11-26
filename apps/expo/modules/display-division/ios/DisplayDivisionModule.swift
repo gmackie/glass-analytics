@@ -14,24 +14,37 @@ final class DisplayDivisionView: ExpoView {
   let onDivisionChange = EventDispatcher()
   private var lastFrame: CGRect = .null
 
-  override func didMoveToWindow() {
-    super.didMoveToWindow()
-    setNeedsUpdateConstraints()
+  required init(appContext: AppContext? = nil) {
+    super.init(appContext: appContext)
+    if #available(iOS 27.1, *) {
+      addInteraction(UIHingeInteraction { [weak self] _, _ in
+        // A pose change can leave the inner display's window size unchanged.
+        self?.setNeedsUpdateConstraints()
+      })
+    }
   }
 
-  // UIKit invalidates this pass when the reserved region changes, even when
-  // moving from fully open to partially open keeps the same window size.
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    if #available(iOS 27.1, *) { publishDivision() }
+  }
+
+  // Reading reserved regions here also requests UIKit's automatic invalidation.
   override func updateConstraints() {
-    if #available(iOS 27.1, *) {
-      let frame = reservedRegions(kind: .division).first?.frame.intersection(bounds) ?? .null
-      if frame != lastFrame {
-        lastFrame = frame
-        let region: [String: CGFloat]? = frame.isNull ? nil : [
-          "x": frame.minX, "y": frame.minY, "width": frame.width, "height": frame.height
-        ]
-        onDivisionChange(["region": region as Any])
-      }
-    }
+    if #available(iOS 27.1, *) { publishDivision() }
     super.updateConstraints()
+  }
+
+  @available(iOS 27.1, *)
+  private func publishDivision() {
+    let frame = reservedRegions(kind: .division).first?.frame.intersection(bounds) ?? .null
+    guard frame != lastFrame else { return }
+    lastFrame = frame
+    guard !frame.isNull else {
+      onDivisionChange(["region": NSNull()])
+      return
+    }
+    onDivisionChange(["region": ["x": frame.minX, "y": frame.minY,
+                                  "width": frame.width, "height": frame.height]])
   }
 }

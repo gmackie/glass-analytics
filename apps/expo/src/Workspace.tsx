@@ -22,13 +22,14 @@ export function Workspace({
   const [days, setDays] = useState<Period>(7);
   const [selected, setSelected] = useState<string | null>(null);
   const [page, setPage] = useState<CompactPage>('auto');
-  const layout = paneLayout(size.width, size.height, division);
   const sites = useQuery({
     queryKey: ['sites', days],
     placeholderData: keepPreviousData,
     queryFn: ({ signal }) => (connection ? fetchSites(connection, days, signal) : demoSites(days)),
   });
   const rows = sites.data ?? [];
+  const layout = rows.length ? paneLayout(size.width, size.height, division) : null;
+  const dimension = layout?.axis === 'column' ? 'height' : 'width';
   const project = rows.find((site) => site.project === selected)?.project ?? rows[0]?.project;
   const panes = visiblePanes(layout !== null, rows.length, page);
   const brand = <Brand live={connection !== null} configure={configure} />;
@@ -55,7 +56,7 @@ export function Workspace({
         onDivisionChange={(event) => setDivision(event.nativeEvent.region ?? null)}
       />
       {panes !== 'report' ? (
-        <View style={layout ? { flexBasis: layout.first } : ui.fill}>
+        <View style={layout ? { [dimension]: layout.first } : ui.fill}>
           {brand}
           {panes === 'both' ? null : (
             <View style={s.range}>
@@ -73,7 +74,7 @@ export function Workspace({
           />
         </View>
       ) : null}
-      {layout ? <View style={[s.divider, { flexBasis: layout.gap }]} /> : null}
+      {layout ? <View style={[s.divider, { [dimension]: layout.gap }]} /> : null}
       {panes !== 'sites' && project ? (
         <View style={ui.fill}>
           {layout ? null : brand}

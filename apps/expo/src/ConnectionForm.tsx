@@ -15,7 +15,7 @@ export function ConnectionForm({
   onCommit: (connection: Connection | null) => void;
   close: () => void;
 }) {
-  const [address, setAddress] = useState(current?.url ?? 'https://observe.gmac.io');
+  const [address, setAddress] = useState(current?.url ?? '');
   const [key, setKey] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
