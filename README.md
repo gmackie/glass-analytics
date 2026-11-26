@@ -112,6 +112,7 @@ Every query (web, trends, funnels, retention, paths, experiments) compiles to SQ
 
 ## Documentation
 
+- [iPhone app](apps/expo/README.md) for site traffic and reports, with adaptive layouts on iPhone Duo.
 - [Getting started](docs/getting-started.md): install, frameworks, custom domain, EU, upgrading
 - [Browser SDK](docs/sdk.md): `init`, `capture`, `identify`, flags, replay, consent
 - [Agents](docs/agents.md): MCP tools, CLI, HTTP API
