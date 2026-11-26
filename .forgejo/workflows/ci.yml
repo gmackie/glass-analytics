@@ -13,15 +13,15 @@ jobs:
   ci:
     runs-on: [forgegraph-ci, forgegraph-worker]
     timeout-minutes: 30
-    defaults:
-      run:
-        shell: bash
     steps:
-      - uses: actions/checkout@v4
+      - id: checkout
+        uses: actions/checkout@v4
       # Node and uv from their own distribution points, not the GitHub API (DATFLR-10).
-      - name: Toolchain
+      - id: toolchain
+        name: Toolchain
         run: bash scripts/ci-toolchain.sh
-      - name: Install
+      - id: install
+        name: Install
         # The runner's default pnpm store lands inside the checkout, where `biome check .` is the
         # format check and would scan its index files; keep it outside.
         run: |
@@ -30,19 +30,27 @@ jobs:
           pnpm install --frozen-lockfile
       # Upstream's `pnpm check` (DATFLR-17): typecheck, lint, knip, tests, then the coverage and
       # complexity ratchet. `pnpm quality` runs the tests itself, with coverage.
-      - run: pnpm typecheck
-      - run: pnpm lint
-      - run: pnpm format:check
-      - run: pnpm knip
-      - run: pnpm quality
-      - run: pnpm build
-      - name: Check deployment configs
+      - id: typecheck
+        run: pnpm typecheck
+      - id: lint
+        run: pnpm lint
+      - id: format
+        run: pnpm format:check
+      - id: knip
+        run: pnpm knip
+      - id: quality
+        run: pnpm quality
+      - id: build
+        run: pnpm build
+      - id: deployments
+        name: Check deployment configs
         run: node scripts/check-deployments.ts
 
       - name: Report to ForgeGraph
         if: always()
         env:
           FG_CI_TOKEN: ${{ secrets.FORGEGRAPH_TOKEN }}
+          FG_STEPS: ${{ toJSON(steps) }}
           FG_STATUS: ${{ job.status }}
           FG_SHA: ${{ github.sha }}
           FG_BRANCH: ${{ github.head_ref || github.ref_name }}
@@ -54,5 +62,9 @@ jobs:
           import json, os, subprocess
           owner, repo = os.environ['FG_REPOSITORY'].split('/')
           payload = dict(owner=owner, repo=repo, sha=os.environ['FG_SHA'], branch=os.environ['FG_BRANCH'], status=os.environ['FG_STATUS'], runId=os.environ['FG_RUN'], runUrl=f"{os.environ['FG_SERVER']}/{owner}/{repo}/actions/runs/{os.environ['FG_RUN']}", workflowName='CI')
+          if os.environ['FG_STATUS'] == 'failure':
+              outcomes = json.loads(os.environ['FG_STEPS'])
+              failed = [name for name, step in outcomes.items() if step.get('outcome') == 'failure']
+              payload['logTail'] = 'Failed CI steps: ' + ', '.join(failed)
           subprocess.run(['curl', '--fail-with-body', '--max-time', '30', '-sS', '-X', 'POST', 'https://forgegraf.com/api/fg/ci/report', '-H', 'Authorization: Bearer ' + os.environ['FG_CI_TOKEN'], '-H', 'Content-Type: application/json', '--data-binary', '@-'], input=json.dumps(payload), text=True, check=True)
           PYREPORT
