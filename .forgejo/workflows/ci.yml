@@ -13,6 +13,9 @@ jobs:
   ci:
     runs-on: [forgegraph-ci, forgegraph-worker]
     timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
       # Node and uv from their own distribution points, not the GitHub API (DATFLR-10).
