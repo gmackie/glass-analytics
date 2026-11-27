@@ -22,6 +22,7 @@ export interface SankeyOptions {
   noun: [string, string];
   /** The menu for a step. */
   actions: (node: PathNode) => PathAction[];
+  onStepOpen?: () => void;
   /** Clicking a band: the people who went that way. */
   onLink?: (link: PathLink) => void;
 }
@@ -216,27 +217,30 @@ function highlight(svg: SVGElement, ids: Set<string> | null): void {
 function nodeMenu(trigger: SVGElement, node: PathNode, o: SankeyOptions): void {
   const actions = o.actions(node);
   if (!actions.length) return;
-  popover(trigger as unknown as HTMLElement, (close) =>
-    h(
-      'div',
-      { class: 'menu', role: 'menu' },
-      h('div', { class: 'menu-title' }, node.label),
-      actions.map((a) =>
-        h(
-          'button',
-          {
-            type: 'button',
-            class: 'menu-item',
-            role: 'menuitem',
-            onclick: () => {
-              close();
-              a.run();
+  popover(
+    trigger as unknown as HTMLElement,
+    (close) =>
+      h(
+        'div',
+        { class: 'menu', role: 'menu' },
+        h('div', { class: 'menu-title' }, node.label),
+        actions.map((a) =>
+          h(
+            'button',
+            {
+              type: 'button',
+              class: 'menu-item',
+              role: 'menuitem',
+              onclick: () => {
+                close();
+                a.run();
+              },
             },
-          },
-          a.label,
+            a.label,
+          ),
         ),
       ),
-    ),
+    { onOpen: o.onStepOpen },
   );
 }
 
