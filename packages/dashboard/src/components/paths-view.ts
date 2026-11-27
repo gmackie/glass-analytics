@@ -137,10 +137,8 @@ export function pathsView(r: PathsResult, o: PathsViewOptions): HTMLElement {
       ? topPathsTable(r, o.noun, openFunnel)
       : sankey(r, {
           noun: o.noun,
-          actions: (node) => {
-            dashboardUsage.detail('step');
-            return nodeActions(r, node, o);
-          },
+          actions: (node) => nodeActions(r, node, o),
+          onStepOpen: () => dashboardUsage.detail('step'),
           onLink: (l) => {
             dashboardUsage.detail('transition');
             showActors(

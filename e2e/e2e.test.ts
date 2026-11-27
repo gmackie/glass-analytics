@@ -11,6 +11,7 @@ import { mkdirSync } from 'node:fs';
 import { after, before, describe, it } from 'node:test';
 import { type Browser, type BrowserContext, chromium } from 'playwright';
 import { sha256Hex } from '../packages/core/src/hash.ts';
+import type { Dataflare } from '../packages/web/src/client.ts';
 import { wire } from '../packages/worker/test/harness.ts';
 import { type DevServer, startDevServer } from '../packages/worker/test/server.ts';
 import { assertRendersFrames } from './render-check.ts';
@@ -361,11 +362,41 @@ describe('Dataflare end to end', { timeout: 120_000 }, () => {
     await page.evaluate(() => {
       location.hash = '/reports?project=demo&from=-14d';
     });
+    const imported = await page.request.post(worker.glassUrl + '/api/import', {
+      headers: { Authorization: 'Bearer dev-admin-key' },
+      data: {
+        project: 'demo',
+        events: ['/start', '/finish'].map((path, index) =>
+          wire('$pageview', { url: 'https://example.test' + path, ts: Date.now() - 2000 + index }),
+        ),
+      },
+    });
+    assert.ok(imported.ok());
     await page.goto(worker.glassUrl + '/_glass/app#/insights/paths?project=demo');
+    const step = page.locator('.sankey-node:not(.other)').first();
+    await step.waitFor();
     await eventually(
       async () => collected,
       (r) => r.some((e) => e.props.report === 'paths'),
       'paths view',
+    );
+    const details = () => collected.filter((e) => e.event === 'path_detail_opened');
+    const flush = () => page.evaluate(() => (window.glass as Dataflare).flush());
+    await flush();
+    assert.equal(details().length, 0);
+    await step.click();
+    await page.getByRole('menuitem', { name: 'Start paths here' }).waitFor();
+    await flush();
+    assert.deepEqual(
+      details().map((e) => e.props.target),
+      ['step'],
+    );
+    await page.keyboard.press('Escape');
+    await page.locator('.sankey-link').first().click();
+    await flush();
+    assert.deepEqual(
+      details().map((e) => e.props.target),
+      ['step', 'transition'],
     );
     assert.equal(collected.filter((e) => e.props.report === 'overview').length, 1);
     assert.equal(collected.filter((e) => e.event === 'app_opened').length, 1);
