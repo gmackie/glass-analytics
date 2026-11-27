@@ -78,24 +78,45 @@ export function PeriodPicker({
   value: Period;
   onChange: (days: Period) => void;
 }) {
+  return (
+    <Segments
+      options={periods}
+      value={value}
+      onChange={onChange}
+      label={(days) => `${days} days`}
+    />
+  );
+}
+
+export function Segments<T extends string | number>({
+  options,
+  value,
+  onChange,
+  label = String,
+}: {
+  options: readonly T[];
+  value: T;
+  onChange: (item: T) => void;
+  label?: (item: T) => string;
+}) {
   const { scheme, ui } = useTheme();
   const styles = sheets[scheme];
   return (
     <View style={styles.periods}>
-      {periods.map((days) => (
+      {options.map((item) => (
         <Pressable
-          key={days}
+          key={item}
           accessibilityRole="button"
-          accessibilityState={{ selected: value === days }}
-          onPress={() => onChange(days)}
+          accessibilityState={{ selected: value === item }}
+          onPress={() => onChange(item)}
           style={({ pressed }) => [
             styles.period,
-            days === value && styles.activePeriod,
+            item === value && styles.activePeriod,
             pressed && ui.pressed,
           ]}
         >
-          <Text style={[styles.periodLabel, days === value && styles.selectedLabel]}>
-            {days} days
+          <Text style={[styles.periodLabel, item === value && styles.selectedLabel]}>
+            {label(item)}
           </Text>
         </Pressable>
       ))}

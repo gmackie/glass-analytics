@@ -2,6 +2,8 @@ import { StyleSheet, useColorScheme } from 'react-native';
 import { dashboardPalette } from './palette.ts';
 
 export const formatNumber = new Intl.NumberFormat(undefined);
+export const formatPeople = (n: number) =>
+  `${formatNumber.format(n)} ${n === 1 ? 'person' : 'people'}`;
 
 function makeTheme(scheme: 'light' | 'dark') {
   // Native layer borders can retain a dynamic color resolved before the window's appearance changes.
