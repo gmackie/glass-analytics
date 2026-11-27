@@ -32,6 +32,7 @@ This project uses Dataflare for analytics, session replay, feature flags and A/B
 
 - Dashboard: ${o.host}/app (print the key with \`npx @gmacko/dataflare-cli key\`)
 - MCP server \`glass\` is configured in \`.mcp.json\`. Start with the \`overview\` tool, then \`list_events\` for exact event names.
+- Product questions: call \`list_product_questions\` with project \`${o.project}\`. Use \`get_product_question\` for its generated skill and \`run_product_question\` for the measured result.
 - Terminal: \`npx @gmacko/dataflare-cli query web --from -7d\`, \`npx @gmacko/dataflare-cli sql "SELECT …"\`, \`npx @gmacko/dataflare-cli --help\`
 
 Tracking (project \`${o.project}\`):

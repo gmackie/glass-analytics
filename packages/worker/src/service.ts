@@ -50,6 +50,12 @@ import { planExperiment, runExperiment } from '@dataflare/core/insights/experime
 import { suggestPathRules } from '@dataflare/core/insights/paths';
 import { runProduct } from '@dataflare/core/insights/product';
 import {
+  productQuestions,
+  questionDefinition,
+  questionEvidence,
+  questionSkill,
+} from '@dataflare/core/insights/product-questions';
+import {
   type EventRole,
   type KeyEvent,
   runConversions,
@@ -93,7 +99,7 @@ import { propertyText } from '@dataflare/core/sql/filters';
 import { assertReadOnlySql } from '@dataflare/core/sql/guard';
 import { type Aggregation, eventsCte, num, text } from '@dataflare/core/sql/source';
 import { isMinors, studentPolicySchema } from '@dataflare/core/student-policy';
-import { DAY_MS, parseTime, resolveRange } from '@dataflare/core/time';
+import { DAY_MS, iso, parseTime, resolveRange, type TimeRange } from '@dataflare/core/time';
 import { applyTransformations, transformationSchema } from '@dataflare/core/transformations';
 import { estimateUsage } from '@dataflare/core/usage';
 import {
@@ -486,6 +492,37 @@ const trafficScope = z.object({
   to: reportRange.to,
 });
 
+const productQuestionScope = trafficScope.extend({
+  to: reportRange.to.describe(
+    'Exclusive observation cutoff. Defaults to now. Future cutoffs are capped at now.',
+  ),
+});
+const productQuestionInput = productQuestionScope.extend({
+  project: z
+    .string()
+    .min(1)
+    .optional()
+    .describe('Registered project owning this question. Required on multi-project deployments.'),
+  key: z
+    .string()
+    .min(1)
+    .describe('Question key returned by list_product_questions for this project.'),
+});
+
+function questionRange(spec: { from?: string | number; to?: string | number }) {
+  const now = Date.now();
+  const range = resolveRange(spec.from, spec.to, now);
+  if (range.from >= now)
+    throw new HttpError(
+      400,
+      'This observation period starts in the future.',
+      'Choose a start before now.',
+    );
+  return { from: range.from, to: Math.min(now, range.to) };
+}
+
+const questionDates = (range: TimeRange) => ({ from: iso(range.from), to: iso(range.to) });
+
 export const inputs = {
   overview: z.object({
     project,
@@ -500,6 +537,8 @@ export const inputs = {
     to: z.union([z.string(), z.number()]).optional(),
   }),
   product: z.object({ project, from: reportRange.from, to: reportRange.to }),
+  productQuestionScope,
+  productQuestion: productQuestionInput,
   trafficBreakdown: trafficScope,
   traffic: trafficScope.extend({
     path: z
@@ -2019,6 +2058,73 @@ GROUP BY event ORDER BY cur DESC, event ASC LIMIT 50`;
     ]);
     const rows = await runCoverage(spec, projects, definitions.results, ctx, steps.results);
     return { projects: rows, totals: coverageTotals(rows) };
+  }
+
+  async listProductQuestions(input: unknown) {
+    const spec = productQuestionScope.parse(input);
+    const range = questionRange(spec);
+    const { projects, ctx } = await this.trafficScope(spec.project);
+    const available = productQuestions.filter((question) => projects.includes(question.project));
+    const questions = await Promise.all(
+      available.map(async (question) => ({
+        project: question.project,
+        key: question.key,
+        title: question.title,
+        unit: question.unit,
+        revision: question.revision,
+        evidence: await questionEvidence(question, range, { ...ctx, project: question.project }),
+      })),
+    );
+    return {
+      projects,
+      questions,
+      range: questionDates(range),
+      summary: questions.length
+        ? `${questions.length} product ${questions.length === 1 ? 'question' : 'questions'} available. Use get_product_question for the recipe.`
+        : 'No product questions are defined for these projects. Use instrumentation_coverage to inspect their events.',
+    };
+  }
+
+  private async prepareProductQuestion(input: unknown) {
+    const spec = productQuestionInput.parse(input);
+    const ctx = await this.context(spec.project);
+    const question = productQuestions.find((q) => q.project === ctx.project && q.key === spec.key);
+    if (!question)
+      throw new HttpError(
+        404,
+        `Unknown product question "${spec.key}" for "${ctx.project}".`,
+        'Call list_product_questions with this project to see its question keys.',
+      );
+    const range = questionRange(spec);
+    const evidence = await questionEvidence(question, range, ctx);
+    const definition = { ...questionDefinition(question), range: questionDates(range), evidence };
+    return { ctx, question, range, definition };
+  }
+
+  async getProductQuestion(input: unknown) {
+    const { question, definition } = await this.prepareProductQuestion(input);
+    return { ...definition, skill: definition.evidence.ready ? questionSkill(question) : null };
+  }
+
+  async runProductQuestion(input: unknown) {
+    const { question, ctx, range, definition } = await this.prepareProductQuestion(input);
+    if (!definition.evidence.ready)
+      return {
+        ...definition,
+        answer: null,
+        summary: `Insufficient evidence: ${definition.evidence.missing.join(', ')}`,
+        dashboard: this.link('sites', {
+          project: ctx.project,
+          view: 'instrumentation',
+          ...definition.range,
+        }),
+      };
+    const { drilldown, ...measurement } = await question.run(range, ctx);
+    return {
+      ...definition,
+      ...measurement,
+      dashboard: this.link(drilldown.route, { project: ctx.project, ...drilldown.params }),
+    };
   }
 
   async product(input: unknown) {

@@ -26,8 +26,8 @@ export type TableName = 'events' | 'identities';
 
 export interface Dialect {
   readonly name: DialectName;
-  /** Fully qualified table reference. */
-  table(name: TableName): string;
+  /** Fully qualified table reference. Logical names can be reopened in the SQL editor. */
+  table(name: TableName, logical?: boolean): string;
   /** A string literal, safely escaped. */
   str(value: string): string;
   /** A numeric literal. Throws on NaN/Infinity rather than emitting broken SQL. */
@@ -36,6 +36,8 @@ export interface Dialect {
   bool(value: boolean): string;
   /** The JSON value at `path` as text (strings unquoted, booleans as "true"/"false"), NULL when missing. */
   jsonText(column: string, path: readonly string[]): string;
+  /** A JSON string at `path`, NULL for other types. */
+  jsonString(column: string, path: readonly string[]): string;
   /** The JSON value at `path` as a number, NULL when missing or not numeric. */
   jsonNumber(column: string, path: readonly string[]): string;
   /** The JSON value at `path` as a boolean, NULL when missing or not boolean. */
@@ -90,6 +92,10 @@ export const sqlite: Dialect = {
   jsonText(column, path) {
     const p = sqlitePath(path);
     return `(CASE json_type(${column}, ${p}) WHEN 'true' THEN 'true' WHEN 'false' THEN 'false' WHEN 'null' THEN NULL ELSE CAST(json_extract(${column}, ${p}) AS TEXT) END)`;
+  },
+  jsonString(column, path) {
+    const p = sqlitePath(path);
+    return `(CASE WHEN json_type(${column}, ${p}) = 'text' THEN json_extract(${column}, ${p}) END)`;
   },
   jsonNumber(column, path) {
     const p = sqlitePath(path);
@@ -148,11 +154,13 @@ export function basin(
   return {
     name: 'basin',
     // Every table version, unioned when a schema change added one (see core/lake.ts).
-    table: (name) => lakeTableSql(namespace, name, versions, changes),
+    table: (name, logical) =>
+      logical ? `${namespace}.${name}` : lakeTableSql(namespace, name, versions, changes),
     str: sqlString,
     num: sqlNumber,
     bool: (v) => (v ? 'TRUE' : 'FALSE'),
     jsonText: (column, path) => `json_as_text(${args(column, path)})`,
+    jsonString: (column, path) => `json_get_str(${args(column, path)})`,
     jsonNumber: (column, path) => `json_get_float(${args(column, path)})`,
     jsonBool: (column, path) => `json_get_bool(${args(column, path)})`,
     jsonExists: (column, path) => `json_contains(${args(column, path)})`,

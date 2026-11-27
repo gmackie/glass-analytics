@@ -82,6 +82,7 @@ def json_udf(name, convert, out_type, arity, exists=False):
 
 JSON_FUNCTIONS = {
     "json_as_text": (as_text, pa.string(), False),
+    "json_get_str": (lambda value: value if isinstance(value, str) else None, pa.string(), False),
     "json_get_float": (as_float, pa.float64(), False),
     "json_get_bool": (as_bool, pa.bool_(), False),
     "json_contains": (None, pa.bool_(), True),
@@ -95,7 +96,7 @@ for fname, (convert, out_type, exists) in JSON_FUNCTIONS.items():
 
 # json_x(<column>, '<k1>', '<k2>'...) with a plain column and string-literal keys, as the
 # compilers write them; calls with longer paths go to the matching json_x__N.
-CALL = re.compile(r"\b(json_as_text|json_get_float|json_get_bool|json_contains)\(([\w.]+)((?:\s*,\s*'(?:[^']|'')*')+)\s*\)")
+CALL = re.compile(r"\b(json_as_text|json_get_str|json_get_float|json_get_bool|json_contains)\(([\w.]+)((?:\s*,\s*'(?:[^']|'')*')+)\s*\)")
 KEY = re.compile(r"'(?:[^']|'')*'")
 
 

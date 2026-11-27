@@ -3,14 +3,14 @@
   "coverage": {
     "tolerance": 0.1,
     "lines": {
-      "total": 58.26,
-      "cli": 83.41,
-      "core": 98.04,
+      "total": 58.5,
+      "cli": 83.52,
+      "core": 98.1,
       "dashboard": 0,
       "native": 99.14,
       "node": 95.85,
       "web": 3.73,
-      "worker": 96.22
+      "worker": 96.25
     }
   },
   "complexity": {

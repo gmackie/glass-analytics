@@ -109,6 +109,33 @@ const ALL_TOOLS: ToolDefinition[] = [
     run: (s, a) => s.trafficBreakdown(a),
   },
   {
+    name: 'list_product_questions',
+    title: 'Discover product questions',
+    description:
+      'Find app-specific questions, counting units and missing inputs in the observation period. Pass a project or omit it for every registered project.',
+    input: inputs.productQuestionScope,
+    scope: 'read',
+    run: (s, a) => s.listProductQuestions(a),
+  },
+  {
+    name: 'get_product_question',
+    title: 'Get a product question and skill',
+    description:
+      'Return the versioned definition, required events and property types, evidence and generated SKILL.md for a project and key. A missing input leaves the skill unavailable for that period.',
+    input: inputs.productQuestion,
+    scope: 'read',
+    run: (s, a) => s.getProductQuestion(a),
+  },
+  {
+    name: 'run_product_question',
+    title: 'Run a product question',
+    description:
+      'Run a registered question for one project. From is inclusive and to is the exclusive observation cutoff. Returns aggregate counts, missing evidence and a reproducible dashboard link.',
+    input: inputs.productQuestion,
+    scope: 'read',
+    run: (s, a) => s.runProductQuestion(a),
+  },
+  {
     name: 'product_adoption',
     title: 'Product adoption',
     description:

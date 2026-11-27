@@ -841,6 +841,63 @@ function conformance(name: string, split: boolean) {
       );
     });
 
+    it('runs both product questions and reopens the review query on each storage backend', async () => {
+      const ts = Date.now() - 3 * DAY;
+      for (const app of [d1, lake]) {
+        for (const id of ['levelforge', 'habitplay'])
+          await app.json('POST', '/api/projects', { body: { id } });
+        const send = (project: string, events: object[]) =>
+          app.json('POST', '/api/import', { body: { project, events } });
+        await send('levelforge', [
+          {
+            id: 'question-submission',
+            ts,
+            distinct_id: 'agent',
+            event: 'agent_operation_completed',
+            props: {
+              operation: 'taskBoard.advance',
+              action: 'submit',
+              status: 'review',
+              task_id: 'task',
+              project_id: 'studio',
+            },
+          },
+        ]);
+        await send('habitplay', [
+          {
+            id: 'question-guest',
+            ts,
+            distinct_id: 'guest',
+            event: 'onboarding_completed',
+            props: { path: 'guest', first_task_done: true },
+          },
+          {
+            id: 'question-next',
+            ts: ts + 1000,
+            distinct_id: 'guest',
+            event: 'habit_completed',
+            props: { status: 'done', surface: 'today' },
+          },
+        ]);
+        const run = (project: string, key: string) =>
+          app.json<{ answer: Record<string, number>; dashboard: string }>(
+            'GET',
+            `/api/product-questions/${key}/run?project=${project}&from=-7d`,
+          );
+        const review = await run('levelforge', 'review-intake');
+        assert.equal(review.answer.distinctTasks, 1);
+        const query = new URLSearchParams(new URL(review.dashboard).hash.split('?')[1]).get(
+          'query',
+        );
+        const reopened = await app.json<{ rows: { tasks: number }[] }>('POST', '/api/sql', {
+          body: { project: 'levelforge', query },
+        });
+        assert.equal(reopened.rows[0]?.tasks, 1);
+        const habit = await run('habitplay', 'guest-habit-follow-up');
+        assert.equal(habit.answer.followedUp, 1);
+        assert.equal(habit.answer.eligibleGuests, 1);
+      }
+    });
     it('batch exports send the same rows from both stores', async () => {
       const exported = new Map<TestApp, Record<string, unknown>[]>();
       for (const app of [d1, lake]) {

@@ -11,12 +11,13 @@ import { connection } from '../config.ts';
 
 export async function mcpBridge(
   options: {
+    readOnly?: boolean;
     fetcher?: typeof fetch;
     input?: NodeJS.ReadableStream;
     output?: NodeJS.WritableStream;
   } = {},
 ): Promise<void> {
-  const conn = connection();
+  const conn = connection(options.readOnly ? 'read' : 'api');
   const fetcher = options.fetcher ?? fetch;
   const output = options.output ?? process.stdout;
   const rl = createInterface({

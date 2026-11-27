@@ -20,6 +20,7 @@ import { importEvents } from './commands/import.ts';
 import { init } from './commands/init.ts';
 import { lakeMaintain } from './commands/lake.ts';
 import { mcpBridge } from './commands/mcp.ts';
+import { questionSkill } from './commands/question-skill.ts';
 import { sourcemaps } from './commands/sourcemaps.ts';
 import { revenueRates, stripeImport } from './commands/stripe.ts';
 import { ci, key, status, upgrade } from './commands/upgrade.ts';
@@ -112,7 +113,8 @@ ${color.bold('Agents')}
                                  Import Stripe revenue history (invoices, charges, refunds, subscriptions)
   dataflare revenue rates [--since 2024-01-01]
                                  Load older ECB exchange rates, for imported revenue in other currencies
-  dataflare mcp                  MCP server over stdio (what .mcp.json runs)
+  dataflare question-skill <key>  Print SKILL.md for a product question [--project <id>] [--from <time> --to <time>]
+  dataflare mcp [--read]         MCP server over stdio (use --read for a read-key connection)
 
 Environment: GLASS_HOST, GLASS_API_KEY and GLASS_PROJECT override .glass/ settings.
 Docs: https://github.com/ISNIT0/glass-analytics`;
@@ -324,11 +326,13 @@ const COMMANDS: Record<string, (c: Invocation) => Promise<void> | void> = {
   experiments: ({ flags, sub, arg, rest }) => experiments(sub, arg, rest, flags),
   lake: runLake,
   email: ({ flags, sub }) => email(sub, flags),
-  mcp: () => mcpBridge(),
+  'question-skill': ({ sub, flags }) => questionSkill(sub, flags),
+  mcp: ({ flags }) => mcpBridge({ readOnly: Boolean(flags.read) }),
 };
 
 /** Commands that don't warn about an outdated Worker first (setup, status and the MCP bridge). */
 const SKIP_UPGRADE_WARNING = new Set([
+  'question-skill',
   'client-init',
   'init',
   'upgrade',

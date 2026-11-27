@@ -8,6 +8,7 @@ import { TEST_ASSETS } from '../../worker/test/harness.ts';
 import { type DevServer, startDevServer } from '../../worker/test/server.ts';
 import { group, groups, person, projects, query, sql } from '../src/commands/data.ts';
 import { experiments, flags } from '../src/commands/flags.ts';
+import { main } from '../src/index.ts';
 
 let server: DevServer;
 
@@ -31,8 +32,8 @@ async function output(run: () => Promise<void>): Promise<string> {
   return out;
 }
 
-const api = async (method: string, path: string, body?: unknown) => {
-  const r = await fetch(`${server.glassUrl}${path}`, {
+const api = async (method: string, path: string, body?: unknown, host = server.glassUrl) => {
+  const r = await fetch(`${host}${path}`, {
     method,
     headers: { Authorization: 'Bearer dev-admin-key', 'Content-Type': 'application/json' },
     body: body === undefined ? undefined : JSON.stringify(body),
@@ -67,6 +68,64 @@ describe('data and flag commands', () => {
         },
       ],
     });
+  });
+
+  it('exports only skill Markdown with a read key and explains unavailable inputs', async (t) => {
+    const local = await startDevServer({ port: 0, demoPort: 0, memory: true, assets: TEST_ASSETS });
+    const previousHost = process.env.GLASS_HOST;
+    process.env.GLASS_HOST = local.glassUrl;
+    t.after(async () => {
+      if (previousHost === undefined) delete process.env.GLASS_HOST;
+      else process.env.GLASS_HOST = previousHost;
+      await local.close();
+    });
+    const submit = (path: string, body: unknown) => api('POST', path, body, local.glassUrl);
+    const previousRead = process.env.GLASS_READ_KEY;
+    const previousApi = process.env.GLASS_API_KEY;
+    t.after(() => {
+      if (previousRead === undefined) delete process.env.GLASS_READ_KEY;
+      else process.env.GLASS_READ_KEY = previousRead;
+      if (previousApi === undefined) delete process.env.GLASS_API_KEY;
+      else process.env.GLASS_API_KEY = previousApi;
+    });
+    await submit('/api/projects', { id: 'levelforge' });
+    process.env.GLASS_READ_KEY = 'dev-read-key';
+    process.env.GLASS_API_KEY = 'unused-invalid-key';
+    const args = [
+      'question-skill',
+      'review-intake',
+      '--project',
+      'levelforge',
+      '--from',
+      '-7d',
+      '--to',
+      'now',
+    ];
+    await assert.rejects(main(['question-skill']), /key is required/);
+    await assert.rejects(main(args), /needs more evidence/);
+    const unavailable = JSON.parse(await output(() => main([...args, '--json'])));
+    assert.equal(unavailable.skill, null);
+    await submit('/api/import', {
+      project: 'levelforge',
+      events: [
+        {
+          id: 'question-task',
+          event: 'agent_operation_completed',
+          ts: Date.now() - 1000,
+          distinct_id: 'agent',
+          props: {
+            operation: 'taskBoard.advance',
+            action: 'submit',
+            status: 'review',
+            project_id: 'studio',
+            task_id: 'task',
+          },
+        },
+      ],
+    });
+    const raw = await output(() => main(args));
+    assert.match(raw, /^---\nname: levelforge-review-intake/);
+    assert.equal(JSON.parse(await output(() => main([...args, '--json']))).skill, raw);
   });
 
   after(async () => {
