@@ -2,6 +2,10 @@
 
 View the sites on a Dataflare Worker, compare traffic over 7, 30 or 90 days, and open a site for visitor trends, pageviews, sessions, bounce rate and top pages. The iPhone Duo shows the site picker and report together when space permits. In a partially folded window, each pane scrolls on its own side of the fold.
 
+Open a site and tap **Paths** for its visitor Sankey. Swipe across the chart for later steps, then tap a step for arrivals and drop-offs or a band for its person count, share and average transition time. **Pages + events** includes custom events. **Top paths** ranks whole journeys by people. Each analysis follows the first path per person in the selected period, up to four steps in one session.
+
+In **Overview**, switch between **Visitors** and **Pageviews** to compare with the previous period. Tap **Top pages** to choose entry pages, exit pages, referrers, UTM tags, countries, devices, browsers or operating systems.
+
 The app follows the iPhone’s appearance by default. Tap the half-filled circle beside **Connect** or **Connection** to choose **System**, **Light**, or **Dark**. Your choice is saved on this device.
 
 ## Run on iPhone Duo

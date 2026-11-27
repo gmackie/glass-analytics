@@ -1,3 +1,4 @@
+import type { PathsResult } from '@dataflare/core/insights/paths';
 import type { SiteRow } from '@dataflare/core/insights/sites';
 import type { WebResult } from '@dataflare/core/insights/web';
 import { z } from 'zod/v4';
@@ -13,17 +14,66 @@ const totals = z.object({
   pageviews: z.number(),
   sessions: z.number(),
   bounceRate: z.number(),
+  avgSessionSeconds: z.number().optional(),
+  viewsPerSession: z.number().optional(),
 }) satisfies z.ZodType<Totals>;
+
+const rows = z.array(
+  z.object({ value: z.string(), count: z.number(), visitors: z.number().optional() }),
+);
 
 export const reportSchema = z.object({
   kind: z.literal('web'),
   range: z.object({ from: z.iso.datetime(), to: z.iso.datetime() }),
   totals,
   previous: totals.nullable(),
-  timeseries: z.object({ buckets: z.array(z.number()), visitors: z.array(z.number()) }),
-  breakdowns: z.object({ pages: z.array(z.object({ value: z.string(), count: z.number() })) }),
+  timeseries: z.object({
+    buckets: z.array(z.number()),
+    visitors: z.array(z.number()),
+    pageviews: z.array(z.number()).optional(),
+  }),
+  breakdowns: z.object({
+    pages: rows,
+    entry_pages: rows.optional(),
+    exit_pages: rows.optional(),
+    referrers: rows.optional(),
+    utm_source: rows.optional(),
+    utm_medium: rows.optional(),
+    utm_campaign: rows.optional(),
+    countries: rows.optional(),
+    devices: rows.optional(),
+    browsers: rows.optional(),
+    os: rows.optional(),
+  }),
 });
 export type Report = z.infer<typeof reportSchema>;
+
+export type Paths = Pick<PathsResult, 'kind' | 'steps' | 'total' | 'nodes' | 'links' | 'topPaths'>;
+const count = z.number().int().nonnegative();
+export const pathsSchema = z.object({
+  kind: z.literal('paths'),
+  steps: z.number().int().min(2).max(10),
+  total: count,
+  nodes: z.array(
+    z.object({
+      id: z.string(),
+      column: z.number().int().positive(),
+      label: z.string(),
+      count,
+      dropOff: count,
+      other: z.boolean().optional(),
+    }),
+  ),
+  links: z.array(
+    z.object({
+      source: z.string(),
+      target: z.string(),
+      count,
+      avgSeconds: z.number().nullable(),
+    }),
+  ),
+  topPaths: z.array(z.object({ items: z.array(z.string()), count })),
+}) satisfies z.ZodType<Paths>;
 
 const siteList = z.object({
   sites: z.array(
@@ -128,5 +178,23 @@ export function fetchReport(
     project,
     from: `-${days}d`,
     compare: true,
+  });
+}
+
+export function fetchPaths(
+  connection: Connection,
+  project: string,
+  days: Period,
+  events: boolean,
+  signal?: AbortSignal,
+) {
+  return request(connection, '/api/query', pathsSchema, signal, {
+    kind: 'paths',
+    project,
+    from: `-${days}d`,
+    steps: 4,
+    perStep: 4,
+    aggregateBy: 'person',
+    include: { pages: true, events },
   });
 }

@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { duration } from '../../../packages/dashboard/src/format.ts';
+import { Breakdowns } from './Breakdowns.tsx';
 import type { Report } from './data.ts';
 import { formatNumber, themedStyles, useTheme } from './styles.ts';
-import { Notice } from './ui.tsx';
+import { Segments } from './ui.tsx';
 
 const date = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' });
 const percentage = new Intl.NumberFormat(undefined, { style: 'percent', maximumFractionDigits: 1 });
@@ -10,15 +13,23 @@ function Traffic({ report }: { report: Report }) {
   const { scheme, ui } = useTheme();
   const s = sheets[scheme];
   const { totals, previous, timeseries, range } = report;
-  const max = Math.max(1, ...timeseries.visitors);
+  const [choice, select] = useState<'Visitors' | 'Pageviews'>('Visitors');
+  const metric = choice === 'Pageviews' && timeseries.pageviews ? 'pageviews' : 'visitors';
+  const series = timeseries[metric] ?? timeseries.visitors;
+  const label = metric === 'pageviews' ? 'Pageviews' : 'Visitors';
+  const max = Math.max(1, ...series);
   const delta =
-    previous && previous.visitors > 0
-      ? (totals.visitors - previous.visitors) / previous.visitors
+    previous && previous[metric] > 0
+      ? (totals[metric] - previous[metric]) / previous[metric]
       : null;
   return (
     <View style={[ui.panel, s.hero]}>
-      <Text style={s.heroLabel}>Visitors</Text>
-      <Text style={[s.heroNumber, ui.numeric]}>{formatNumber.format(totals.visitors)}</Text>
+      {timeseries.pageviews ? (
+        <Segments options={['Visitors', 'Pageviews'] as const} value={label} onChange={select} />
+      ) : (
+        <Text style={ui.muted}>Visitors</Text>
+      )}
+      <Text style={[s.heroNumber, ui.numeric]}>{formatNumber.format(totals[metric])}</Text>
       {delta !== null ? (
         <View style={ui.row}>
           <Text style={[s.delta, ui.numeric, delta > 0 && s.gain, delta < 0 && s.loss]}>
@@ -31,14 +42,14 @@ function Traffic({ report }: { report: Report }) {
       <View
         style={[s.chart, { gap: timeseries.buckets.length > 45 ? 1 : 2 }]}
         accessible
-        accessibilityLabel={`Visitors over time. Highest bucket: ${formatNumber.format(Math.max(0, ...timeseries.visitors))}.`}
+        accessibilityLabel={`${label} over time. Highest bucket: ${formatNumber.format(Math.max(0, ...series))}.`}
       >
         <View style={s.grid} pointerEvents="none" accessible={false}>
           <View style={s.rule} />
           <View style={s.rule} />
           <View style={s.rule} />
         </View>
-        {timeseries.visitors.map((value, index) => (
+        {series.map((value, index) => (
           <View
             key={timeseries.buckets[index]}
             style={[s.bar, { height: `${(100 * value) / max}%` }]}
@@ -61,8 +72,13 @@ export function ReportView({ report }: { report: Report }) {
     ['Pageviews', formatNumber.format(totals.pageviews)],
     ['Sessions', formatNumber.format(totals.sessions)],
     ['Bounce rate', percentage.format(totals.bounceRate)],
+    [
+      'Session length',
+      totals.avgSessionSeconds === undefined ? '—' : duration(totals.avgSessionSeconds),
+    ],
+    ['Views per session', totals.viewsPerSession?.toFixed(1) ?? '—'],
   ];
-  const pages = breakdowns.pages.slice(0, 10);
+
   return (
     <>
       <Traffic report={report} />
@@ -74,33 +90,13 @@ export function ReportView({ report }: { report: Report }) {
           </View>
         ))}
       </View>
-      {pages.length ? (
-        <View style={ui.panel}>
-          <View style={s.axis}>
-            <Text accessibilityRole="header" style={ui.heading}>
-              Top pages
-            </Text>
-            <Text style={ui.muted}>Views</Text>
-          </View>
-          {pages.map((page) => (
-            <View key={page.value} style={s.page}>
-              <Text selectable style={[s.path, ui.fill]}>
-                {page.value}
-              </Text>
-              <Text style={[ui.body, ui.numeric]}>{formatNumber.format(page.count)}</Text>
-            </View>
-          ))}
-        </View>
-      ) : (
-        <Notice title="No pageviews">No pages were viewed in this period.</Notice>
-      )}
+      <Breakdowns data={breakdowns} />
     </>
   );
 }
 const sheets = themedStyles((color) =>
   StyleSheet.create({
     hero: { gap: 4 },
-    heroLabel: { color: color.muted, fontSize: 14, fontWeight: '500' },
     heroNumber: { color: color.ink, fontSize: 42, fontWeight: '700', letterSpacing: -1.3 },
     delta: {
       color: color.muted,
@@ -154,14 +150,5 @@ const sheets = themedStyles((color) =>
       backgroundColor: color.surface,
     },
     metricNumber: { fontSize: 23, color: color.ink, fontWeight: '700', letterSpacing: -0.5 },
-    path: { fontSize: 14, color: color.ink2, fontFamily: 'Menlo' },
-    page: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-      paddingTop: 10,
-      borderTopColor: color.hairline,
-      borderTopWidth: StyleSheet.hairlineWidth,
-    },
   }),
 );
