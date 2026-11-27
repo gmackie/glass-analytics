@@ -10,6 +10,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "com.gmacko.dataflaremobile",
+      "buildNumber": "2",
       "supportsTablet": true,
       "requireFullScreen": false
     },

@@ -19,7 +19,9 @@ Each `.glass/` has:
   (`dataflare lake maintain`, `dataflare person <id> --delete`, `dataflare sql`).
 - `credentials.json` (git-ignored): the dashboard admin key, read key and salt. Copies are in
   ForgeGraph, app `dataflare`, stage `production`: `GLASS_CREDENTIALS_JSON` (educateos-site) and
-  `GLASS_DISTRICT_CREDENTIALS_JSON` (district).
+  `GLASS_DISTRICT_CREDENTIALS_JSON` (district). For Observe, the read key is stored separately.
+  From this checkout on a Mac, run `forge secret get OBSERVE_READ_KEY --stage production | pbcopy`,
+  then paste into **Read key** in the iPhone app and connect to `https://observe.gmac.io`.
 
 Worker secrets (`GLASS_ADMIN_KEY`, `GLASS_READ_KEY`, `GLASS_SALT_SECRET` and, on lake deployments,
 the read-only `CF_API_TOKEN`) were set at install and are never synced from ForgeGraph: every
