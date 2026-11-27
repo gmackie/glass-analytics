@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { beforeEach, describe, it } from 'node:test';
 import { runMaintenance } from '../src/cron.ts';
-import { ensureStarterDashboard } from '../src/dashboards.ts';
+import { ensureStarterDashboards } from '../src/dashboards.ts';
 import { clearDestinationCache, configureDeliveries } from '../src/destinations.ts';
 import type { EmailSender } from '../src/env.ts';
 import { clearGroupTypeCache } from '../src/ingest.ts';
@@ -104,19 +104,28 @@ describe('dashboards', () => {
           { key: READ },
         )
       ).dashboards;
-    const [starter] = await list('acme');
-    assert.equal(starter!.name, 'Website overview');
-    assert.equal(starter!.tiles, 5);
-    await t.json('PUT', `/api/dashboards/${starter!.id}`, {
-      body: { project: 'acme', name: 'Our overview' },
+    const original = await list('acme');
+    assert.deepEqual(
+      original.map((d) => [d.name, d.tiles]),
+      [
+        ['Acquisition', 3],
+        ['Engagement', 4],
+        ['Website overview', 5],
+      ],
+    );
+    const [acquisition, engagement, website] = original;
+    await t.json('PUT', `/api/dashboards/${acquisition!.id}`, {
+      body: { project: 'acme', name: 'Our sources' },
     });
+    await t.json('DELETE', `/api/dashboards/${engagement!.id}?project=acme`);
     await t.json('POST', '/api/projects', { body: { id: 'acme' } });
     assert.deepEqual(
       (await list('acme')).map((d) => [d.id, d.name, d.tiles]),
-      [[starter!.id, 'Our overview', 5]],
+      [
+        [acquisition!.id, 'Our sources', 3],
+        [website!.id, 'Website overview', 5],
+      ],
     );
-    await t.json('DELETE', `/api/dashboards/${starter!.id}?project=acme`);
-    assert.deepEqual(await list('acme'), []);
 
     // An install upgraded with existing projects may have boards and customized analyses already.
     t.db.sqlite.exec("INSERT INTO projects (id,name,created_at) VALUES ('legacy','Legacy',1)");
@@ -128,25 +137,27 @@ describe('dashboards', () => {
     assert.deepEqual(
       a.map((d) => [d.name, d.tiles]),
       [
+        ['Acquisition', 3],
+        ['Engagement', 4],
         ['Executive metrics', 0],
         ['Website overview', 5],
       ],
     );
-    assert.equal(a[0]!.id, custom.id);
+    assert.equal(a[2]!.id, custom.id);
     const detail = await t.json<{ tiles: Tile[] }>(
       'GET',
-      `/api/dashboards/${a[1]!.id}?project=legacy`,
+      `/api/dashboards/${a[0]!.id}?project=legacy`,
       { key: READ },
     );
     assert.ok(detail.tiles.every((tile) => tile.insight?.key));
   });
 
   it('runs the starter analyses as a reader and keeps a deleted analysis out of the board', async () => {
-    const { dashboards } = await t.json<{ dashboards: { id: string }[] }>(
+    const { dashboards } = await t.json<{ dashboards: { id: string; name: string }[] }>(
       'GET',
       '/api/dashboards?project=acme',
     );
-    const board = '/api/dashboards/' + dashboards[0]!.id;
+    const board = '/api/dashboards/' + dashboards.find((d) => d.name === 'Website overview')!.id;
     const read = () =>
       t.json<{ tiles: Tile[]; results: { title: string; note?: string }[] }>(
         'GET',
@@ -175,30 +186,50 @@ describe('dashboards', () => {
     db.exec(
       readFileSync(new URL('../migrations/0020_dashboard_setup.sql', import.meta.url), 'utf8'),
     );
-    await ensureStarterDashboard(t.db, 'old');
+    const existing = await t.json<{ id: string }>('POST', '/api/dashboards', {
+      body: { project: 'old', name: 'Acquisition' },
+    });
+    db.exec(
+      readFileSync(
+        new URL('../migrations/0022_dashboard_template_setup.sql', import.meta.url),
+        'utf8',
+      ),
+    );
+    await ensureStarterDashboards(t.db, 'old');
     assert.deepEqual(
       db
-        .prepare("SELECT id FROM dashboards WHERE project='old'")
+        .prepare(
+          "SELECT id FROM dashboards WHERE project='old' AND name IN ('Website overview','Acquisition') ORDER BY name",
+        )
         .all()
         .map((r) => r.id),
-      [old.id],
+      [existing.id, old.id],
     );
 
     db.exec(
-      "CREATE TRIGGER fail_tile BEFORE INSERT ON dashboard_tiles WHEN NEW.project = 'retry' AND NEW.position = 1 BEGIN SELECT RAISE(ABORT, 'tile failed'); END",
+      `CREATE TRIGGER fail_tile BEFORE INSERT ON dashboard_tiles
+       WHEN NEW.project = 'retry' AND NEW.position = 1 AND NEW.dashboard IN
+         (SELECT id FROM dashboards WHERE project = NEW.project AND name = 'Acquisition')
+       BEGIN SELECT RAISE(ABORT, 'tile failed'); END`,
     );
-    await assert.rejects(ensureStarterDashboard(t.db, 'retry'), /tile failed/);
-    for (const table of ['dashboards', 'insights', 'dashboard_tiles', 'dashboard_setup']) {
+    await assert.rejects(ensureStarterDashboards(t.db, 'retry'), /tile failed/);
+    for (const [table, size] of [
+      ['dashboards', 1],
+      ['insights', 5],
+      ['dashboard_tiles', 5],
+      ['dashboard_setup', 1],
+      ['dashboard_template_setup', 0],
+    ]) {
       assert.equal(
         db.prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE project = 'retry'`).get()!.n,
-        0,
+        size,
       );
     }
     db.exec('DROP TRIGGER fail_tile');
-    await ensureStarterDashboard(t.db, 'retry');
+    await ensureStarterDashboards(t.db, 'retry');
     assert.equal(
       db.prepare("SELECT COUNT(*) AS n FROM dashboard_tiles WHERE project='retry'").get()!.n,
-      5,
+      12,
     );
   });
 

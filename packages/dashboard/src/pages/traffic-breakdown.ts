@@ -10,9 +10,10 @@ import { href, scope } from '../state.ts';
 const exact = (n: number) => n.toLocaleString();
 const detail = (label: string, body: HTMLElement) =>
   h('details', { class: 'traffic-detail' }, h('summary', {}, label), body);
+const HOURS = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, '0')}:00`);
+const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 function hourlyPanel(r: TrafficBreakdown) {
-  const labels = r.hourly.map((_, i) => `${String(i).padStart(2, '0')}:00`);
   return panel(
     'Pageviews by hour',
     [
@@ -21,20 +22,88 @@ function hourlyPanel(r: TrafficBreakdown) {
             r.hourly.map((_, i) => i),
             [{ label: 'Pageviews', values: r.hourly }],
             'hour',
-            { type: 'bar', labels, height: 195, format: exact },
+            { type: 'bar', labels: HOURS, height: 195, format: exact },
           )
         : empty('No tracked pageviews in this period.'),
       detail(
         'Hourly counts',
         table(
           ['Hour', 'Pageviews'],
-          r.hourly.map((n, i) => [labels[i]!, exact(n)]),
+          r.hourly.map((n, i) => [HOURS[i]!, exact(n)]),
           { numeric: [1] },
         ),
       ),
     ],
     { subtitle: `Hour of day · ${r.timezone}`, sql: r.sql.slice(0, 1) },
   );
+}
+
+function heatmapRow(day: string, values: number[], max: number) {
+  return h(
+    'tr',
+    {},
+    h('th', { scope: 'row', title: day, 'aria-label': day }, day.slice(0, 3)),
+    values.map((n, hour) =>
+      h(
+        'td',
+        {
+          title: `${day} ${HOURS[hour]} · ${exact(n)} pageviews`,
+          style: `--heat:${Math.round(Math.sqrt(n / max) * 85)}%`,
+        },
+        h('span', {}, exact(n)),
+      ),
+    ),
+  );
+}
+
+function heatmapPanel(r: TrafficBreakdown) {
+  const max = Math.max(...r.weekdayHourly.flat());
+  const heatmap = max
+    ? h(
+        'div',
+        { class: 'traffic-heatmap' },
+        h(
+          'div',
+          { class: 'heatmap-toolbar' },
+          h('label', {}, h('input', { type: 'checkbox', class: 'heatmap-toggle' }), 'Show counts'),
+          h(
+            'span',
+            { class: 'heatmap-scale' },
+            'Fewer',
+            h('span', { class: 'heatmap-ramp', 'aria-hidden': 'true' }),
+            'More',
+          ),
+        ),
+        h(
+          'div',
+          { class: 'heatmap-scroll', role: 'region', 'aria-label': 'Traffic heatmap', tabindex: 0 },
+          h(
+            'table',
+            { 'aria-label': 'Pageviews by weekday and hour' },
+            h(
+              'thead',
+              {},
+              h(
+                'tr',
+                {},
+                h('th', { scope: 'col' }, 'Day'),
+                HOURS.map((label) => h('th', { scope: 'col', title: label }, label.slice(0, 2))),
+              ),
+            ),
+            h(
+              'tbody',
+              {},
+              r.weekdayHourly.map((row, i) => heatmapRow(DAYS[i]!, row, max)),
+            ),
+          ),
+        ),
+      )
+    : empty('No tracked pageviews in this period.');
+  return panel('Pageviews by weekday and hour', heatmap, {
+    class: 'traffic-heatmap-panel',
+    subtitle: `Total pageviews in the selected period · ${r.timezone}`,
+    sql: r.sql.slice(0, 1),
+  });
 }
 
 function sessionPanel(r: TrafficBreakdown, fleet: boolean) {
@@ -143,6 +212,7 @@ export function trafficBreakdownPanels(project: string | null): HTMLElement {
         { class: 'grid-2 traffic-breakdown' },
         hourlyPanel(r),
         sessionPanel(r, project === null),
+        heatmapPanel(r),
         visitorPanel(r),
         devicePanel(r),
       );

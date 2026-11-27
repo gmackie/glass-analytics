@@ -28,7 +28,8 @@ const BUDGETS: Record<string, number> = {
   // First-party report and Paths instrumentation adds about 0.9 KB when bundled.
   'packages/dashboard/dist/app.js': 226,
   // 19: the code field, fold and chip styles shared by the new editors.
-  'packages/dashboard/dist/app.css': 19,
+  // The weekday and hour heatmap adds its scroll and count styles.
+  'packages/dashboard/dist/app.css': 19.25,
   // Destinations, exports, issues, revenue and group analytics (Workers allow 3 MB on Free).
   // 620: user paths (the compiler, the dashboard's Sankey and rail), +5 KB.
   // 670: dashboards, scheduled reports and alerts (the PNG renderer and its Inter glyph atlas,
@@ -36,7 +37,8 @@ const BUDGETS: Record<string, number> = {
   // Includes the embedded signup-to-activation and instrumentation coverage views.
   // App-specific product question definitions, input checks and generated MCP skills (about 3.7 KB).
   // Includes the optional self-instrumented dashboard and its same-origin SDK bootstrap.
-  'packages/worker/dist/worker.js': 678,
+  // Adds Acquisition and Engagement templates and the embedded fleet dashboard views.
+  'packages/worker/dist/worker.js': 680,
   'packages/cli/dist/glass.js': 42, // import, sourcemaps and stripe commands
 };
 

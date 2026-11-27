@@ -975,6 +975,73 @@ pre.sql {
 .traffic-breakdown .pie-legend {
   min-width: min(100%, 190px);
 }
+.traffic-heatmap-panel {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.heatmap-toolbar,
+.heatmap-toolbar label,
+.heatmap-scale {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.heatmap-toolbar {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.heatmap-scale {
+  color: var(--muted);
+  font-size: 12px;
+}
+.heatmap-ramp {
+  width: 68px;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--surface-2), var(--accent));
+}
+.heatmap-scroll {
+  overflow-x: auto;
+}
+.heatmap-scroll table {
+  width: 100%;
+  min-width: 660px;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 2px;
+  font-size: 12px;
+  text-align: center;
+}
+.heatmap-scroll th:first-child {
+  position: sticky;
+  left: 0;
+  width: 46px;
+  background: var(--surface);
+  text-align: left;
+}
+.heatmap-scroll th {
+  font-weight: 500;
+  color: var(--muted);
+}
+.heatmap-scroll td {
+  height: 24px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent) var(--heat), var(--surface-2));
+  padding: 0;
+}
+.heatmap-scroll td span {
+  opacity: 0;
+}
+.traffic-heatmap:has(.heatmap-toggle:checked) table {
+  min-width: 1000px;
+}
+.traffic-heatmap:has(.heatmap-toggle:checked) td {
+  background: var(--surface-2);
+}
+.traffic-heatmap:has(.heatmap-toggle:checked) td span {
+  opacity: 1;
+}
 .traffic-detail {
   margin-top: 12px;
 }
@@ -7028,6 +7095,19 @@ input.tiny {
 }
 .tile-computed {
   white-space: nowrap;
+}
+.tile .pie {
+  gap: 12px 16px;
+}
+.tile .pie-chart {
+  width: 148px;
+  height: 148px;
+}
+.tile .pie-legend {
+  min-width: min(100%, 165px);
+}
+.tile-table {
+  overflow: auto;
 }
 .tile-number {
   display: grid;

@@ -103,7 +103,7 @@ const ALL_TOOLS: ToolDefinition[] = [
     name: 'traffic_breakdown',
     title: 'Traffic breakdown',
     description:
-      'Compare hourly pageviews, device mix, likely human, detected bot and unclassified pageviews, and session duration across registered sites or one project. Fleet hours use UTC, site hours use the project time zone. Filtered bots are measured from collectionStarted.',
+      'Compare pageviews by weekday and hour, device mix, likely human, detected bot and unclassified pageviews, and session duration across registered sites or one project. weekdayHourly starts on Monday. Fleet hours use UTC and site hours use the project time zone. Bot counts begin at collectionStarted.',
     input: inputs.trafficBreakdown,
     scope: 'read',
     run: (s, a) => s.trafficBreakdown(a),
@@ -842,7 +842,7 @@ const ALL_TOOLS: ToolDefinition[] = [
     name: 'dashboard_templates',
     title: 'Starter dashboards',
     description:
-      'Starter dashboards (website overview, product health, revenue, errors) and the signup and purchase events they would use here.',
+      'Dashboard templates for website overview, acquisition, engagement, product health, revenue and errors. Shows the signup and purchase events they would use here.',
     input: inputs.dashboardTemplates,
     scope: 'read',
     run: (s, a) => s.dashboardTemplates(a),

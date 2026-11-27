@@ -12,6 +12,7 @@ import type {
 } from '@dataflare/core/insights/sites';
 import { api } from '../api.ts';
 import { sparkline } from '../components/charts.ts';
+import { pieChart } from '../components/display.ts';
 import { icon } from '../components/icons.ts';
 import { empty, later, pageHeader, panel, table, tabs } from '../components/ui.ts';
 import { h } from '../dom.ts';
@@ -83,6 +84,21 @@ function delta(now: number, before: number): HTMLElement | string {
   );
 }
 
+function fleetPageviewShare(sites: Site[]) {
+  const slices = sites.map((s) => ({
+    label: s.project,
+    value: s.pageviews,
+    href: href('sites', { project: s.project }),
+  }));
+  return panel(
+    'Pageview share by site',
+    slices.some((s) => s.value > 0)
+      ? pieChart(slices, (n) => n.toLocaleString(), 8)
+      : empty('No tracked pageviews in this period.'),
+    { subtitle: 'Select a site to see its traffic and top paths.' },
+  );
+}
+
 /** Site activity keeps the comparison with the preceding period alongside the path ranking. */
 function siteActivity(route: Route): HTMLElement {
   const sc = scope();
@@ -136,35 +152,40 @@ function siteActivity(route: Route): HTMLElement {
             : h('span', { class: 'muted' }, 'never'),
         ];
       });
-      return panel(
-        'Site activity',
-        [
-          h(
-            'p',
-            { class: 'sites-summary' },
-            chips,
+      return h(
+        'div',
+        { class: 'stack' },
+        fleetPageviewShare(r.sites),
+        panel(
+          'Site activity',
+          [
             h(
-              'span',
-              { class: 'muted' },
-              `${count(r.sites.reduce((n, s) => n + s.visitors, 0))} visitors across ${r.sites.length} sites`,
+              'p',
+              { class: 'sites-summary' },
+              chips,
+              h(
+                'span',
+                { class: 'muted' },
+                `${count(r.sites.reduce((n, s) => n + s.visitors, 0))} visitors across ${r.sites.length} sites`,
+              ),
             ),
-          ),
-          table(
-            [
-              'Site',
-              'Trend',
-              'Visitors over time',
-              'Visitors',
-              '',
-              'Pageviews',
-              '',
-              'Last pageview',
-            ],
-            rows,
-            { numeric: [3, 4, 5, 6], class: 'sites-table' },
-          ),
-        ],
-        { sql: r.sql, actions: order },
+            table(
+              [
+                'Site',
+                'Trend',
+                'Visitors over time',
+                'Visitors',
+                '',
+                'Pageviews',
+                '',
+                'Last pageview',
+              ],
+              rows,
+              { numeric: [3, 4, 5, 6], class: 'sites-table' },
+            ),
+          ],
+          { sql: r.sql, actions: order },
+        ),
       );
     },
     'Loading sites',
@@ -176,9 +197,29 @@ function trafficLink(label: string, page: string, params: Record<string, string 
   return h('a', { class: 'button small', href: href(page, params) }, label);
 }
 
+function trafficActions(project: string | null, path: string | null): HTMLElement[] {
+  const actions =
+    project && path
+      ? [
+          trafficLink('Compare sites for this path', 'sites', { project: null, path }),
+          trafficLink('Top paths', 'sites', { project }),
+          trafficLink('Explore sessions', 'reports/segment', { project, p: 'path', v: path }),
+        ]
+      : [trafficLink('All sites', 'sites', { project: null })];
+  if (project) actions.push(trafficLink('Site dashboards', 'dashboards', { project }));
+  return actions;
+}
+
 export function sitesPage(route: Route): Node[] {
   const project = route.params.get('project');
   const path = route.params.get('path');
+  if (route.params.get('view') === 'traffic')
+    return [
+      pageHeader('Traffic patterns', project ?? 'Across every registered site.', [
+        trafficLink('Traffic overview', 'sites', { project }),
+      ]),
+      trafficBreakdownPanels(project),
+    ];
   if (route.params.get('view') === 'instrumentation') {
     return [
       pageHeader(project ?? 'Fleet instrumentation', 'Event evidence for the selected period.', [
@@ -192,6 +233,7 @@ export function sitesPage(route: Route): Node[] {
   if (!project && !path) {
     return [
       pageHeader('All sites', 'Pageviews across every registered site.', [
+        trafficLink('Fleet dashboards', 'dashboards/fleet', { project: null }),
         trafficLink('Product instrumentation', 'sites', { project: null, view: 'instrumentation' }),
       ]),
       trafficPanels(route),
@@ -199,22 +241,11 @@ export function sitesPage(route: Route): Node[] {
       siteActivity(route),
     ];
   }
-  const actions = [];
-  if (project && path) {
-    actions.push(trafficLink('Compare sites for this path', 'sites', { project: null, path }));
-    actions.push(trafficLink('Top paths', 'sites', { project }));
-    actions.push(
-      trafficLink('Explore sessions', 'reports/segment', { project, p: 'path', v: path }),
-    );
-  } else {
-    actions.push(trafficLink('All sites', 'sites', { project: null }));
-  }
-  if (project) actions.push(trafficLink('Site dashboards', 'dashboards', { project }));
   const description = path
     ? `Pageviews for this path · ${project ?? 'All sites'}`
     : 'Pageviews, sessions and top paths for this site.';
   const content: Node[] = [
-    pageHeader(path ?? project!, description, actions),
+    pageHeader(path ?? project!, description, trafficActions(project, path)),
     trafficPanels(route),
   ];
   if (!path) content.push(trafficBreakdownPanels(project));

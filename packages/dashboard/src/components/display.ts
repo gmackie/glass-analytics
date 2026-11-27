@@ -45,13 +45,13 @@ const sliceColor = (i: number) =>
 
 /** A donut of totals, the largest slices first, with the rest as "Other". */
 export function pieChart(
-  items: { label: string; value: number; color?: string }[],
+  items: { label: string; value: number; color?: string; href?: string }[],
   fmt: (n: number) => string = count,
   maxSlices = 9,
   showZeros = false,
 ): HTMLElement {
   const sorted = items.filter((x) => x.value > 0).sort((a, b) => b.value - a.value);
-  const shown =
+  const shown: typeof items =
     sorted.length > maxSlices
       ? [
           ...sorted.slice(0, maxSlices - 1),
@@ -110,7 +110,9 @@ export function pieChart(
           'li',
           {},
           h('span', { class: 'swatch', style: `background:${x.color ?? sliceColor(i)}` }),
-          h('span', { class: 'pie-label' }, x.label),
+          x.href
+            ? h('a', { class: 'pie-label', href: x.href, title: x.label }, x.label)
+            : h('span', { class: 'pie-label' }, x.label),
           h('span', { class: 'num' }, fmt(x.value)),
           h('span', { class: 'num muted' }, percent(x.value / total, 1)),
         ),
