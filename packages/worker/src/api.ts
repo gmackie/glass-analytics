@@ -247,6 +247,12 @@ export async function apiRouter(
         'POST /api/actors':
           'The people/sessions/groups behind a number: { kind, spec, selection: { series, bucket } | { step, status } | { cohort, period } }; ?format=csv for CSV; saveAsCohort: { name } saves them (admin)',
         'GET /api/paths/suggest-rules': 'Path cleaning rules for page paths with ids in them',
+        'GET /api/product-questions':
+          'Discover project questions and observed inputs. Omit project for the fleet.',
+        'GET /api/product-questions/:key':
+          'Get a question definition and its generated skill for a project.',
+        'GET /api/product-questions/:key/run':
+          'Measure the question between from and the exclusive observation cutoff to.',
         'GET /api/capabilities':
           'What this deployment can do: email for reports and alerts, replay, store',
         'GET /api/dashboards': 'Dashboards',
@@ -656,6 +662,9 @@ export async function apiRouter(
       const input = method === 'delete' ? {} : ((await body()) as Record<string, unknown>);
       return json(await run({ ...params(url), ...input, ...p }), { status });
     });
+  read('/api/product-questions', (i) => service.listProductQuestions(i));
+  read('/api/product-questions/:key', (i) => service.getProductQuestion(i));
+  read('/api/product-questions/:key/run', (i) => service.runProductQuestion(i));
   read('/api/capabilities', (i) => service.capabilities(i));
   read('/api/dashboards', (i) => service.listDashboards(i));
   read('/api/dashboards/templates', (i) => service.dashboardTemplates(i));

@@ -20,6 +20,7 @@ const SUPPORTED_VERSIONS = ['2025-11-25', '2025-06-18', '2025-03-26'];
 const MAX_TEXT = 100_000;
 
 export const INSTRUCTIONS = `Dataflare is the analytics for this product: web analytics, product analytics, session replay, feature flags and A/B tests, stored in the user's own Cloudflare account.
+- For an app-specific product decision, call "list_product_questions", then "get_product_question" for its skill or "run_product_question" for an answer.
 - Start with "overview" for a period, then "list_events" for exact event names before querying.
 - Properties: built-in columns (path, browser, country, utm_source…), event properties ("plan" or "props.plan"), person properties ("person.plan").
 - Times: ISO dates or relative offsets like "-30d"; ranges end at "now" by default.

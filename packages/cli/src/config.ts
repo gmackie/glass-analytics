@@ -159,7 +159,7 @@ export function saveCredentials(credentials: Credentials, root = projectRoot()):
 }
 
 /** Where to send API calls, from env vars or `.glass/`. */
-export function connection(scope: 'api' | 'read' = 'api'): {
+export function connection(scope: 'api' | 'read' | 'query' = 'api'): {
   host: string;
   key: string;
   project: string | undefined;
@@ -167,10 +167,9 @@ export function connection(scope: 'api' | 'read' = 'api'): {
   const config = loadClientConfig() ?? loadConfig();
   const credentials = loadCredentials();
   const host = process.env.GLASS_HOST ?? config?.host;
-  const key =
-    scope === 'read'
-      ? (process.env.GLASS_READ_KEY ?? credentials?.readKey)?.trim()
-      : (process.env.GLASS_API_KEY ?? credentials?.adminKey);
+  const apiKey = process.env.GLASS_API_KEY ?? credentials?.adminKey;
+  const readKey = (process.env.GLASS_READ_KEY ?? credentials?.readKey)?.trim();
+  const key = scope === 'api' ? apiKey : readKey || (scope === 'query' ? apiKey : undefined);
   if (!host || !key) {
     if (scope === 'read')
       throw new UsageError(

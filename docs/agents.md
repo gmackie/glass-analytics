@@ -114,3 +114,16 @@ curl -s https://glass.<you>.workers.dev/api/query \
 ```
 
 Errors are JSON with an `error` message and, where useful, a `hint` saying how to fix it.
+
+## App-specific product questions
+
+Call `list_product_questions` with an Observe project ID to discover its questions, counting units and available inputs. Omitting the project lists questions across registered projects. Use `get_product_question` to read the versioned definition or copy its generated `skill` into a matching skill directory. Use `run_product_question` to execute it. All three tools accept `from` and `to`. The start is inclusive and the observation cutoff is exclusive. An unavailable answer includes the missing signals.
+
+| Project      | Question key            | What it measures                                                                                                                                                |
+| ------------ | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `levelforge` | `review-intake`         | Distinct Studio tasks submitted to producer review, including counts of submissions missing identifiers. Producer decisions require the app's revision history. |
+| `habitplay`  | `guest-habit-follow-up` | Guest identities with a later completed habit outside onboarding, by starter-task outcome. Entry closes 24 hours before the observation cutoff.                 |
+
+The same operations are available with a deployment read key at `GET /api/product-questions`, `GET /api/product-questions/:key` and `GET /api/product-questions/:key/run`. Add `?project=<id>` to scope a request. Existing read credentials cover the deployment. The question's project scopes its measurement.
+
+To export a skill from the CLI, run `dataflare question-skill review-intake --project levelforge`. The default output is the complete Markdown file. `--json` includes the input evidence. Use `dataflare mcp --read` to start a stdio connection with the deployment read key.

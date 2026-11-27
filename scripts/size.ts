@@ -33,7 +33,8 @@ const BUDGETS: Record<string, number> = {
   // 670: dashboards, scheduled reports and alerts (the PNG renderer and its Inter glyph atlas,
   // about 12 KB; notices, email, schedules) and the larger dashboard it serves.
   // Includes the embedded signup-to-activation and instrumentation coverage views.
-  'packages/worker/dist/worker.js': 673,
+  // App-specific product question definitions, input checks and generated MCP skills (about 3.7 KB).
+  'packages/worker/dist/worker.js': 677,
   'packages/cli/dist/glass.js': 42, // import, sourcemaps and stripe commands
 };
 

@@ -430,6 +430,34 @@ describe('agent files', () => {
 });
 
 describe('dataflare mcp (stdio bridge)', () => {
+  it('uses only the read credential when the bridge is invoked in read mode', async (t) => {
+    t.mock.method(process, 'cwd', () => tmpdir());
+    const prior = process.env.GLASS_READ_KEY;
+    const priorHost = process.env.GLASS_HOST;
+    t.after(() => {
+      if (prior === undefined) delete process.env.GLASS_READ_KEY;
+      else process.env.GLASS_READ_KEY = prior;
+      if (priorHost === undefined) delete process.env.GLASS_HOST;
+      else process.env.GLASS_HOST = priorHost;
+    });
+    process.env.GLASS_HOST = HOST;
+    process.env.GLASS_READ_KEY = 'read-test';
+    const input = new PassThrough();
+    const output = new PassThrough();
+    const recorded: string[] = [];
+    const done = mcpBridge({
+      readOnly: true,
+      input,
+      output,
+      fetcher: async (_url, opts) => {
+        recorded.push(new Headers(opts?.headers).get('Authorization')!);
+        return Response.json({ jsonrpc: '2.0', id: 1, result: {} });
+      },
+    });
+    input.end('{"jsonrpc":"2.0","id":1,"method":"ping"}\n');
+    await done;
+    assert.deepEqual(recorded, ['Bearer read-test']);
+  });
   it('forwards JSON-RPC lines to the Worker with the stored key', async () => {
     const worker = testApp();
     await worker.json('POST', '/api/projects', { body: { id: 'acme' } });
