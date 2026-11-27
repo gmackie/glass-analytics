@@ -1,0 +1,18 @@
+// Semantic colors used by the web dashboard in packages/dashboard/src/styles.css.
+export const dashboardPalette = {
+  field: { light: '#fafafa', dark: '#111111' },
+  surface: { light: '#fff', dark: '#1a1a1a' },
+  surface2: { light: '#f7f7f8', dark: '#212121' },
+  ink: { light: '#171717', dark: '#fafafa' },
+  ink2: { light: '#404040', dark: '#d4d4d4' },
+  muted: { light: '#616166', dark: '#a3a3a3' },
+  hairline: { light: '#e5e5e5', dark: '#343434' },
+  hairlineStrong: { light: '#d0d0d3', dark: '#515151' },
+  pane: { light: '#eff4ff', dark: '#202d44' },
+  paneInk: { light: '#20489c', dark: '#c4d9ff' },
+  accent: { light: '#245cce', dark: '#85adff' },
+  onPrimary: { light: '#fff', dark: '#101a30' },
+  good: { light: '#16704b', dark: '#84d1ac' },
+  bad: { light: '#bc3546', dark: '#ff98a0' },
+  railActive: { light: '#efeff1', dark: '#2a2a2c' },
+};

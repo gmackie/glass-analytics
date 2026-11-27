@@ -7,10 +7,10 @@
     "platforms": ["ios"],
     "orientation": "default",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.gmacko.dataflaremobile",
-      "buildNumber": "2",
+      "buildNumber": "3",
       "supportsTablet": true,
       "requireFullScreen": false
     },

@@ -1,11 +1,24 @@
-import { Stack } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useLayoutEffect } from 'react';
+import { restoreAppearance } from '../appearance.ts';
+import { useTheme } from '../styles.ts';
 
 export default function RootLayout() {
+  const { color, scheme } = useTheme();
+  const dark = scheme === 'dark';
+  const statusBarStyle = dark ? 'light' : 'dark';
+  useLayoutEffect(restoreAppearance, []);
   return (
-    <>
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#f6f7f2' } }} />
-      <StatusBar style="dark" />
-    </>
+    <ThemeProvider value={dark ? DarkTheme : DefaultTheme}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          statusBarStyle,
+          contentStyle: { backgroundColor: color.field },
+        }}
+      />
+      <StatusBar style={statusBarStyle} />
+    </ThemeProvider>
   );
 }
