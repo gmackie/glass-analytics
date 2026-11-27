@@ -1,12 +1,13 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { Modal, View } from 'react-native';
+import { AppState, Modal, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ConnectionForm } from '../ConnectionForm.tsx';
 import type { Connection } from '../data.ts';
 import { loadConnection } from '../session.ts';
 import { useTheme } from '../styles.ts';
 import { Action, Loading, Notice } from '../ui.tsx';
+import { flushUsage, mobileUsage } from '../usage.ts';
 import { Workspace } from '../Workspace.tsx';
 
 type Session = { connection: Connection | null; client: QueryClient; id: number };
@@ -26,18 +27,26 @@ export default function Dashboard() {
   const [editing, setEditing] = useState(false);
   useEffect(() => {
     let mounted = true;
+    const listener = AppState.addEventListener('change', (state) => {
+      if (state !== 'active') void flushUsage();
+    });
     loadConnection()
       .then((connection) => {
-        if (mounted) setCurrent(session(connection, 0));
+        if (!mounted) return;
+        mobileUsage.open(connection ? 'live' : 'demo');
+        setCurrent(session(connection, 0));
       })
       .catch(() => {
         if (mounted) setStorageError(true);
       });
     return () => {
       mounted = false;
+      listener.remove();
     };
   }, []);
   const commit = (connection: Connection | null) => {
+    mobileUsage.open(connection ? 'live' : 'demo');
+    mobileUsage.leave();
     setCurrent((previous) => session(connection, (previous?.id ?? 0) + 1));
     setStorageError(false);
     setEditing(false);

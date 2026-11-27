@@ -8,6 +8,7 @@
 
 import type { BreakdownRow, WebBreakdown, WebResult } from '@dataflare/core/insights/web';
 import { api } from '../api.ts';
+import { dashboardUsage } from '../app-usage.ts';
 import { barList, lineChart, sparkline } from '../components/charts.ts';
 import { previousRange } from '../components/date-range.ts';
 import { type IconName, icon } from '../components/icons.ts';
@@ -730,6 +731,7 @@ function parseTab(rest: string[]): ReportTab {
 export function webPage(route: Route): Node[] {
   if (route.rest[0] === 'segment') return segmentPage(route);
   const tab = parseTab(route.rest);
+  const reportViewed = dashboardUsage.reportResult();
   const sc = scope();
   const prompts =
     tab === 'marketing'
@@ -763,6 +765,7 @@ export function webPage(route: Route): Node[] {
           ...sc,
           filters: apiFilters(),
         });
+        reportViewed('overview', r.totals.pageviews > 0);
         if (r.totals.pageviews === 0 && !r.previous?.pageviews) {
           return empty(
             'Add the script tag to your site, then visit a page. Numbers appear within seconds.',

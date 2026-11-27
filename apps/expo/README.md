@@ -30,3 +30,9 @@ To try a local Worker, run `pnpm dev` at the repository root. In a simulator on 
 ## Starter
 
 The Expo Router entry, native-stack layout, React Query provider, SecureStore integration and Xcode pod deployment-target plugin come from the mobile profile of create-gmacko-app 0.3.0. The app uses Dataflare’s existing bearer-key API. The starter’s MIT license is included alongside the app. [create-gmacko-app](https://www.npmjs.com/package/create-gmacko-app/v/0.3.0)
+
+## App analytics
+
+The Observe build sends anonymous usage to the `dataflare` project on Observe. It counts opening the app, successful report views, path drill-downs and connection attempts and outcomes. Reports distinguish demo from live data and record whether any data was present. The selected site, URL, key, path labels and report contents stay on the device. A random install ID is stored separately from the connection. Backgrounding the app flushes queued events.
+
+Build with `EXPO_PUBLIC_DATAFLARE_WORKER_URL=https://observe.gmac.io` for the owner's configuration. Set `EXPO_PUBLIC_DATAFLARE_ANALYTICS=off` to disable collection, or `verification` for an instrumented test build. Development builds of this configuration also label their events as verification. Ordinary usage charts filter those visits out.

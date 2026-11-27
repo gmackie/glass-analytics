@@ -15,6 +15,7 @@ import type { RetentionResult } from '@dataflare/core/insights/retention';
 import type { TrendsResult } from '@dataflare/core/insights/trends';
 import { resolveRange } from '@dataflare/core/time';
 import { api } from '../api.ts';
+import { dashboardUsage } from '../app-usage.ts';
 import { activation } from '../components/activation.ts';
 import { chartOptionsButton } from '../components/chart-options.ts';
 import { type Annotation, periodReached, sparkline } from '../components/charts.ts';
@@ -908,6 +909,7 @@ function editorView(options: {
     control?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   };
 
+  const reportViewed = dashboardUsage.reportResult();
   const run = async () => {
     clearTimeout(timer);
     persist();
@@ -921,6 +923,8 @@ function editorView(options: {
     try {
       const fetched = await fetchResults(kind, fullSpec(), options.key);
       if (id !== runId) return;
+      if (kind === 'paths' && output.isConnected)
+        reportViewed('paths', (fetched.result as unknown as PathsResult).total > 0);
       notes = fetched.notes;
       if (kind === 'trends') lastTrends = fetched.result as unknown as TrendsResult;
       const view = RENDER[kind](fetched, {

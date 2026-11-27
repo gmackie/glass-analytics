@@ -7,6 +7,7 @@
 import './styles.css';
 import type { Stage } from '@dataflare/core/stages';
 import { api } from './api.ts';
+import { dashboardUsage, startUsage, visitDashboard } from './app-usage.ts';
 import { dateRangeControl } from './components/date-range.ts';
 import { type IconName, icon } from './components/icons.ts';
 import { closePopover, listKeys, selectMenu, toggle } from './components/menu.ts';
@@ -583,11 +584,13 @@ function render(): void {
       h('div', { class: 'main' }, upgradeNotice(), topBar(route), content),
     ),
   );
+  visitDashboard(route);
   mount(content, page.render(route));
   document.title = `${page.label} · Dataflare`;
 }
 
 function showSignIn(): void {
+  dashboardUsage.leave();
   signedIn = false;
   closePopover();
   mount(root, config.access ? accessSignIn() : keyScreen(() => void start()));
@@ -613,6 +616,7 @@ async function start(): Promise<void> {
         upgradeCommand?: string;
       }>('/health'),
     ]);
+    if (signedIn) startUsage();
     projects = r.projects.map((p) => p.id);
     version = health.version;
     upgradeBanner =

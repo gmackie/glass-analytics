@@ -5,6 +5,7 @@
  */
 
 import type { PathNode, PathsResult } from '@dataflare/core/insights/paths';
+import { dashboardUsage } from '../app-usage.ts';
 import { h } from '../dom.ts';
 import { count } from '../format.ts';
 import { go } from '../state.ts';
@@ -136,14 +137,19 @@ export function pathsView(r: PathsResult, o: PathsViewOptions): HTMLElement {
       ? topPathsTable(r, o.noun, openFunnel)
       : sankey(r, {
           noun: o.noun,
-          actions: (node) => nodeActions(r, node, o),
-          onLink: (l) =>
+          actions: (node) => {
+            dashboardUsage.detail('step');
+            return nodeActions(r, node, o);
+          },
+          onLink: (l) => {
+            dashboardUsage.detail('transition');
             showActors(
               'paths',
               o.shared,
               { node: l.source, target: l.target },
               `Who went ${l.source.replace(/^\d+:/, '')} → ${l.target.replace(/^\d+:/, '')}`,
-            ),
+            );
+          },
         });
   return h('div', { class: 'paths-view' }, body);
 }

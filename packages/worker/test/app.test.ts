@@ -69,6 +69,19 @@ describe('health and routing', () => {
     assert.match(html, /<meta name="glass-base" content="\/_glass">/);
   });
 
+  it('loads its own SDK only for a configured dashboard project', async () => {
+    const app = testApp();
+    const shell = async () => (await app.call('GET', '/_glass/app')).text();
+    assert.doesNotMatch(await shell(), /glass-usage-project|src="\/_glass\/s.js"/);
+    app.env.GLASS_DASHBOARD_ANALYTICS_PROJECT = 'dataflare';
+    const html = await shell();
+    assert.match(html, /name="glass-usage-project" content="dataflare"/);
+    assert.match(html, /name="referrer" content="no-referrer"/);
+    assert.match(html, /<script defer src="\/_glass\/s.js"><\/script>/);
+    app.env.GLASS_DASHBOARD_ANALYTICS_PROJECT = 'invalid"project';
+    assert.doesNotMatch(await shell(), /glass-usage-project|invalid"project/);
+  });
+
   it('explains 404s and serves llms.txt with real URLs', async () => {
     const res = await t.call('GET', '/nope');
     assert.equal(res.status, 404);

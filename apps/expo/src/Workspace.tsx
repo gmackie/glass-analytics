@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { DivisionObserver } from './DivisionObserver.tsx';
 import { type Connection, fetchSites, type Period } from './data.ts';
@@ -9,6 +9,7 @@ import { ReportPane } from './ReportPane.tsx';
 import { SitesPane } from './SitesPane.tsx';
 import { themedStyles, useTheme } from './styles.ts';
 import { Brand, PeriodPicker } from './ui.tsx';
+import { mobileUsage } from './usage.ts';
 
 export function Workspace({
   connection,
@@ -34,6 +35,10 @@ export function Workspace({
   const dimension = layout?.axis === 'column' ? 'height' : 'width';
   const project = rows.find((site) => site.project === selected)?.project ?? rows[0]?.project;
   const panes = visiblePanes(layout !== null, rows.length, page);
+  const mode = connection ? 'live' : 'demo';
+  useEffect(() => {
+    if (panes === 'sites') mobileUsage.visit('sites', mode);
+  }, [mode, panes]);
   const brand = <Brand live={connection !== null} configure={configure} />;
   const select = useCallback((id: string) => {
     setSelected(id);

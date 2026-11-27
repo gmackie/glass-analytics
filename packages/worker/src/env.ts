@@ -135,6 +135,8 @@ export interface Env {
   GLASS_SALT_SECRET?: string;
   /** Public URL of this Worker (for links in agent responses). Inferred from requests when unset. */
   GLASS_PUBLIC_URL?: string;
+  /** Collect first-party dashboard usage into this registered project on this Worker. */
+  GLASS_DASHBOARD_ANALYTICS_PROJECT?: string;
   /** Access application audience for the dashboard and its same-origin browser API. */
   GLASS_ACCESS_AUD?: string;
   /** SHA-256 of the administrator's normalized Access email, kept out of the deployment manifest. */
