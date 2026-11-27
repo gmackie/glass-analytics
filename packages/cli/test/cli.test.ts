@@ -6,7 +6,7 @@
  */
 
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import {
   cpSync,
   existsSync,
@@ -733,6 +733,39 @@ describe('dataflare upgrade', () => {
 });
 
 describe('the bin', () => {
+  it('prints a read-only deployment key and explains how to restore a missing one', (t) => {
+    const dir = mkdtempSync(join(tmpdir(), 'dataflare-read-key-'));
+    t.after(() => rmSync(dir, { recursive: true, force: true }));
+    const glass = join(dir, '.glass');
+    mkdirSync(glass);
+    writeFileSync(join(glass, 'config.json'), JSON.stringify({ host: HOST }));
+    const credentials = join(glass, 'credentials.json');
+    writeFileSync(credentials, JSON.stringify({ readKey: 'fixture-read-key' }));
+    const cli = fileURLToPath(new URL('../src/index.ts', import.meta.url));
+    const run = (args: string[], env: NodeJS.ProcessEnv = {}) =>
+      spawnSync(process.execPath, [cli, 'key', '--read', ...args], {
+        cwd: dir,
+        env,
+        encoding: 'utf8',
+      });
+
+    const local = run([]);
+    assert.equal(local.status, 0);
+    assert.match(local.stdout, /Read-only key: fixture-read-key/);
+    const overridden = run(['--json'], { GLASS_READ_KEY: 'other-read-key' });
+    assert.equal(overridden.status, 0);
+    assert.equal(JSON.parse(overridden.stdout).key, 'other-read-key');
+
+    writeFileSync(credentials, JSON.stringify({ adminKey: 'private-fixture' }));
+    for (const flags of [[], ['--json']]) {
+      const missing = run(flags, { GLASS_API_KEY: 'private-fixture' });
+      assert.equal(missing.status, 1);
+      assert.equal(missing.stdout, '');
+      assert.match(missing.stderr, /GLASS_READ_KEY/);
+      assert.doesNotMatch(missing.stderr, /private-fixture|undefined/);
+    }
+  });
+
   it('runs when npm links it under another name', () => {
     // npm links the bin as `dataflare`; the entry must still run through the symlink.
     const dir = mkdtempSync(join(tmpdir(), 'glass-bin-'));

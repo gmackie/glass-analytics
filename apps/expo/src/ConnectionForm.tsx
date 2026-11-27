@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { KeyboardAvoidingView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { type Connection, connectionFrom, verifyConnection } from './data.ts';
+import { type Connection, connectionFrom, pastedConnection, verifyConnection } from './data.ts';
 import { saveConnection } from './session.ts';
 import { color, ui } from './styles.ts';
 import { Action } from './ui.tsx';
@@ -15,10 +15,24 @@ export function ConnectionForm({
   onCommit: (connection: Connection | null) => void;
   close: () => void;
 }) {
-  const [address, setAddress] = useState(current?.url ?? '');
+  const [address, setAddress] = useState(
+    current?.url ?? process.env.EXPO_PUBLIC_DATAFLARE_WORKER_URL ?? '',
+  );
   const [key, setKey] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+
+  function changeKey(text: string) {
+    setError('');
+    try {
+      const pasted = pastedConnection(text);
+      if (pasted) setAddress(pasted.url);
+      setKey(pasted?.key ?? text);
+    } catch (cause) {
+      setKey('');
+      setError(cause instanceof Error ? cause.message : 'Check the pasted connection details.');
+    }
+  }
 
   async function submit(disconnect = false) {
     if (busy) return;
@@ -86,16 +100,16 @@ export function ConnectionForm({
               autoCapitalize="none"
               autoCorrect={false}
               value={key}
-              onChangeText={setKey}
-              placeholder="Enter read key"
+              onChangeText={changeKey}
+              placeholder="Paste read key or connection details"
               placeholderTextColor={color.muted}
             />
             <Text style={ui.muted}>
-              Run{' '}
+              To fill in both fields, paste the output of{' '}
               <Text selectable style={styles.code}>
-                dataflare key --read
+                dataflare key --read --json
               </Text>{' '}
-              in the connected project. The key is saved in this device’s Keychain.
+              here. The key is saved in this device’s Keychain after you connect.
             </Text>
           </View>
           {error ? (

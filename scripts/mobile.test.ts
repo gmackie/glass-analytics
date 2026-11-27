@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 import {
   connectionFrom,
   fetchReport,
   fetchSites,
+  pastedConnection,
   verifyConnection,
 } from '../apps/expo/src/data.ts';
 import { paneLayout, visiblePanes } from '../apps/expo/src/layout.ts';
@@ -13,7 +16,15 @@ import { startDevServer } from '../packages/worker/test/server.ts';
 test('the mobile read key lists sites and reads the selected period under a mounted Worker', async (t) => {
   const server = await startDevServer({ port: 0, demoPort: 0, memory: true, assets: TEST_ASSETS });
   t.after(() => server.close());
-  const connection = connectionFrom(`${server.glassUrl}/_glass/app/#/reports`, ' dev-read-key ');
+  const host = `${server.glassUrl}/_glass`;
+  const cli = fileURLToPath(new URL('../packages/cli/src/index.ts', import.meta.url));
+  const copied = execFileSync(process.execPath, [cli, 'key', '--read', '--json'], {
+    env: { GLASS_HOST: host, GLASS_READ_KEY: 'dev-read-key' },
+    encoding: 'utf8',
+  });
+  const connection = pastedConnection(copied);
+  assert.deepEqual(connection, { url: host, key: 'dev-read-key' });
+  assert.ok(connection);
   await verifyConnection(connection);
   const empty = await fetchReport(connection, 'demo', 7);
   assert.equal(empty.totals.visitors, 0);
@@ -60,6 +71,20 @@ test('the connection form keeps the Worker mount and rejects unsafe or incomplet
     assert.throws(() => connectionFrom(url, 'key'));
   assert.throws(() => connectionFrom('https://example.org', ' '), /read key/);
   assert.equal(connectionFrom('http://127.0.0.1:8787', 'test').url, 'http://127.0.0.1:8787');
+  assert.equal(
+    connectionFrom('https://example.org/_glass/app/#/reports', 'key').url,
+    'https://example.org/_glass',
+  );
+});
+
+test('pasting connection details validates the host and key before replacing either field', () => {
+  assert.equal(pastedConnection('plain-read-key'), null);
+  assert.equal(pastedConnection(''), null);
+  for (const invalid of ['{"host":', '{"host":"https://example.org"}', '{"key":123}']) {
+    assert.throws(() => pastedConnection(invalid), /full output/);
+  }
+  assert.throws(() => pastedConnection('{"host":"http://example.org","key":"secret"}'), /HTTPS/);
+  assert.throws(() => pastedConnection('{"host":"https://example.org","key":""}'), /read key/);
 });
 
 test('resizing fits one or two panes and moves content outside a partial fold in either direction', () => {

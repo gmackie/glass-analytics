@@ -401,14 +401,11 @@ export async function key(options: {
   server?: boolean;
   json?: boolean;
 }): Promise<void> {
-  const conn = connection();
-  const credentials = loadCredentials();
-  const admin = credentials?.adminKey ?? conn.key;
+  const conn = connection(options.read && !options.server ? 'read' : 'api');
+  const admin = loadCredentials()?.adminKey ?? conn.key;
   const value = options.server
     ? (process.env.GLASS_SERVER_KEY ?? (admin ? await deriveServerKey(admin) : undefined))
-    : options.read
-      ? credentials?.readKey
-      : conn.key;
+    : conn.key;
   if (options.json) {
     printJson({
       host: conn.host,

@@ -15,7 +15,9 @@ The Release build embeds the JavaScript bundle. For development, omit `--configu
 
 ## Connect a Worker
 
-On first launch, the app shows the public Dataflare demo’s recorded reports. Tap **Connect**, enter the Worker URL and the read key printed by `dataflare key --read`, then tap **Connect to Worker**. Workers served under `/_glass` use that prefix in the URL. The app stores the connection in the device Keychain. **Connection → Disconnect** clears it and returns to the demo.
+On first launch, the app shows the public Dataflare demo’s recorded reports. From the deployment directory on your Mac, run `dataflare key --read --json | pbcopy`. On the iPhone, tap **Connect** and paste into **Read key**. With Universal Clipboard enabled, this fills in both the Worker URL and the key. Check the address and tap **Connect to Worker**. You can also enter your Worker URL and paste a plain read key. Workers served under `/_glass` use that prefix in the URL. The app saves the verified connection in the device Keychain. **Connection → Disconnect** clears it and returns to the demo.
+
+For a build dedicated to one deployment, set `EXPO_PUBLIC_DATAFLARE_WORKER_URL` when building the app to prefill its editable Worker URL. The owner’s Duo uses `https://observe.gmac.io`. Supply the read key on the device.
 
 To try a local Worker, run `pnpm dev` at the repository root. In a simulator on the same Mac, connect to `http://127.0.0.1:8787` with `dev-read-key`. Deployed Workers use HTTPS.
 

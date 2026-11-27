@@ -8,7 +8,7 @@
  *   .glass/migrations/       D1 migrations
  *
  * Environment variables override files, for CI and agents:
- * GLASS_HOST, GLASS_API_KEY, GLASS_PROJECT.
+ * GLASS_HOST, GLASS_API_KEY, GLASS_READ_KEY, GLASS_PROJECT.
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -159,12 +159,24 @@ export function saveCredentials(credentials: Credentials, root = projectRoot()):
 }
 
 /** Where to send API calls, from env vars or `.glass/`. */
-export function connection(): { host: string; key: string; project: string | undefined } {
+export function connection(scope: 'api' | 'read' = 'api'): {
+  host: string;
+  key: string;
+  project: string | undefined;
+} {
   const config = loadClientConfig() ?? loadConfig();
   const credentials = loadCredentials();
   const host = process.env.GLASS_HOST ?? config?.host;
-  const key = process.env.GLASS_API_KEY ?? credentials?.adminKey;
+  const key =
+    scope === 'read'
+      ? (process.env.GLASS_READ_KEY ?? credentials?.readKey)?.trim()
+      : (process.env.GLASS_API_KEY ?? credentials?.adminKey);
   if (!host || !key) {
+    if (scope === 'read')
+      throw new UsageError(
+        'Missing Worker URL or read-only key.',
+        'Run this command in the deployment directory with .glass/credentials.json, or set GLASS_HOST and GLASS_READ_KEY from your deployment.',
+      );
     throw new UsageError(
       'No Dataflare deployment found here.',
       'Run `npx @gmacko/dataflare-cli init` in your project, or run `dataflare client-init` for an existing deployment, or set GLASS_HOST and GLASS_API_KEY.',

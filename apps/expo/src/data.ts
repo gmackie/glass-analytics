@@ -54,6 +54,21 @@ export function connectionFrom(url: string, key: string): Connection {
   return { url: address.origin + path, key: key.trim() };
 }
 
+/** Accept the clipboard output of `dataflare key --read --json` in the read-key field. */
+export function pastedConnection(text: string): Connection | null {
+  if (!text.trimStart().startsWith('{')) return null;
+  let value: unknown;
+  try {
+    value = JSON.parse(text);
+  } catch {
+    value = null;
+  }
+  const parsed = z.object({ host: z.string(), key: z.string() }).safeParse(value);
+  if (!parsed.success)
+    throw new Error('Paste the full output of dataflare key --read --json, or enter the read key.');
+  return connectionFrom(parsed.data.host, parsed.data.key);
+}
+
 async function request<T>(
   connection: Connection,
   path: string,
