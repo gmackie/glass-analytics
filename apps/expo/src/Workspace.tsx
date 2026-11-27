@@ -7,7 +7,7 @@ import { demoSites } from './demo.ts';
 import { type CompactPage, paneLayout, type Region, visiblePanes } from './layout.ts';
 import { ReportPane } from './ReportPane.tsx';
 import { SitesPane } from './SitesPane.tsx';
-import { color, ui } from './styles.ts';
+import { themedStyles, useTheme } from './styles.ts';
 import { Brand, PeriodPicker } from './ui.tsx';
 
 export function Workspace({
@@ -17,6 +17,8 @@ export function Workspace({
   connection: Connection | null;
   configure: () => void;
 }) {
+  const { scheme, ui } = useTheme();
+  const s = sheets[scheme];
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [division, setDivision] = useState<Region | null>(null);
   const [days, setDays] = useState<Period>(7);
@@ -56,7 +58,7 @@ export function Workspace({
         onDivisionChange={(event) => setDivision(event.nativeEvent.region ?? null)}
       />
       {panes !== 'report' ? (
-        <View style={layout ? { [dimension]: layout.first } : ui.fill}>
+        <View style={layout ? [s.rail, { [dimension]: layout.first }] : ui.fill}>
           {brand}
           {panes === 'both' ? null : (
             <View style={s.range}>
@@ -92,7 +94,10 @@ export function Workspace({
     </View>
   );
 }
-const s = StyleSheet.create({
-  range: { paddingHorizontal: 18, paddingTop: 14 },
-  divider: { backgroundColor: color.line },
-});
+const sheets = themedStyles((color) =>
+  StyleSheet.create({
+    rail: { backgroundColor: color.surface },
+    range: { paddingHorizontal: 18, paddingTop: 14 },
+    divider: { backgroundColor: color.hairline },
+  }),
+);

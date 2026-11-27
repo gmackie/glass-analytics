@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import {
@@ -10,8 +11,26 @@ import {
   verifyConnection,
 } from '../apps/expo/src/data.ts';
 import { paneLayout, visiblePanes } from '../apps/expo/src/layout.ts';
+import { dashboardPalette } from '../apps/expo/src/palette.ts';
 import { TEST_ASSETS, wire } from '../packages/worker/test/harness.ts';
 import { startDevServer } from '../packages/worker/test/server.ts';
+
+test('the native light and dark colors match the dashboard tokens', () => {
+  const css = readFileSync(
+    new URL('../packages/dashboard/src/styles.css', import.meta.url),
+    'utf8',
+  );
+  const tokens = new Map(
+    Array.from(
+      css.matchAll(/--([\w-]+):\s*light-dark\(\s*(#[\da-f]+),\s*(#[\da-f]+)\s*\)/gi),
+      ([, name, light, dark]) => [name, { light, dark }] as const,
+    ),
+  );
+  for (const [name, pair] of Object.entries(dashboardPalette)) {
+    const token = name.replace(/[A-Z0-9]/g, (part) => `-${part.toLowerCase()}`);
+    assert.deepEqual(pair, tokens.get(token), `--${token}`);
+  }
+});
 
 test('the mobile read key lists sites and reads the selected period under a mounted Worker', async (t) => {
   const server = await startDevServer({ port: 0, demoPort: 0, memory: true, assets: TEST_ASSETS });

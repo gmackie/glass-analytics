@@ -2,6 +2,8 @@
 
 View the sites on a Dataflare Worker, compare traffic over 7, 30 or 90 days, and open a site for visitor trends, pageviews, sessions, bounce rate and top pages. The iPhone Duo shows the site picker and report together when space permits. In a partially folded window, each pane scrolls on its own side of the fold.
 
+The app follows the iPhone’s appearance by default. Tap the half-filled circle beside **Connect** or **Connection** to choose **System**, **Light**, or **Dark**. Your choice is saved on this device.
+
 ## Run on iPhone Duo
 
 Use the Node and pnpm versions in the root package manifest, CocoaPods, and Xcode 27.1 or newer with the iPhone Duo simulator runtime installed. From the repository root, run

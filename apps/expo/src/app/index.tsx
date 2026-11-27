@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ConnectionForm } from '../ConnectionForm.tsx';
 import type { Connection } from '../data.ts';
 import { loadConnection } from '../session.ts';
-import { color, ui } from '../styles.ts';
+import { useTheme } from '../styles.ts';
 import { Action, Loading, Notice } from '../ui.tsx';
 import { Workspace } from '../Workspace.tsx';
 
@@ -20,6 +20,7 @@ function session(connection: Connection | null, id: number): Session {
 }
 
 export default function Dashboard() {
+  const { ui } = useTheme();
   const [current, setCurrent] = useState<Session | null>(null);
   const [storageError, setStorageError] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -42,7 +43,7 @@ export default function Dashboard() {
     setEditing(false);
   };
   return (
-    <SafeAreaView style={[ui.fill, { backgroundColor: color.paper }]}>
+    <SafeAreaView style={ui.screen}>
       {current ? (
         <QueryClientProvider key={current.id} client={current.client}>
           <Workspace connection={current.connection} configure={() => setEditing(true)} />

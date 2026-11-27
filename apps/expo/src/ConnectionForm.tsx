@@ -3,7 +3,7 @@ import { KeyboardAvoidingView, ScrollView, StyleSheet, Text, TextInput, View } f
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { type Connection, connectionFrom, pastedConnection, verifyConnection } from './data.ts';
 import { saveConnection } from './session.ts';
-import { color, ui } from './styles.ts';
+import { themedStyles, useTheme } from './styles.ts';
 import { Action } from './ui.tsx';
 
 export function ConnectionForm({
@@ -15,12 +15,15 @@ export function ConnectionForm({
   onCommit: (connection: Connection | null) => void;
   close: () => void;
 }) {
+  const { color, scheme, ui } = useTheme();
+  const styles = sheets[scheme];
   const [address, setAddress] = useState(
     current?.url ?? process.env.EXPO_PUBLIC_DATAFLARE_WORKER_URL ?? '',
   );
   const [key, setKey] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [focused, setFocused] = useState<'url' | 'key' | null>(null);
 
   function changeKey(text: string) {
     setError('');
@@ -59,7 +62,7 @@ export function ConnectionForm({
     }
   }
   return (
-    <SafeAreaView style={[ui.fill, styles.sheet]}>
+    <SafeAreaView style={ui.screen}>
       <KeyboardAvoidingView style={ui.fill} behavior="padding">
         <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
           <View style={styles.top}>
@@ -77,7 +80,10 @@ export function ConnectionForm({
             <Text style={ui.heading}>Worker URL</Text>
             <TextInput
               accessibilityLabel="Worker URL"
-              style={styles.input}
+              style={[styles.input, focused === 'url' && styles.focused]}
+              onFocus={() => setFocused('url')}
+              onBlur={() => setFocused(null)}
+              selectionColor={color.accent}
               editable={!busy}
               autoCapitalize="none"
               autoCorrect={false}
@@ -92,7 +98,10 @@ export function ConnectionForm({
             <Text style={ui.heading}>Read key</Text>
             <TextInput
               accessibilityLabel="Read key"
-              style={styles.input}
+              style={[styles.input, focused === 'key' && styles.focused]}
+              onFocus={() => setFocused('key')}
+              onBlur={() => setFocused(null)}
+              selectionColor={color.accent}
               editable={!busy}
               secureTextEntry
               textContentType="none"
@@ -134,21 +143,23 @@ export function ConnectionForm({
     </SafeAreaView>
   );
 }
-const styles = StyleSheet.create({
-  sheet: { backgroundColor: color.paper },
-  form: { alignSelf: 'center', width: '100%', maxWidth: 480, padding: 22, gap: 22 },
-  top: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  field: { gap: 8 },
-  code: { fontFamily: 'Menlo' },
-  input: {
-    color: color.ink,
-    backgroundColor: color.card,
-    borderWidth: 1,
-    borderColor: '#99b0a3',
-    borderRadius: 10,
-    padding: 13,
-    minHeight: 48,
-    fontSize: 16,
-  },
-  error: { color: '#963e29', fontSize: 15 },
-});
+const sheets = themedStyles((color) =>
+  StyleSheet.create({
+    form: { alignSelf: 'center', width: '100%', maxWidth: 480, padding: 22, gap: 22 },
+    top: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    field: { gap: 8 },
+    code: { fontFamily: 'Menlo' },
+    input: {
+      color: color.ink,
+      backgroundColor: color.surface,
+      borderWidth: 1,
+      borderColor: color.hairlineStrong,
+      borderRadius: 6,
+      padding: 13,
+      minHeight: 48,
+      fontSize: 16,
+    },
+    focused: { borderColor: color.accent },
+    error: { color: color.bad, fontSize: 15 },
+  }),
+);

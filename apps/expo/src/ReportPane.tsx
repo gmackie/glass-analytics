@@ -3,7 +3,7 @@ import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { type Connection, fetchReport, type Period } from './data.ts';
 import { demoReport } from './demo.ts';
 import { ReportView } from './ReportView.tsx';
-import { ui } from './styles.ts';
+import { useTheme } from './styles.ts';
 import { Action, Loading, Notice, PeriodPicker } from './ui.tsx';
 
 export function ReportPane({
@@ -21,6 +21,7 @@ export function ReportPane({
   back?: () => void;
   refreshSites: () => void;
 }) {
+  const { color, ui } = useTheme();
   const report = useQuery({
     queryKey: ['report', project, days],
     queryFn: ({ signal }) =>
@@ -34,7 +35,13 @@ export function ReportPane({
     <ScrollView
       style={ui.fill}
       contentContainerStyle={ui.pad}
-      refreshControl={<RefreshControl refreshing={report.isRefetching} onRefresh={refresh} />}
+      refreshControl={
+        <RefreshControl
+          refreshing={report.isRefetching}
+          onRefresh={refresh}
+          tintColor={color.accent}
+        />
+      }
     >
       {back ? (
         <View style={{ alignSelf: 'flex-start' }}>
