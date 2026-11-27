@@ -54,6 +54,18 @@ it('counts pageviews by wall-clock hour across DST and weights the fleet mean by
   assert.equal(fleet.timezone, 'UTC');
   assert.equal(fleet.hourly.length, 24);
   assert.deepEqual(fleet.hourly.slice(5, 8), [1, 2, 1]);
+  assert.deepEqual(
+    fleet.weekdayHourly.map((day) => day.slice(5, 8)),
+    [
+      [0, 0, 0],
+      [0, 0, 0],
+      [0, 0, 0],
+      [0, 0, 0],
+      [0, 0, 0],
+      [0, 0, 0],
+      [1, 2, 1],
+    ],
+  );
   assert.equal(
     fleet.hourly.reduce((n, v) => n + v, 0),
     4,
@@ -83,6 +95,11 @@ it('counts pageviews by wall-clock hour across DST and weights the fleet mean by
   );
   assert.equal(site.timezone, 'America/New_York');
   assert.equal(site.hourly[1], 2);
+  assert.equal(site.weekdayHourly[6]?.[1], 2);
+  assert.equal(
+    site.weekdayHourly.flat().reduce((n, v) => n + v, 0),
+    2,
+  );
   assert.equal(site.sessions.averageSeconds, 15);
   // A site with double the sessions gets double the weight.
   insert(db, [
@@ -99,6 +116,11 @@ it('counts pageviews by wall-clock hour across DST and weights the fleet mean by
   assert.equal(empty.visitors.knownBot, null);
   assert.equal(empty.sessions.averageSeconds, null);
   assert.ok(empty.hourly.every((n) => n === 0));
+  assert.deepEqual(
+    empty.weekdayHourly.map((day) => day.length),
+    [24, 24, 24, 24, 24, 24, 24],
+  );
+  assert.ok(empty.weekdayHourly.flat().every((n) => n === 0));
 });
 
 it('places a timestamp just before the Unix epoch in the last wall-clock hour', async () => {
@@ -109,5 +131,6 @@ it('places a timestamp just before the Unix epoch in the last wall-clock hour', 
     count: 0,
   });
   assert.equal(r.hourly[23], 1);
+  assert.equal(r.weekdayHourly[2]?.[23], 1);
   assert.deepEqual(r.sessions.sites, [{ project: 'p', count: 0, averageSeconds: null }]);
 });

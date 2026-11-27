@@ -13,6 +13,7 @@ import { type Child, h } from '../dom.ts';
 import { count, percent } from '../format.ts';
 import { scope } from '../state.ts';
 import { lineChart } from './charts.ts';
+import { pieChart, seriesTable, worldMap } from './display.ts';
 import { empty, later } from './ui.ts';
 
 export interface TileView {
@@ -29,8 +30,7 @@ export interface TileView {
 
 const chartHeight = (t: TileView) => (t.height === 2 ? 380 : 200);
 
-/** Views that compare totals (by breakdown value) rather than show time. */
-const TOTAL_VIEWS = new Set(['bar_value', 'world_map', 'pie', 'table']);
+const lineLabel = (line: TrendsResult['series'][number]) => line.breakdown ?? line.label;
 
 function totalsList(lines: TrendsResult['series']): Child {
   const sorted = [...lines].sort((a, b) => b.total - a.total).slice(0, 8);
@@ -43,7 +43,7 @@ function totalsList(lines: TrendsResult['series']): Child {
         'li',
         {},
         h('span', { class: 'tile-funnel-bar', style: `width:${(s.total / max) * 100}%` }),
-        h('span', { class: 'tile-funnel-label' }, s.breakdown || '(none)'),
+        h('span', { class: 'tile-funnel-label' }, lineLabel(s)),
         h('span', { class: 'tile-funnel-value' }, count(s.total)),
       ),
     ),
@@ -51,30 +51,49 @@ function totalsList(lines: TrendsResult['series']): Child {
 }
 
 function trendsBody(r: TrendsResult, t: TileView, display: string): Child {
-  const lines = [...r.series, ...(r.formulas ?? [])].slice(0, 6);
+  const all = [...r.series, ...(r.formulas ?? [])];
+  const lines = all.slice(0, 6);
   const first = lines[0];
   if (!first) return empty('No data in this range.');
-  const percentLine = first.format === 'percent';
-  if (TOTAL_VIEWS.has(display)) return totalsList(lines);
-  if (display === 'number')
-    return h(
-      'div',
-      { class: 'tile-number' },
-      percentLine ? percent(first.values.at(-1) ?? 0) : count(first.total),
-      h('span', { class: 'muted small' }, first.breakdown ?? first.label),
-    );
+  switch (display) {
+    case 'bar_value':
+      return totalsList(all);
+    case 'pie':
+      return pieChart(all.map((line) => ({ label: lineLabel(line), value: line.total })));
+    case 'world_map':
+      return worldMap(
+        r.series
+          .filter((line) => line.seriesIndex === 0 && line.breakdown)
+          .map((line) => ({ code: line.breakdown!, value: line.total })),
+      );
+    case 'table':
+      return h(
+        'div',
+        { class: 'tile-table', style: `max-height:${chartHeight(t)}px` },
+        seriesTable(r.buckets, lines, r.interval),
+        all.length > lines.length
+          ? h('p', { class: 'small muted' }, `Showing ${lines.length} of ${all.length} series.`)
+          : null,
+      );
+    case 'number':
+      return h(
+        'div',
+        { class: 'tile-number' },
+        first.format === 'percent' ? percent(first.values.at(-1) ?? 0) : count(first.total),
+        h('span', { class: 'muted small' }, lineLabel(first)),
+      );
+  }
   return lineChart(
     r.buckets,
     lines.map((s) => ({
-      label: s.breakdown ?? s.label,
+      label: lineLabel(s),
       values: s.values,
       ...(s.format ? { format: (n: number) => percent(n, 1) } : {}),
     })),
     r.interval,
     {
       height: chartHeight(t),
-      type:
-        display === 'bar' || display === 'bar_value' ? 'bar' : display === 'area' ? 'area' : 'line',
+      type: display === 'bar' || display === 'area' ? display : 'line',
       legend: lines.length > 1,
     },
   );

@@ -4,7 +4,7 @@
  * analyses (the insights table), so editing an analysis updates every dashboard it is on.
  */
 
-import { DASHBOARD_TEMPLATES } from '@dataflare/core/dashboard-templates';
+import { DASHBOARD_TEMPLATES, type DashboardTemplate } from '@dataflare/core/dashboard-templates';
 import { randomToken } from '@dataflare/core/ids';
 import type { D1Database, D1PreparedStatement } from './env.ts';
 import { HttpError } from './http.ts';
@@ -108,15 +108,37 @@ function toTile(r: TileRow): Tile {
   };
 }
 
-/** Install the editable website template once, atomically with its analyses and tiles. */
-export async function ensureStarterDashboard(db: D1Database, project: string): Promise<void> {
-  const completed = db.prepare('SELECT 1 FROM dashboard_setup WHERE project = ?').bind(project);
-  if (await completed.first()) return;
-  const template = DASHBOARD_TEMPLATES.find((t) => t.id === 'website')!;
+/** Install each editable starter once, atomically with its analyses and tiles. */
+export async function ensureStarterDashboards(db: D1Database, project: string): Promise<void> {
+  const { results } = await db
+    .prepare(
+      `SELECT 'website' AS template FROM dashboard_setup WHERE project = ?1
+       UNION ALL SELECT template FROM dashboard_template_setup WHERE project = ?1`,
+    )
+    .bind(project)
+    .all<{ template: string }>();
+  const installed = new Set(results.map((r) => r.template));
+  for (const template of DASHBOARD_TEMPLATES) {
+    if (template.starter && !installed.has(template.id))
+      await installStarter(db, project, template);
+  }
+}
+
+async function installStarter(
+  db: D1Database,
+  project: string,
+  template: DashboardTemplate,
+): Promise<void> {
   const id = newId('d');
   const now = Date.now();
+  // Keep Website overview on the marker used by earlier Worker revisions.
+  const website = template.id === 'website';
+  const marker = website ? [project] : [project, template.id];
+  const claim = website
+    ? 'INSERT INTO dashboard_setup (project) VALUES (?)'
+    : 'INSERT INTO dashboard_template_setup (project, template) VALUES (?, ?)';
   const statements = [
-    db.prepare('INSERT INTO dashboard_setup (project) VALUES (?)').bind(project),
+    db.prepare(claim).bind(...marker),
     db
       .prepare(
         'INSERT INTO dashboards (project, id, name, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
@@ -164,6 +186,13 @@ export async function ensureStarterDashboard(db: D1Database, project: string): P
     await db.batch(statements);
   } catch (err) {
     // Two first visits can race. A committed marker guarantees the entire other batch succeeded.
+    const completed = db
+      .prepare(
+        website
+          ? 'SELECT 1 FROM dashboard_setup WHERE project = ?'
+          : 'SELECT 1 FROM dashboard_template_setup WHERE project = ? AND template = ?',
+      )
+      .bind(...marker);
     if (!(await completed.first())) throw err;
   }
 }

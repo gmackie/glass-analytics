@@ -6,13 +6,15 @@ The same date range controls the traffic charts on **All sites** and on each sit
 
 **Human and bot traffic** counts pageviews submitted to this installation. Public submissions from recognized browsers are labeled likely human. The collector counts detected bot pageviews separately and drops them before analytics, sessions and path rankings. It keeps only the project, timestamp and a salted digest of the event ID to deduplicate retries. Historical pageviews, imports and unfamiliar clients are unclassified. The chart shows when collection began.
 
-Each project starts with an editable **Website overview** dashboard for visitors, pageviews, sources, countries and journeys. Existing projects get it on their first visit to Dashboards after upgrading. You can rename or delete it.
+Open **Fleet dashboards** for the overview, traffic patterns and instrumentation coverage across this installation. The fleet overview shows each site's share of pageviews. Select a site in the donut legend to open its traffic report. The weekday and hour heatmap uses the same date range and time zone as the hourly chart. Select **Show counts** to read the exact values.
+
+Each project starts with three editable dashboards. **Website overview** covers visitors, pageviews and journeys. **Acquisition** shows referrers, countries and tagged campaigns. **Engagement** shows sessions, devices, popular pages and journeys. Existing projects get the defaults the first time their Dashboards list opens after an upgrade. Renamed and deleted defaults stay as the owner left them.
 
 A dashboard puts saved analyses side by side, with one date range and one set of filters for all of them, and can be sent to Slack, Discord, Teams, a webhook or email on a schedule.
 
 ## Dashboards
 
-- **Start from a template:** Website overview, Product health, Revenue or Errors. Templates are filled in with your own signup and purchase events; Dataflare guesses them from your event names and asks when it can't tell.
+- **Start from a template** with Website overview, Acquisition, Engagement, Product health, Revenue or Errors. Dataflare guesses signup and purchase events from your event names and asks when it can't tell.
 - **Tiles** are saved analyses (trends, funnels, retention, paths) or text (`# heading`, `**bold**`, `_italic_`, `[link](https://…)`, `- list`). A tile is 3, 4, 6 or 12 columns wide and short or tall; on a phone every tile is full width.
 - **Date range and filters** on the dashboard apply to every tile. A tile can ignore them ("Ignore the dashboard filters") and run as saved.
 - **Reorder** by dragging a tile's handle, or focus the handle and use the arrow keys.

@@ -96,9 +96,18 @@ function projectMark(id: string): HTMLElement {
 /** Switcher value for the All sites page; not a valid project id, so it can't clash. */
 const ALL_SITES = '*all';
 
+function isFleetDashboard(route: Route): boolean {
+  return route.page === 'dashboards' && route.rest[0] === 'fleet';
+}
+
+function isFleetView(route: Route): boolean {
+  return isFleetDashboard(route) || (route.page === 'sites' && !route.params.has('project'));
+}
+
 function projectSwitcher(route: Route): HTMLElement {
   const project = route.params.get('project') ?? prefs.project ?? projects[0] ?? '';
-  if (projects.length <= 1) {
+  const all = isFleetView(route);
+  if (!all && projects.length <= 1) {
     return h(
       'div',
       { class: 'project-switch static', title: project, 'aria-label': `Project ${project}` },
@@ -106,7 +115,6 @@ function projectSwitcher(route: Route): HTMLElement {
       h('span', { class: 'project-text' }, h('span', { class: 'project-name' }, project)),
     );
   }
-  const all = route.page === 'sites' && !route.params.has('project');
   const trigger = selectMenu({
     value: all ? ALL_SITES : project,
     label: 'Project',
@@ -117,13 +125,15 @@ function projectSwitcher(route: Route): HTMLElement {
     width: 220,
     onChange: (value) => {
       if (value === ALL_SITES) {
-        go('sites', { project: null, path: route.params.get('path') });
+        const target = route.page === 'dashboards' ? 'dashboards/fleet' : 'sites';
+        go(target, { project: null, path: route.params.get('path') });
         return;
       }
       prefs.project = value;
       go(route.page, {
         project: value,
         path: route.page === 'sites' ? route.params.get('path') : null,
+        view: route.page === 'sites' ? route.params.get('view') : null,
       });
     },
     class: 'project-switch',
@@ -145,6 +155,7 @@ const THEMES: { value: 'system' | 'light' | 'dark'; label: string; icon: IconNam
 function navLink(key: string, route: Route): HTMLElement {
   const page = PAGES[key]!;
   const active = key === route.page || (key === 'reports' && route.page === 'web');
+  const fleet = key === 'dashboards' && isFleetView(route);
   return h(
     'li',
     {},
@@ -152,9 +163,11 @@ function navLink(key: string, route: Route): HTMLElement {
       'a',
       {
         // All sites has no project in its URL; the other pages need one.
-        href: href(key, {
+        href: href(fleet ? 'dashboards/fleet' : key, {
           project:
-            key === 'sites' ? null : (route.params.get('project') ?? prefs.project ?? projects[0]),
+            key === 'sites' || fleet
+              ? null
+              : (route.params.get('project') ?? prefs.project ?? projects[0]),
         }),
         class: active ? 'active' : '',
         'aria-current': active ? 'page' : null,
@@ -254,6 +267,7 @@ function sidebar(route: Route): HTMLElement {
 /** The second crumb: a tab name, "New analysis", or the item open (a group, a holdout…). */
 function crumbLabel(route: Route, sub: string): string {
   if (route.page === 'insights' && sub === 'new') return 'New analysis';
+  if (isFleetDashboard(route)) return 'All sites';
   if (route.page === 'dashboards') return 'Dashboard';
   if (route.page === 'reports' || route.page === 'pipelines')
     return sub[0]!.toUpperCase() + sub.slice(1);
@@ -640,7 +654,12 @@ function renderInitialRoute(): void {
     return;
   }
   const route = currentRoute();
-  if (route.page !== 'sites' && !route.params.get('project') && projects[0]) {
+  if (
+    route.page !== 'sites' &&
+    !isFleetDashboard(route) &&
+    !route.params.get('project') &&
+    projects[0]
+  ) {
     const preferred =
       prefs.project && projects.includes(prefs.project) ? prefs.project : projects[0];
     route.params.set('project', preferred);

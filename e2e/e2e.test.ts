@@ -611,6 +611,24 @@ describe('Dataflare end to end', { timeout: 120_000 }, () => {
     const breakdown = page.locator('.traffic-breakdown');
     await breakdown.getByRole('heading', { name: 'Pageviews by hour' }).waitFor();
     assert.equal(await breakdown.locator('.pie-chart').count(), 2);
+    const heatmap = breakdown.getByRole('table', { name: 'Pageviews by weekday and hour' });
+    assert.equal(await heatmap.locator('tbody tr').count(), 7);
+    assert.equal(await heatmap.locator('tbody td').count(), 168);
+    assert.equal(
+      (await heatmap.locator('tbody td').allTextContents()).reduce(
+        (sum, value) => sum + Number(value.replaceAll(',', '')),
+        0,
+      ),
+      total.pageviews,
+    );
+    const share = page.locator('.panel').filter({
+      has: page.getByRole('heading', { name: 'Pageview share by site', exact: true }),
+    });
+    assert.equal(await share.locator('.pie-total').textContent(), total.pageviews.toLocaleString());
+    assert.match(
+      (await share.getByRole('link', { name: 'help-center' }).getAttribute('href'))!,
+      /project=help-center/,
+    );
     await breakdown.getByText('Hourly counts', { exact: true }).click();
     const counts = breakdown
       .getByRole('table')
@@ -690,6 +708,81 @@ describe('Dataflare end to end', { timeout: 120_000 }, () => {
       true,
     );
     await page.screenshot({ path: SHOTS + 'dashboard-traffic-mobile.png', animations: 'disabled' });
+    await page.close();
+  });
+
+  it('opens fleet and project defaults, and shows selectable charts at narrow widths', async () => {
+    const project = 'dashboard-starters';
+    await api('POST', '/api/projects', { id: project });
+    await api('PATCH', '/api/settings', { project, settings: { timezone: 'Pacific/Auckland' } });
+    const paths = ['/start', '/finish'];
+    await api('POST', '/api/import', {
+      project,
+      events: paths.map((path, i) =>
+        wire('$pageview', {
+          url: `https://example.test${path}?utm_campaign=spring`,
+          ts: Date.now() - 3600000 + i * 1000,
+          referrer: 'https://example.org/',
+          context: { device: 'mobile' },
+        }),
+      ),
+    });
+    const page = await context.newPage();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.addInitScript(() => localStorage.setItem('glass:key', 'dev-admin-key'));
+    await page.goto(`${server.glassUrl}/app#/dashboards/fleet?from=-7d`);
+    await page.getByRole('heading', { name: 'Fleet dashboards' }).waitFor();
+    assert.equal(new URLSearchParams(new URL(page.url()).hash.split('?')[1]).get('project'), null);
+    const presets = page.locator('.dashboard-list');
+    assert.equal(await presets.getByRole('link').count(), 3);
+    await presets.getByRole('link', { name: /Traffic patterns/ }).click();
+    const heatmap = page.getByRole('table', { name: 'Pageviews by weekday and hour' });
+    await heatmap.waitFor();
+    const showCounts = page.getByRole('checkbox', { name: 'Show counts' });
+    await showCounts.press('Space');
+    assert.ok(await showCounts.isChecked());
+    assert.equal(
+      await heatmap
+        .locator('td span')
+        .first()
+        .evaluate((el) => getComputedStyle(el).opacity),
+      '1',
+    );
+    assert.equal(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+      true,
+    );
+
+    await page.locator('.topbar .project-switch').click();
+    await page.getByRole('option', { name: project }).click();
+    await heatmap.waitFor();
+    await page.getByText(/Total pageviews in the selected period · Pacific\/Auckland/).waitFor();
+    assert.match(page.url(), /from=-7d.*view=traffic|view=traffic.*from=-7d/);
+    await page.goto(`${server.glassUrl}/app#/dashboards?project=${project}&from=-7d`);
+    const saved = page.locator('.dashboard-list');
+    await saved.getByRole('link', { name: /Website overview/ }).waitFor();
+    await saved.getByRole('link', { name: /Acquisition/ }).click();
+    await page.getByRole('heading', { name: 'Acquisition', exact: true }).waitFor();
+    await page.locator('.tile .pie-chart').waitFor();
+    await page.locator('.tile .world-map').waitFor();
+    await page.locator('.tile-funnel-label').getByText('spring', { exact: true }).waitFor();
+    await page.goBack();
+    await saved.getByRole('link', { name: /Engagement/ }).click();
+    await page.getByRole('heading', { name: 'Engagement', exact: true }).waitFor();
+    await page.locator('.tile .pie-chart').waitFor();
+    await page.locator('.tile-paths li').getByText('/start → /finish', { exact: true }).waitFor();
+    const board = new URL(page.url()).hash.split('?')[0]!.replace('#', '/api');
+    const { tiles } = await api<{ tiles: { id: string }[] }>('GET', `${board}?project=${project}`);
+    await api('PUT', `${board}/tiles/${tiles[0]!.id}`, {
+      project,
+      overrides: { display: 'table' },
+    });
+    await page.reload();
+    await page.locator('.tile-table .values-table').waitFor();
+    assert.equal(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+      true,
+    );
     await page.close();
   });
 });

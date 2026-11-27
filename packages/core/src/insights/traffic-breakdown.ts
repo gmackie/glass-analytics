@@ -1,6 +1,6 @@
 import { SYSTEM_EVENTS } from '../events.ts';
 import { localTimeSql, num, text } from '../sql/source.ts';
-import { DAY_MS, HOUR_MS, iso, MINUTE_MS, type TimeRange } from '../time.ts';
+import { DAY_MS, HOUR_MS, iso, MINUTE_MS, type TimeRange, WEEK_MS } from '../time.ts';
 import { trafficSource } from './traffic.ts';
 import { type QueryContext, type ResultBase, zoneOf } from './types.ts';
 
@@ -8,6 +8,8 @@ export interface TrafficBreakdown extends ResultBase {
   timezone: string;
   /** Pageview counts indexed by local hour, midnight first. */
   hourly: number[];
+  /** Pageviews by local weekday (Monday first) and hour (midnight first). */
+  weekdayHourly: number[][];
   devices: Record<'desktop' | 'mobile' | 'tablet' | 'other', number>;
   visitors: {
     likelyHuman: number;
@@ -36,6 +38,7 @@ export async function runTrafficBreakdown(
   const d = ctx.dialect;
   const zone = zoneOf({}, ctx, range);
   const hourly = Array<number>(24).fill(0);
+  const weekdayHourly = Array.from({ length: 7 }, () => Array<number>(24).fill(0));
   const devices: TrafficBreakdown['devices'] = { desktop: 0, mobile: 0, tablet: 0, other: 0 };
   const visitors = {
     likelyHuman: 0,
@@ -55,6 +58,7 @@ export async function runTrafficBreakdown(
     range: { from: iso(range.from), to: iso(range.to) },
     timezone: zone.name,
     hourly,
+    weekdayHourly,
     devices,
     visitors,
     sessions,
@@ -66,13 +70,14 @@ export async function runTrafficBreakdown(
   const source = trafficSource(d, projects, range);
   const pv = d.str(SYSTEM_EVENTS.pageview);
   const local = localTimeSql(d, 'ts_ms', zone);
-  const hour = `((((${local} % ${DAY_MS}) + ${DAY_MS}) % ${DAY_MS}) / ${HOUR_MS})`;
-  const pageviewsSql = `SELECT hour, device_group, COUNT(*) AS views, SUM(human) AS humans FROM (
-    SELECT ${hour} AS hour,
+  // The Unix epoch was a Thursday. Shift to a Monday origin and normalize negative dates.
+  const weekHour = `((((${local} + ${3 * DAY_MS}) % ${WEEK_MS} + ${WEEK_MS}) % ${WEEK_MS}) / ${HOUR_MS})`;
+  const pageviewsSql = `SELECT week_hour, device_group, COUNT(*) AS views, SUM(human) AS humans FROM (
+    SELECT ${weekHour} AS week_hour,
       CASE WHEN device IN ('desktop', 'mobile', 'tablet') THEN device ELSE 'other' END AS device_group,
       CASE WHEN received_ms >= ${d.num(filtered.startedMs)} AND ${d.jsonText('props', ['$traffic_class'])} = 'likely_human' THEN 1 ELSE 0 END AS human
     ${source} AND event = ${pv}
-  ) pageviews GROUP BY hour, device_group`;
+  ) pageviews GROUP BY week_hour, device_group`;
   // Same span as Web reports, with project included in the session key across sites.
   const sessionsSql = `SELECT project, band, COUNT(*) AS sessions, SUM(elapsed) AS duration_ms FROM (
     SELECT project, elapsed, CASE WHEN elapsed = 0 THEN 0 WHEN elapsed < ${MINUTE_MS} THEN 1
@@ -90,7 +95,10 @@ export async function runTrafficBreakdown(
   for (const row of pageviews) {
     const views = num(row.views);
     const humans = num(row.humans);
-    const hourIndex = num(row.hour);
+    const weekHourIndex = num(row.week_hour);
+    const hourIndex = weekHourIndex % 24;
+    const day = weekdayHourly[Math.floor(weekHourIndex / 24)]!;
+    day[hourIndex] = day[hourIndex]! + views;
     hourly[hourIndex] = hourly[hourIndex]! + views;
     devices[text(row.device_group) as keyof typeof devices] += views;
     visitors.likelyHuman += humans;

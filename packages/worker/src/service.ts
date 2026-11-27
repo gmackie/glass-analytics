@@ -129,7 +129,7 @@ import {
   addTile,
   deleteDashboard,
   duplicateDashboard,
-  ensureStarterDashboard,
+  ensureStarterDashboards,
   getDashboard,
   listDashboards,
   removeTile,
@@ -428,7 +428,7 @@ const BOARD_INPUTS = {
   dashboardTemplates: z.object({ project }),
   createDashboardFromTemplate: z.object({
     project,
-    template: z.string().describe('website, product, revenue or errors (dashboard_templates).'),
+    template: z.string().describe('Template id from dashboard_templates.'),
     name: z.string().optional(),
     events: z
       .object({ signup: z.string().optional(), purchase: z.string().optional() })
@@ -2144,7 +2144,7 @@ GROUP BY event ORDER BY cur DESC, event ASC LIMIT 50`;
     const filtered = await filteredPageviews(this.env.DB, projects, range);
     return {
       ...(await runTrafficBreakdown(range, projects, ctx, filtered)),
-      dashboard: this.link('sites', spec),
+      dashboard: this.link('sites', { ...spec, view: 'traffic' }),
     };
   }
 
@@ -4231,7 +4231,7 @@ WHERE project = ${d.str(project)} AND session_id = ${d.str(row.session_id)} AND 
       allowedOrigins: spec.allowed_origins,
     });
     await this.seedDefaultInsights(created.id);
-    await ensureStarterDashboard(this.env.DB, created.id);
+    await ensureStarterDashboards(this.env.DB, created.id);
     return {
       project: created,
       summary: `Project "${created.id}" is ready. Use data-project="${created.id}" in the snippet.`,
@@ -5262,7 +5262,7 @@ GROUP BY path ORDER BY views DESC, path LIMIT 2000`);
   async listDashboards(input: unknown) {
     const ctx = await this.context(BOARD_INPUTS.listDashboards.parse(input).project);
     await this.seedDefaultInsights(ctx.project);
-    await ensureStarterDashboard(this.env.DB, ctx.project);
+    await ensureStarterDashboards(this.env.DB, ctx.project);
     const dashboards = await listDashboards(this.env.DB, ctx.project);
     return {
       project: ctx.project,

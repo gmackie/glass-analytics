@@ -611,14 +611,55 @@ function dashboardView(id: string): Node[] {
   return [holder];
 }
 
+function fleetDashboards(): Node[] {
+  const cards = [
+    {
+      name: 'Fleet overview',
+      description: 'Traffic share, top paths and activity across registered sites.',
+      href: href('sites', { project: null }),
+    },
+    {
+      name: 'Traffic patterns',
+      description: 'Weekday and hourly traffic, session duration, devices and bots.',
+      href: href('sites', { project: null, view: 'traffic' }),
+    },
+    {
+      name: 'Instrumentation coverage',
+      description: 'Find projects that have gone quiet or are missing product events.',
+      href: href('sites', { project: null, view: 'instrumentation' }),
+    },
+  ];
+  return [
+    pageHeader('Fleet dashboards', 'All registered sites in this installation.'),
+    h(
+      'div',
+      { class: 'dashboard-list' },
+      cards.map((card) =>
+        h(
+          'a',
+          { class: 'dashboard-card', href: card.href },
+          h('strong', {}, card.name),
+          h('span', { class: 'muted small' }, card.description),
+        ),
+      ),
+    ),
+  ];
+}
+
 export function dashboardsPage(route: Route): Node[] {
   const id = route.rest[0];
+  if (id === 'fleet') return fleetDashboards();
   if (id) return dashboardView(id);
   return [
     pageHeader(
       'Dashboards',
       'Analyses side by side, with one date range and filters, sent to Slack or email on a schedule.',
       [
+        h(
+          'a',
+          { class: 'button small', href: href('dashboards/fleet', { project: null }) },
+          'Fleet dashboards',
+        ),
         h(
           'a',
           { class: 'button small', href: href('sites', { project: project() }) },

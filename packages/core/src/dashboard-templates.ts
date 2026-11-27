@@ -22,6 +22,7 @@ export interface DashboardTemplate {
   description: string;
   /** Events the template needs, by role. */
   needs: ('signup' | 'purchase')[];
+  starter?: true;
   tiles: (events: TemplateEvents) => TemplateTile[];
 }
 
@@ -42,6 +43,7 @@ export const DASHBOARD_TEMPLATES: DashboardTemplate[] = [
     name: 'Website overview',
     description: 'Visitors, where they come from, what they read, and where they go next.',
     needs: [],
+    starter: true,
     tiles: () => [
       {
         insight: { name: 'Daily visitors', kind: 'trends', spec: pageviews('unique_persons') },
@@ -78,6 +80,94 @@ export const DASHBOARD_TEMPLATES: DashboardTemplate[] = [
       {
         insight: { name: 'Where visitors go', kind: 'paths', spec: { steps: 4 } },
         width: 12,
+        height: 2,
+      },
+    ],
+  },
+  {
+    id: 'acquisition',
+    name: 'Acquisition',
+    description: 'Referrers, campaigns, and countries behind your pageviews.',
+    needs: [],
+    starter: true,
+    tiles: () => [
+      {
+        insight: {
+          name: 'Pageviews by referrer',
+          kind: 'trends',
+          spec: pageviews('total', { breakdown: ['referrer_host'], display: 'pie' }),
+        },
+        width: 6,
+        height: 2,
+      },
+      {
+        insight: {
+          name: 'Pageviews by country',
+          kind: 'trends',
+          spec: pageviews('total', {
+            breakdown: ['country'],
+            breakdownLimit: 50,
+            display: 'world_map',
+          }),
+        },
+        width: 6,
+        height: 2,
+      },
+      {
+        insight: {
+          name: 'Top campaigns',
+          kind: 'trends',
+          spec: pageviews('total', {
+            filters: [{ property: 'utm_campaign', op: 'is_set' }],
+            breakdown: ['utm_campaign'],
+            display: 'bar_value',
+          }),
+        },
+        width: 12,
+        height: 1,
+      },
+    ],
+  },
+  {
+    id: 'engagement',
+    name: 'Engagement',
+    description: 'Sessions, device mix, popular pages, and visitor journeys.',
+    needs: [],
+    starter: true,
+    tiles: () => [
+      {
+        insight: {
+          name: 'Sessions over time',
+          kind: 'trends',
+          spec: pageviews('unique_sessions', {
+            filters: [{ property: 'session_id', op: 'is_set' }],
+            display: 'area',
+          }),
+        },
+        width: 6,
+        height: 1,
+      },
+      {
+        insight: {
+          name: 'Pageviews by device',
+          kind: 'trends',
+          spec: pageviews('total', { breakdown: ['device'], display: 'pie' }),
+        },
+        width: 6,
+        height: 1,
+      },
+      {
+        insight: {
+          name: 'Most viewed pages',
+          kind: 'trends',
+          spec: pageviews('total', { breakdown: ['path'], display: 'bar_value' }),
+        },
+        width: 6,
+        height: 2,
+      },
+      {
+        insight: { name: 'Top visitor journeys', kind: 'paths', spec: { steps: 4 } },
+        width: 6,
         height: 2,
       },
     ],
