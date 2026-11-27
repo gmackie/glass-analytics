@@ -25,6 +25,7 @@ import { CORS_HEADERS, errorResponse, HttpError, json } from './http.ts';
 import { handleIngest } from './ingest.ts';
 import { llmsTxt } from './llms.ts';
 import { handleMcp } from './mcp/server.ts';
+import { PROJECT_ID } from './projects.ts';
 import { handleReplayChunk } from './replays.ts';
 import { reportImage, unsubscribe } from './reports.ts';
 import { handleStripeWebhook } from './revenue.ts';
@@ -58,19 +59,22 @@ const FAVICON = `data:image/svg+xml,${encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#f6821f"/><path fill="#271608" d="M7 20h4v5H7zm7-6h4v11h-4zm7-7h4v18h-4z"/></svg>',
 )}`;
 
-function dashboardHtml(base: string, access: boolean): string {
+function dashboardHtml(base: string, access: boolean, usageProject?: string): string {
+  const usage = usageProject && PROJECT_ID.test(usageProject) ? usageProject : undefined;
   return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="glass-base" content="${base}">${access ? '\n<meta name="glass-auth" content="access">' : ''}
+${usage ? `<meta name="glass-usage-project" content="${usage}"><meta name="referrer" content="no-referrer">` : ''}
 <title>Dataflare</title>
 <link rel="icon" href="${FAVICON}">
 <link rel="stylesheet" href="${base}/app/app.css">
 </head>
 <body>
 <div id="app"></div>
+${usage ? `<script defer src="${base}/s.js"></script>` : ''}
 <script type="module" src="${base}/app/app.js"></script>
 </body>
 </html>`;
@@ -145,7 +149,9 @@ const html = (body: string) =>
   });
 
 const dashboardShell = (c: RequestContext) =>
-  html(dashboardHtml(c.prefix, dashboardUsesAccess(c.env)));
+  html(
+    dashboardHtml(c.prefix, dashboardUsesAccess(c.env), c.env.GLASS_DASHBOARD_ANALYTICS_PROJECT),
+  );
 
 const DASHBOARD_ROUTES: Record<string, (c: RequestContext) => Response> = {
   '/app': dashboardShell,

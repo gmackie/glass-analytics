@@ -25,7 +25,8 @@ const BUDGETS: Record<string, number> = {
   // formula editors (with their checkers from core), the measure picker and the insight
   // starters: about 4 KB, and the rest of the headroom is for user paths next.
   // 225: dashboards (grid, tiles, templates), the report and alert dialogs, notification channels.
-  'packages/dashboard/dist/app.js': 225,
+  // First-party report and Paths instrumentation adds about 0.9 KB when bundled.
+  'packages/dashboard/dist/app.js': 226,
   // 19: the code field, fold and chip styles shared by the new editors.
   'packages/dashboard/dist/app.css': 19,
   // Destinations, exports, issues, revenue and group analytics (Workers allow 3 MB on Free).
@@ -34,7 +35,8 @@ const BUDGETS: Record<string, number> = {
   // about 12 KB; notices, email, schedules) and the larger dashboard it serves.
   // Includes the embedded signup-to-activation and instrumentation coverage views.
   // App-specific product question definitions, input checks and generated MCP skills (about 3.7 KB).
-  'packages/worker/dist/worker.js': 677,
+  // Includes the optional self-instrumented dashboard and its same-origin SDK bootstrap.
+  'packages/worker/dist/worker.js': 678,
   'packages/cli/dist/glass.js': 42, // import, sourcemaps and stripe commands
 };
 

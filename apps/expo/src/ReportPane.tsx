@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { type Connection, fetchPaths, fetchReport, type Period } from './data.ts';
 import { demoPaths, demoReport } from './demo.ts';
@@ -7,6 +7,7 @@ import { PathFlow } from './PathFlow.tsx';
 import { ReportView } from './ReportView.tsx';
 import { useTheme } from './styles.ts';
 import { Action, Loading, Notice, PeriodPicker, Segments } from './ui.tsx';
+import { mobileUsage } from './usage.ts';
 
 export function ReportPane({
   project,
@@ -37,6 +38,17 @@ export function ReportPane({
       return connection ? fetchReport(connection, project, days, signal) : demoReport(days);
     },
   });
+  const mode = connection ? 'live' : 'demo';
+  const screen = view === 'Paths' ? 'paths' : 'overview';
+  useEffect(() => {
+    mobileUsage.visit(screen, mode, project);
+    // React Query exposes data only for the visible query. Cached data is a real view too.
+    if (report.data)
+      mobileUsage.reportResult()(
+        screen,
+        report.data.kind === 'web' ? report.data.totals.pageviews > 0 : report.data.total > 0,
+      );
+  }, [screen, mode, project, report.data]);
   const refresh = () => {
     refreshSites();
     void report.refetch();

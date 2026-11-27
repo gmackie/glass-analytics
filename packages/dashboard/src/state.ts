@@ -14,6 +14,8 @@ const demo = document.querySelector<HTMLMetaElement>('meta[name="glass-demo"]')?
 export const config = {
   /** Path prefix of the Worker, '' or '/_glass'. */
   base,
+  usageProject: document.querySelector<HTMLMetaElement>('meta[name="glass-usage-project"]')
+    ?.content,
   /** URL of the recorded responses, when this is the public demo. */
   demo,
   /** The Worker authenticated the dashboard with Cloudflare Access. */

@@ -310,6 +310,67 @@ describe('Dataflare end to end', { timeout: 120_000 }, () => {
     await fresh.close();
   });
 
+  it('dogfoods a real dashboard report with anonymous, bounded usage events', async (t) => {
+    const worker = await startDevServer({ port: 0, demoPort: 0, memory: true });
+    t.after(() => worker.close());
+    // In this isolated Worker the registered demo project also receives dashboard usage.
+    worker.env.GLASS_DASHBOARD_ANALYTICS_PROJECT = 'demo';
+    const fresh = await browser.newContext({ userAgent: UA });
+    t.after(() => fresh.close());
+    await fresh.addInitScript(() => {
+      localStorage.setItem('glass:key', 'dev-admin-key');
+      localStorage.setItem('glass:demo:groups', JSON.stringify({ company: 'private-company' }));
+    });
+    const page = await fresh.newPage();
+    const collected: {
+      event: string;
+      url?: string;
+      user_id?: string;
+      title?: string;
+      referrer?: string;
+      props: Record<string, unknown>;
+    }[] = [];
+    page.on('request', (request) => {
+      if (new URL(request.url()).pathname === '/_glass/e')
+        collected.push(...request.postDataJSON().events);
+    });
+    await page.goto(worker.glassUrl + '/_glass/app#/reports?project=demo&query=secret-query');
+    await eventually(
+      async () => collected,
+      (r) => r.some((e) => e.event === 'report_viewed'),
+      'report view',
+    );
+    assert.deepEqual(
+      collected.map((e) => e.event),
+      ['app_opened', '$pageview', 'report_viewed'],
+    );
+    assert.deepEqual(collected[2]?.props, {
+      surface: 'web',
+      mode: 'live',
+      traffic: 'verification',
+      screen: 'overview',
+      report: 'overview',
+      has_data: false,
+    });
+    assert.equal(new URL(collected[1]!.url!).pathname, '/_glass/app/overview');
+    assert.doesNotMatch(
+      JSON.stringify(collected),
+      /secret-query|dev-admin-key|private-company|project=demo|referrer|user_id|"title"/,
+    );
+    // Changing a filter on the same report must not inflate the number of visits.
+    await page.evaluate(() => {
+      location.hash = '/reports?project=demo&from=-14d';
+    });
+    await page.goto(worker.glassUrl + '/_glass/app#/insights/paths?project=demo');
+    await eventually(
+      async () => collected,
+      (r) => r.some((e) => e.props.report === 'paths'),
+      'paths view',
+    );
+    assert.equal(collected.filter((e) => e.props.report === 'overview').length, 1);
+    assert.equal(collected.filter((e) => e.event === 'app_opened').length, 1);
+  });
+
   it('opens and renews an Access dashboard deep link without storing or sending a key', async (t) => {
     const identity = { aud: 'observe', getIdentity: async () => ({ email: 'owner@example.test' }) };
     const observe = await startDevServer({

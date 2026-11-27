@@ -1,5 +1,6 @@
 import type { TrafficResult } from '@dataflare/core/insights/traffic';
 import { api } from '../api.ts';
+import { dashboardUsage } from '../app-usage.ts';
 import { lineChart } from '../components/charts.ts';
 import { icon } from '../components/icons.ts';
 import { empty, later, panel, table } from '../components/ui.ts';
@@ -94,6 +95,7 @@ export function trafficPanels(route: Route) {
   const start = Number(route.params.get('offset'));
   const offset = Number.isSafeInteger(start) && start > 0 ? start : 0;
   const { from, to } = scope();
+  const reportViewed = dashboardUsage.reportResult();
   return later(
     async () => {
       const result = await api.get<TrafficResult>('/api/traffic', {
@@ -104,6 +106,7 @@ export function trafficPanels(route: Route) {
         offset,
         limit: PAGE_SIZE,
       });
+      if (project && !path) reportViewed('overview', result.pageviews > 0);
       return h(
         'div',
         { class: 'traffic-grid' },

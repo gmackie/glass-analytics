@@ -48,3 +48,9 @@ public collection URLs.
 which the daily `lake-maintain` workflow applies to the Basin tables, and `GLASS_RETENTION_DAYS` in
 `wrangler.jsonc`, which the usage report shows. The Worker can't delete lake rows itself.
 `educateos-site` and `district` keep events for 395 days, set the same way.
+
+## Dataflare's own usage
+
+Observe sets `GLASS_DASHBOARD_ANALYTICS_PROJECT=dataflare` to record anonymous dashboard usage on its own Worker. Other Workers can opt in by setting this to a project they have registered locally. The dashboard uses its bundled web SDK, records named views after sign-in and strips viewed project IDs, URL parameters, referrers, titles and report contents before collection. Browser automation carries `traffic=verification`.
+
+The Dataflare project combines web and iPhone activity with `surface=web|ios`. `app_opened` counts a dashboard document or app launch. `report_viewed` counts a successful overview or Paths result once per visit, including empty results with `has_data=false`. `path_detail_opened` distinguishes a step from a transition. The iPhone also records `worker_connection` attempts and outcomes. Use `traffic=usage` for product metrics and `mode=live` for real reports.

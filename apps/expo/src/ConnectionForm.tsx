@@ -5,6 +5,7 @@ import { type Connection, connectionFrom, pastedConnection, verifyConnection } f
 import { saveConnection } from './session.ts';
 import { themedStyles, useTheme } from './styles.ts';
 import { Action } from './ui.tsx';
+import { mobileUsage } from './usage.ts';
 
 export function ConnectionForm({
   current,
@@ -41,14 +42,18 @@ export function ConnectionForm({
     if (busy) return;
     setBusy(true);
     setError('');
+    const mode = current ? 'live' : 'demo';
+    if (!disconnect) mobileUsage.connection(mode, 'attempted');
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 20000);
     try {
       const next = disconnect ? null : connectionFrom(address, key);
       if (next) await verifyConnection(next, controller.signal);
       await saveConnection(next);
+      if (next) mobileUsage.connection(mode, 'connected');
       onCommit(next);
     } catch (cause) {
+      if (!disconnect) mobileUsage.connection(mode, 'failed');
       setError(
         controller.signal.aborted
           ? 'The Worker timed out. Check your connection and try again.'
@@ -56,9 +61,9 @@ export function ConnectionForm({
             ? cause.message
             : 'Could not update the connection. Try again.',
       );
-      setBusy(false);
     } finally {
       clearTimeout(timeout);
+      setBusy(false);
     }
   }
   return (

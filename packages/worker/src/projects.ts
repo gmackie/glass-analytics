@@ -50,7 +50,7 @@ export async function listProjects(db: D1Database): Promise<Project[]> {
   return results.map(toProject);
 }
 
-const PROJECT_ID = /^[a-z0-9][a-z0-9_-]{0,62}$/;
+export const PROJECT_ID = /^[a-z0-9][a-z0-9_-]{0,62}$/;
 
 export async function createProject(
   db: D1Database,

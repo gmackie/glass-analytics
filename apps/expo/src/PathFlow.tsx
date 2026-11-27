@@ -8,6 +8,7 @@ import { PathDetails, type PathSelection } from './PathDetails.tsx';
 import { railWidth, sankeyLayout, touchHeight } from './sankey.ts';
 import { formatNumber, formatPeople, themedStyles, useTheme } from './styles.ts';
 import { Action, Notice } from './ui.tsx';
+import { mobileUsage } from './usage.ts';
 
 type FlowProps = { data: Paths; selected?: string; select: (choice: PathSelection) => void };
 function Sankey({ data, selected, select }: FlowProps) {
@@ -148,7 +149,11 @@ function TopPaths({ data }: { data: Paths }) {
 
 export function PathFlow({ data }: { data: Paths }) {
   const { ui } = useTheme();
-  const [choice, select] = useState<PathSelection>();
+  const [choice, setChoice] = useState<PathSelection>();
+  const select = (next: PathSelection) => {
+    mobileUsage.detail('node' in next ? 'step' : 'transition');
+    setChoice(next);
+  };
   const selected = choice && 'node' in choice ? choice.node : undefined;
   if (!data.total || !data.nodes.length)
     return <Notice title="No paths in this period">Try a longer period or include events.</Notice>;
@@ -168,7 +173,7 @@ export function PathFlow({ data }: { data: Paths }) {
             data={data}
             choice={choice}
             select={select}
-            close={() => select(undefined)}
+            close={() => setChoice(undefined)}
           />
         ) : null}
       </View>
